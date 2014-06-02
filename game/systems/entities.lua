@@ -27,6 +27,7 @@ function Entities:getAll()
     return ents
 end
 
+-- TODO: Needs some kind of optimization so we don't have to loop through every entity in the world.
 function Entities:getNearby( pos, radius )
     ents = {}
     for i,v in pairs( self.entities ) do

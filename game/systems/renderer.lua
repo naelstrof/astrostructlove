@@ -25,9 +25,6 @@ function Renderer:removeEntity( e )
     for i=e.rendererIndex, table.maxn( self.layers[ e.layer ] ), 1 do
         self.layers[ e.layer ][i].rendererIndex = self.layers[ e.layer ][i].rendererIndex - 1
     end
-    for i,v in pairs( self.layers[ e.layer ] ) do
-        print( i, v.rendererIndex )
-    end
 end
 
 function Renderer:draw()

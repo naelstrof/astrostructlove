@@ -33,6 +33,9 @@ function Game:enter()
         Game.highlight = game.entity( { game.drawable } )
         Game.highlight:setColor( { 255, 255, 255, 155 } )
         Game.highlight:setLayer( 1 )
+        if Game.currentEntity ~= nil then
+            Game.highlight:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
+        end
     end
     local tooltip = loveframes.Create( "tooltip" )
     tooltip:SetObject( create )
@@ -194,7 +197,11 @@ function Game:mousepressed( x, y, button )
             if Game.tool == "create" then
                 if Game.currentEntity ~= nil then
                     Game.placer = game.entity( Game.currentEntity.components )
-                    Game.placer:setPos( Game.highlight:getPos() )
+                    if not Game.snap:GetChecked() then
+                        Game.placer:setPos( game.vector( love.mouse.getX(), love.mouse.getY() ) )
+                    else
+                        Game.placer:setPos( Game.highlight:getPos() )
+                    end
                     Game.placer:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
                     Game.startplace = game.vector( love.mouse.getX(), love.mouse.getY() )
                     Game.highlight:setColor( { 255, 255, 255, 0 } )

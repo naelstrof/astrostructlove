@@ -7,10 +7,14 @@ game = {}
 game.gamestate = require( "lib/hump/gamestate" )
 game.vector = require( "lib/hump/vector" )
 game.timer = require( "lib/hump/timer" )
+game.camera = require( "lib/hump/camera" )
 
+compo = {}
 -- Components
-game.component = require( "lib/component" )
-game.drawable = require( "game/components/drawable" )
+compo.component = require( "lib/component" )
+compo.drawable = require( "game/components/drawable" )
+compo.camera = require( "game/components/camera" )
+compo.controllable = require( "game/components/controllable" )
 --
 
 game.entity = require( "lib/entity" )
@@ -18,6 +22,8 @@ game.entity = require( "lib/entity" )
 -- Systems
 game.entities = require( "game/systems/entities" )
 game.renderer = require( "game/systems/renderer" )
+game.camerasystem = require( "game/systems/camerasystem" )
+game.controlsystem = require( "game/systems/controlsystem" )
 --
 
 gamestates = {}

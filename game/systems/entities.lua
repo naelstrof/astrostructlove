@@ -31,7 +31,7 @@ end
 function Entities:getNearby( pos, radius )
     ents = {}
     for i,v in pairs( self.entities ) do
-        if v:isDrawable() then
+        if v:hasComponent( compo.drawable ) then
             -- FIXME: This could be way more accurate, its assuming everything is a circle because I'm a lazy ass.
             -- Perhaps a component could describe the shape of something? May need to implement a shape collision library.
             vradius = math.max( v:getDrawable():getWidth()*v:getScale().x, v:getDrawable():getHeight()*v:getScale().y )
@@ -48,14 +48,14 @@ function Entities:getNearby( pos, radius )
 end
 
 function Entities:getClicked()
-    mousepos = game.vector( love.mouse.getX(), love.mouse.getY() )
+    mousepos = game.camerasystem:getWorldMouse()
     -- FIXME: Having a radius selection of 1 means that selection could be more annoying or less annoying when attempting to click on singular pixel objects
     -- testing may have to be done.
     ents = self:getNearby( mousepos, 1 )
     -- Find the top-most drawable entity
     topmost = nil
     for i,v in pairs( ents ) do
-        if v:isDrawable() then
+        if v:hasComponent( compo.drawable ) then
             if topmost == nil or topmost.layer < v.layer or ( topmost.rendererIndex < v.rendererIndex and topmost.layer <= v.layer ) then
                 topmost = v
             end

@@ -178,7 +178,7 @@ function vector:angleTo(other)
 	if other then
 		return atan2(self.y - other.y, self.x - other.x )
 	end
-	return atan2(self.y, self.x)
+	return atan2( self.y, self.x )
 end
 
 function vector:trimmed(maxLen)

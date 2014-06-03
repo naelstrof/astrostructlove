@@ -24,6 +24,11 @@ function Camera:init( e )
         return e.zoom
     end
 
+    e.Zoom = function( e, zoom )
+        e.zoom = e.zoom * zoom
+        e.camera:zoom( zoom )
+    end
+
     e.setLayer = function( e, l )
         game.renderer:removeEntity( e )
         e.layer = l

@@ -5,11 +5,13 @@ function Game:enter()
     game.camerasystem:setActive( Game.camera )
 
     Game.gridsize = 64
+    Game.gridoffsetx = 0
+    Game.gridoffsety = 0
     Game.rotstepsize = math.pi / 2
     Game.tool = "create"
     Game.floorentities = { { name="metalfloor", components={ compo.drawable }, image="data/textures/metalfloor.png" } }
 
-    Game.wallentities = { { name="metalwall", components={ compo.drawable }, image="data/textures/tile.png" } }
+    Game.wallentities = { { name="metalwall", components={ compo.drawable }, image="data/textures/metalwall.png" } }
     Game.furnitureentities = {
         { name="table", components={ compo.drawable }, image="data/textures/tile.png" },
         { name="chair", components={ compo.drawable }, image="data/textures/tile.png" }
@@ -100,7 +102,7 @@ function Game:enter()
 
     Game.snap = loveframes.Create( "checkbox", frame ):SetText( "Snap to grid" ):SetPos( 220, 30 )
     local text = loveframes.Create( "text", frame ):SetText( "Grid size" ):SetPos( 220, 65 )
-    local gridsize = loveframes.Create( "textinput", frame ):SetText( tostring( Game.gridsize ) ):SetPos( 290, 60 ):SetWidth( 64 )
+    local gridsize = loveframes.Create( "textinput", frame ):SetText( tostring( Game.gridsize ) ):SetPos( 290, 60 ):SetWidth( 67 )
     gridsize.OnFocusLost = function( object )
         Game.gridsize = tonumber( object:GetText() )
         if Game.gridsize == nil or Game.gridsize == 0 then
@@ -110,9 +112,33 @@ function Game:enter()
     end
     gridsize.OnEnter = gridsize.OnFocusLost
     gridsize:SetUsable( { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.' } )
-    Game.snaprot = loveframes.Create( "checkbox", frame ):SetText( "Rotation snapping" ):SetPos( 220, 90 )
-    local text = loveframes.Create( "text", frame ):SetText( "Snap step" ):SetPos( 220, 125 )
-    local rotstepsize = loveframes.Create( "textinput", frame ):SetText( tostring( Game.rotstepsize / math.pi * 180 ) ):SetPos( 290, 120 ):SetWidth( 64 )
+
+    local text = loveframes.Create( "text", frame ):SetText( "Grid offset" ):SetPos( 220, 95 )
+    local gridoffsetx = loveframes.Create( "textinput", frame ):SetText( tostring( Game.gridoffsetx ) ):SetPos( 290, 90 ):SetWidth( 32 )
+    gridoffsetx.OnFocusLost = function( object )
+        Game.gridoffsetx = tonumber( object:GetText() )
+        if Game.gridoffsetx == nil  then
+            Game.gridoffsetx = 0
+            object:SetText( "0" )
+        end
+    end
+    gridoffsetx.OnEnter = gridoffsetx.OnFocusLost
+    gridoffsetx:SetUsable( { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.' } )
+
+    local gridoffsety = loveframes.Create( "textinput", frame ):SetText( tostring( Game.gridoffsety ) ):SetPos( 325, 90 ):SetWidth( 32 )
+    gridoffsety.OnFocusLost = function( object )
+        Game.gridoffsety = tonumber( object:GetText() )
+        if Game.gridoffsety == nil  then
+            Game.gridoffsety = 0
+            object:SetText( "0" )
+        end
+    end
+    gridoffsety.OnEnter = gridoffsety.OnFocusLost
+    gridoffsety:SetUsable( { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.' } )
+
+    Game.snaprot = loveframes.Create( "checkbox", frame ):SetText( "Rotation snapping" ):SetPos( 220, 130 )
+    local text = loveframes.Create( "text", frame ):SetText( "Snap step" ):SetPos( 220, 165 )
+    local rotstepsize = loveframes.Create( "textinput", frame ):SetText( tostring( Game.rotstepsize / math.pi * 180 ) ):SetPos( 290, 160 ):SetWidth( 64 )
     rotstepsize.OnFocusLost = function( object )
         Game.rotstepsize = tonumber( object:GetText() ) * math.pi / 180
         if Game.rotstepsize == nil or Game.rotstepsize == 0 then
@@ -149,14 +175,20 @@ function Game:draw()
     love.graphics.line( 5, -5, -5, 5 )
     love.graphics.print( "0, 0", 10, 10 )
     if Game.snap:GetChecked() then
-        local tpos = game.camerasystem:getActive():toWorld( game.vector( 0, 0 ) )
-        tpos = game.vector( math.floor( tpos.x / Game.gridsize + 0.5 ) * Game.gridsize, math.floor( tpos.y / Game.gridsize + 0.5 ) * Game.gridsize )
-        local ypos = game.camerasystem:getActive():toWorld( game.vector( love.graphics.getWidth(), love.graphics.getHeight() ) )
-        for x=tpos.x,ypos.x,Game.gridsize do
-            love.graphics.line( x, tpos.y, x, ypos.y )
+        local max = math.max( love.graphics.getWidth(), love.graphics.getHeight() )
+        local min = math.min( love.graphics.getWidth(), love.graphics.getHeight() )
+        local difference = math.ceil( ( max - min ) / Game.gridsize ) * Game.gridsize
+        local middle = game.camerasystem:getActive():getPos()
+        local start = game.vector( middle.x - max / 2, middle.y - max / 2 )
+        start = game.vector( math.floor( start.x / Game.gridsize + 0.5 ) * Game.gridsize, math.floor( start.y / Game.gridsize + 0.5 ) * Game.gridsize )
+        start = start - game.vector( difference + Game.gridoffsetx, difference + Game.gridoffsety )
+        local endp = game.vector( middle.x + max / 2, middle.y + max / 2 )
+        endp = endp + game.vector( difference, difference )
+        for x=start.x,endp.x,Game.gridsize do
+            love.graphics.line( x, middle.y + max / 2 + difference, x, middle.y - max / 2 - difference )
         end
-        for y=tpos.y,ypos.y,Game.gridsize do
-            love.graphics.line( tpos.x, y, ypos.x, y )
+        for y=start.y,endp.y,Game.gridsize do
+            love.graphics.line( middle.x + max / 2 + difference, y, middle.x - max / 2 - difference, y )
         end
     end
 
@@ -188,9 +220,13 @@ end
 
 function Game:update( dt )
     local mousepos = game.camerasystem:getWorldMouse()
+    if Game.snap:GetChecked() then
+        mousepos = mousepos - game.vector( Game.gridoffsetx, Game.gridoffsety )
+    end
     game.controlsystem:update( dt )
     if ( Game.snap:GetChecked() ) then
         Game.highlight:setPos( game.vector( math.floor( (mousepos.x - Game.gridsize / 2) / Game.gridsize + 0.5 ) * Game.gridsize, math.floor( (mousepos.y - Game.gridsize / 2) / Game.gridsize + 0.5 ) * Game.gridsize ) + game.vector( Game.gridsize, Game.gridsize ) / 2 )
+        Game.highlight:setPos( Game.highlight:getPos() + game.vector( Game.gridoffsetx, Game.gridoffsety ) )
     else
         Game.highlight:setPos( mousepos )
     end
@@ -225,26 +261,26 @@ function Game:mousepressed( x, y, button )
                     Game.highlight:setColor( { 255, 255, 255, 0 } )
                 end
             end
+        elseif button == "wu" then
+            game.camerasystem:getActive():Zoom( 1.5 )
+        elseif button == "wd" then
+            game.camerasystem:getActive():Zoom( 0.5 )
         end
     end
     loveframes.mousepressed( x, y, button )
 end
 
 function Game:mousereleased( x, y, button )
-    -- Only interpret input when we're not clicking on a loveframes
-    -- element
-    if table.maxn( loveframes.util.GetCollisions() ) <= 1 then
-        if button == 'l' then
-            if Game.tool == "create" then
-                if Game.placer ~= nil then
-                    Game.highlight:setColor( { 255, 255, 255, 155 } )
-                    Game.placer = nil
-                end
-            elseif Game.tool == "delete" then
-                ent = game.entities:getClicked()
-                if ent ~= nil then
-                    ent:remove()
-                end
+    if button == 'l' then
+        if Game.tool == "create" then
+            if Game.placer ~= nil then
+                Game.highlight:setColor( { 255, 255, 255, 155 } )
+                Game.placer = nil
+            end
+        elseif Game.tool == "delete" then
+            ent = game.entities:getClicked()
+            if ent ~= nil then
+                ent:remove()
             end
         end
     end

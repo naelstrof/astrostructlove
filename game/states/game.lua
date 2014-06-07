@@ -11,10 +11,11 @@ function Game:enter()
     Game.tool = "create"
     Game.floorentities = { { name="metalfloor", components={ compo.drawable }, image="data/textures/metalfloor.png" } }
 
-    Game.wallentities = { { name="metalwall", components={ compo.drawable }, image="data/textures/metalwall.png" } }
+    Game.wallentities = { { name="metalwall", components={ compo.drawable, compo.blockslight }, image="data/textures/metalwall.png" } }
     Game.furnitureentities = {
         { name="table", components={ compo.drawable }, image="data/textures/tile.png" },
-        { name="chair", components={ compo.drawable }, image="data/textures/tile.png" }
+        { name="chair", components={ compo.drawable }, image="data/textures/tile.png" },
+        { name="lamp", components={ compo.drawable, compo.emitslight }, image="data/textures/tile.png" }
     }
     Game.highlight = game.entity( { compo.drawable } )
     Game.highlight:setColor( { 255, 255, 255, 155 } )
@@ -174,15 +175,18 @@ function Game:draw()
     love.graphics.line( -5, -5, 5, 5 )
     love.graphics.line( 5, -5, -5, 5 )
     love.graphics.print( "0, 0", 10, 10 )
+    -- A bunch of complicated math to draw a grid, but only inside of the view.
     if Game.snap:GetChecked() then
-        local max = math.max( love.graphics.getWidth(), love.graphics.getHeight() )
-        local min = math.min( love.graphics.getWidth(), love.graphics.getHeight() )
+        local zoom = ( 1 / game.camerasystem:getActive():getZoom() )
+        local max = math.max( love.graphics.getWidth(), love.graphics.getHeight() ) * zoom
+        local min = math.min( love.graphics.getWidth(), love.graphics.getHeight() ) * zoom
         local difference = math.ceil( ( max - min ) / Game.gridsize ) * Game.gridsize
         local middle = game.camerasystem:getActive():getPos()
         local start = game.vector( middle.x - max / 2, middle.y - max / 2 )
+        start = start * zoom
         start = game.vector( math.floor( start.x / Game.gridsize + 0.5 ) * Game.gridsize, math.floor( start.y / Game.gridsize + 0.5 ) * Game.gridsize )
-        start = start - game.vector( difference + Game.gridoffsetx, difference + Game.gridoffsety )
         local endp = game.vector( middle.x + max / 2, middle.y + max / 2 )
+        endp = endp * zoom
         endp = endp + game.vector( difference, difference )
         for x=start.x,endp.x,Game.gridsize do
             love.graphics.line( x, middle.y + max / 2 + difference, x, middle.y - max / 2 - difference )
@@ -239,6 +243,7 @@ function Game:update( dt )
     elseif Game.placer ~= nil then
         Game.placer:setRot( 0 )
     end
+    game.renderer:update( dt )
     loveframes.update( dt )
 end
 

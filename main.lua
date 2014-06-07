@@ -15,6 +15,8 @@ compo.component = require( "lib/component" )
 compo.drawable = require( "game/components/drawable" )
 compo.camera = require( "game/components/camera" )
 compo.controllable = require( "game/components/controllable" )
+compo.blockslight = require( "game/components/blockslight" )
+compo.emitslight = require( "game/components/emitslight" )
 --
 
 game.entity = require( "lib/entity" )

@@ -2,7 +2,7 @@
 -- Adds several values to the entity that shouldn't be altered manually: rendererIndex, layer
 -- The values are used to locate the entity within the table.
 
-local Renderer = love.class( { layers = {} } )
+local Renderer = love.class( { layers = {}, lights={} } )
 
 function Renderer:addEntity( e )
     if e.layer == nil then
@@ -27,12 +27,35 @@ function Renderer:removeEntity( e )
     end
 end
 
+function Renderer:addLight( e )
+    table.insert( self.lights, e )
+    e.lightIndex = table.maxn( self.lights )
+end
+
+function Renderer:removeLight( e )
+    table.remove( self.lights, e.lightIndex )
+    for i=e.lightIndex, table.maxn( self.lights ), 1 do
+        self.lights[i].lightsIndex = self.lights[i].lightsIndex - 1
+    end
+end
+
+function Renderer:update( dt )
+    for i,v in pairs( self.lights ) do
+        v:updateShadowVolumes()
+    end
+end
+
 function Renderer:draw()
     -- FIXME: May not actually traverse layers alphanumerically
     for i,v in pairs( self.layers ) do
         for o,w in pairs( v ) do
             love.graphics.setColor( w.color )
             love.graphics.draw( w.drawable, w.pos.x, w.pos.y, w.rot, w.scale.x, w.scale.y, w.originoffset.x, w.originoffset.y )
+        end
+    end
+    for i,v in pairs( self.lights ) do
+        if v.shadowmeshdraw ~= nil then
+            love.graphics.draw( v.shadowmeshdraw )
         end
     end
 end

@@ -15,7 +15,7 @@ function Game:enter()
     Game.furnitureentities = {
         { name="table", components={ compo.drawable }, image="data/textures/tile.png" },
         { name="chair", components={ compo.drawable }, image="data/textures/tile.png" },
-        { name="lamp", components={ compo.drawable, compo.emitslight }, image="data/textures/tile.png" }
+        { name="lamp", components={ compo.drawable, compo.emitslight, compo.controllable }, image="data/textures/lamp.png" }
     }
     Game.highlight = game.entity( { compo.drawable } )
     Game.highlight:setColor( { 255, 255, 255, 155 } )
@@ -168,9 +168,12 @@ end
 
 function Game:draw()
 
-    game.camerasystem:attach()
     game.renderer:draw()
 
+    if game.renderer:getFullbright() then
+        love.graphics.print( "FULLBRIGHT", 0, 30 )
+    end
+    game.camerasystem:attach()
     love.graphics.setColor( { 255, 255, 255, 155 } )
     love.graphics.line( -5, -5, 5, 5 )
     love.graphics.line( 5, -5, -5, 5 )
@@ -185,6 +188,7 @@ function Game:draw()
         local start = game.vector( middle.x - max / 2, middle.y - max / 2 )
         start = start * zoom
         start = game.vector( math.floor( start.x / Game.gridsize + 0.5 ) * Game.gridsize, math.floor( start.y / Game.gridsize + 0.5 ) * Game.gridsize )
+        start = start + game.vector( Game.gridoffsetx, Game.gridoffsety )
         local endp = game.vector( middle.x + max / 2, middle.y + max / 2 )
         endp = endp * zoom
         endp = endp + game.vector( difference, difference )
@@ -293,6 +297,9 @@ function Game:mousereleased( x, y, button )
 end
 
 function Game:keypressed( key, unicode )
+    if key == "f" then
+        game.renderer:toggleFullbright()
+    end
     loveframes.keypressed( key, unicode )
 end
 
@@ -308,6 +315,7 @@ function Game:resize( w, h )
     frame:SetWidth( love.graphics.getWidth() )
     frame:SetPos( 0, love.graphics.getHeight()-frame:GetHeight() )
     topbar:SetWidth( love.graphics.getWidth() )
+    game.renderer:resize( w, h )
 end
 
 return Game

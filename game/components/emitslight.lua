@@ -4,6 +4,12 @@ function EmitsLight:init( e )
     e.shadowmeshdraw = nil
     e.oldpos = nil
     e.radius = 512
+    e.lightdrawable = love.graphics.newImage( "data/textures/point.png" )
+    e.lightrot = 0
+    e.lightoriginoffset = game.vector( e.lightdrawable:getWidth() / 2, e.lightdrawable:getHeight() / 2 )
+    -- ONLY SCALE WIDTH, so we can have some light shafts and shit.
+    e.lightscale = game.vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getWidth() )
+    e.lightintensity = 0.8
     e.updateShadowVolumes = function( e )
         if e.oldpos == e:getPos() then
             return
@@ -27,6 +33,15 @@ function EmitsLight:init( e )
 end
 
 function EmitsLight:deinit( e )
+    e.shadowmeshdraw = nil
+    e.oldpos = nil
+    e.radius = nil
+    e.lightdrawable = nil
+    e.lightrot = nil
+    e.lightoriginoffset = nil
+    e.lightscale = nil
+    e.lightintensity = nil
+    e.updateShadowVolumes = nil
     game.renderer:removeLight( e )
 end
 

@@ -35,6 +35,7 @@ gamestates.game = require( "game/states/game" )
 
 function love.load()
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )
+    game.renderer:load()
     game.gamestate.registerEvents()
     game.gamestate.switch( gamestates.menu )
 end

@@ -3,6 +3,7 @@ local Game = {}
 function Game:enter()
     Game.camera = game.entity( { compo.camera, compo.controllable } )
     game.camerasystem:setActive( Game.camera )
+    game.renderer:setFullbright( true )
 
     Game.gridsize = 64
     Game.gridoffsetx = 0
@@ -171,7 +172,7 @@ function Game:draw()
     game.renderer:draw()
 
     if game.renderer:getFullbright() then
-        love.graphics.print( "FULLBRIGHT", 0, 30 )
+        love.graphics.print( "FULLBRIGHT (F to toggle)", 0, 30 )
     end
     game.camerasystem:attach()
     love.graphics.setColor( { 255, 255, 255, 155 } )
@@ -271,9 +272,9 @@ function Game:mousepressed( x, y, button )
                 end
             end
         elseif button == "wu" then
-            game.camerasystem:getActive():Zoom( 1.5 )
+            game.camerasystem:getActive():Zoom( 1.2 )
         elseif button == "wd" then
-            game.camerasystem:getActive():Zoom( 0.5 )
+            game.camerasystem:getActive():Zoom( 0.8 )
         end
     end
     loveframes.mousepressed( x, y, button )

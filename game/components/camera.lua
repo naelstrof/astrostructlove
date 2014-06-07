@@ -5,13 +5,16 @@ function Camera:init( e )
     e.zoom = 1
 
     -- Override setPos and setRot to affect the actual camera object as well
+    -- Make sure to chain the original function so that everything gets called
+    e.setPosCameraBackup = e.setPos
     e.setPos = function( e, pos )
-        e.pos = pos
+        e:setPosCameraBackup( pos )
         e.camera:lookAt( pos:unpack() )
     end
 
+    e.setRotCameraBackup = e.setRot
     e.setRot = function( e, rot )
-        e.rot = rot
+        e:setRotCameraBackup( rot )
         e.camera:rotateTo( rot )
     end
 
@@ -50,8 +53,10 @@ function Camera:deinit( e )
     e.getZoom = nil
     e.setLayer = nil
     e.getLayer = nil
-    e.setPos = game.entity.setPos
-    e.setRot = game.entity.setRot
+    e.setPos = e.setPosCameraBackup
+    e.setRot = e.setRotCameraBackup
+    e.setPosCameraBackup = nil
+    e.setRotCameraBackup = nil
     e.camera = nil
     e.zoom = nil
 end

@@ -66,11 +66,27 @@ function BlocksLight:init( e )
         return verticies
     end
     game.renderer:updateLights()
+
+    e.setPosBlocksLightBackup = e.setPos
+    e.setPos = function( e, pos )
+        e:setPosBlocksLightBackup( pos )
+        game.renderer:updateLights()
+    end
+
+    e.setRotBlocksLightBackup = e.setRot
+    e.setRot = function( e, rot )
+        e:setRotBlocksLightBackup( rot )
+        game.renderer:updateLights()
+    end
 end
 
 function BlocksLight:deinit( e )
     e.shadowmesh = nil
     e.getShadowVolume = nil
+    e.setPos = e.setPosBlocksLightBackup
+    e.setRot = e.setRotBlocksLightBackup
+    e.setPosBlocksLightBackup = nil
+    e.setRotBlocksLightBackup = nil
     if e:hasComponent( compo.drawable ) then
         e.setDrawable = e.setDrawableBackup
     else

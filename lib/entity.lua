@@ -10,10 +10,15 @@ local Entity = love.class( { components = nil,
 
 Entity.__name = "Entity"
 
-function Entity:__init( components )
+function Entity:__init( components, attributes )
+    attributes = attributes or {}
     self.pos = game.vector( 0, 0 )
     self.rot = 0
     self.components = components
+    -- Set up the attributes first as they may affect the components
+    for i,v in pairs( attributes ) do
+        self[i] = v
+    end
     for i,v in pairs( components ) do
         v:init( self )
     end

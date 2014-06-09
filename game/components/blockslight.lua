@@ -25,6 +25,14 @@ function BlocksLight:init( e )
                 game.vector( w, -h )
             }
         end
+        local w = e.drawable:getWidth() / 2
+        local h = e.drawable:getHeight() / 2
+        e.shadowmesh = {
+            game.vector( -w, -h ),
+            game.vector( -w, h ),
+            game.vector( w, h ),
+            game.vector( w, -h )
+        }
     end
 
     e.getShadowVolume = function( e, lightpos, radius )

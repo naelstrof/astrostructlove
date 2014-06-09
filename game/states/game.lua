@@ -10,20 +10,50 @@ function Game:enter()
     Game.gridoffsety = 0
     Game.rotstepsize = math.pi / 2
     Game.tool = "create"
-    Game.floorentities = { { name="metalfloor", components={ compo.drawable }, image="data/textures/metalfloor.png" } }
-
-    Game.wallentities = { { name="metalwall", components={ compo.drawable, compo.blockslight }, image="data/textures/metalwall.png" } }
+    Game.floorentities = {
+        {
+            name="metalfloor",
+            components={ compo.drawable },
+            image="data/textures/metalfloor.png",
+            attributes={ drawable=love.graphics.newImage( "data/textures/metalfloor.png" ) }
+        }
+    }
+    Game.wallentities = {
+        {
+            name="metalwall",
+            components={ compo.drawable, compo.blockslight },
+            image="data/textures/metalwall.png",
+            attributes={ drawable=love.graphics.newImage( "data/textures/metalwall.png" ) }
+        }
+    }
     Game.furnitureentities = {
-        { name="table", components={ compo.drawable }, image="data/textures/tile.png" },
-        { name="chair", components={ compo.drawable }, image="data/textures/tile.png" },
-        { name="lamp", components={ compo.drawable, compo.emitslight, compo.controllable }, image="data/textures/lamp.png" }
+        {
+            name="lamp",
+            components={ compo.drawable, compo.emitslight, compo.controllable },
+            image="data/textures/lamp.png",
+            attributes={ drawable=love.graphics.newImage( "data/textures/lamp.png" ) }
+        },
+        {
+            name="controlpanel",
+            components={ compo.drawable, compo.glows },
+            image="data/textures/controlpanel.png",
+            attributes={
+                            drawable=love.graphics.newImage( "data/textures/controlpanel.png" ),
+                            glowdrawable=love.graphics.newImage( "data/textures/controlpanel_illumination.png" )
+                       }
+        }
     }
     Game.logicentities = {
-        { name="starfield", components={ compo.starfield }, image="data/textures/tile.png" },
+        {
+            name="starfield",
+            components={ compo.starfield },
+            image="data/textures/logic.png",
+            attributes={}
+        }
     }
     Game.highlight = game.entity( { compo.drawable } )
-    Game.highlight:setColor( { 255, 255, 255, 155 } )
-    Game.highlight:setLayer( 1 )
+    Game.highlight:setColor( { 255, 255, 255, 0 } )
+    Game.highlight:setLayer( 4 )
     frame = loveframes.Create( "frame" ):SetName( "Map Editor" ):ShowCloseButton( false ):SetHeight( 200 )
     frame:SetWidth( love.graphics.getWidth() )
     frame:SetPos( 0, love.graphics.getHeight()-frame:GetHeight() )
@@ -41,8 +71,8 @@ function Game:enter()
     create.OnClick = function( object, x, y )
         Game.tool = "create"
         Game.highlight = game.entity( { compo.drawable } )
-        Game.highlight:setColor( { 255, 255, 255, 155 } )
-        Game.highlight:setLayer( 1 )
+        Game.highlight:setColor( { 255, 255, 255, 0 } )
+        Game.highlight:setLayer( 4 )
         if Game.currentEntity ~= nil then
             Game.highlight:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
         end
@@ -72,7 +102,8 @@ function Game:enter()
         temp.OnClick = function()
             Game.currentEntity = v
             if Game.tool == "create" then
-                Game.highlight:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
+                Game.highlight:setDrawable( love.graphics.newImage( v.image ) )
+                Game.highlight:setColor( { 255, 255, 255, 155 } )
             end
         end
         floors:AddItem( temp )
@@ -83,7 +114,8 @@ function Game:enter()
         temp.OnClick = function()
             Game.currentEntity = v
             if Game.tool == "create" then
-                Game.highlight:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
+                Game.highlight:setDrawable( love.graphics.newImage( v.image ) )
+                Game.highlight:setColor( { 255, 255, 255, 155 } )
             end
         end
         walls:AddItem( temp )
@@ -95,7 +127,8 @@ function Game:enter()
         temp.OnClick = function()
             Game.currentEntity = v
             if Game.tool == "create" then
-                Game.highlight:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
+                Game.highlight:setDrawable( love.graphics.newImage( v.image ) )
+                Game.highlight:setColor( { 255, 255, 255, 155 } )
             end
         end
         furniture:AddItem( temp )
@@ -103,11 +136,12 @@ function Game:enter()
 
     local logic = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
     for i,v in pairs( Game.logicentities ) do
-        local temp = loveframes.Create( "imagebutton", walls ):SetImage( v.image ):SizeToImage():SetText( v.name )
+        local temp = loveframes.Create( "imagebutton", logic ):SetImage( v.image ):SizeToImage():SetText( v.name )
         temp.OnClick = function()
             Game.currentEntity = v
             if Game.tool == "create" then
-                Game.highlight:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
+                Game.highlight:setDrawable( love.graphics.newImage( v.image ) )
+                Game.highlight:setColor( { 255, 255, 255, 155 } )
             end
         end
         logic:AddItem( temp )
@@ -277,14 +311,11 @@ function Game:mousepressed( x, y, button )
         if button == 'l' then
             if Game.tool == "create" then
                 if Game.currentEntity ~= nil then
-                    Game.placer = game.entity( Game.currentEntity.components )
+                    Game.placer = game.entity( Game.currentEntity.components, Game.currentEntity.attributes )
                     if not Game.snap:GetChecked() then
                         Game.placer:setPos( mousepos )
                     else
                         Game.placer:setPos( Game.highlight:getPos() )
-                    end
-                    if Game.placer:hasComponent( compo.drawable ) then
-                        Game.placer:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
                     end
                     Game.startplace = mousepos
                     Game.highlight:setColor( { 255, 255, 255, 0 } )

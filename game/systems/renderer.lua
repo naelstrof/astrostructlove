@@ -2,11 +2,11 @@
 -- Adds several values to the entity that shouldn't be altered manually: rendererIndex, layer
 -- The values are used to locate the entity within the table.
 
-local Renderer = love.class( { layers = {}, lights={}, canvas=nil, fullbright=false } )
+local Renderer = love.class( { layers = {}, lights={}, glowables={}, worldcanvas=nil, lightcanvas=nil, fullbright=false, maskshader=nil } )
 
 function Renderer:addEntity( e )
     if e.layer == nil then
-        startlayer = 0
+        startlayer = 2
     else
         startlayer = e.layer
     end
@@ -39,6 +39,18 @@ function Renderer:removeEntity( e )
     end
 end
 
+function Renderer:addGlowable( e )
+    table.insert( self.glowables, e )
+    e.glowableIndex = table.maxn( self.glowables )
+end
+
+function Renderer:removeGlowable( e )
+    table.remove( self.glowables, e.glowableIndex )
+    for i=e.glowableIndex, table.maxn( self.glowables ), 1 do
+        self.glowables[i].glowableIndex = self.glowables[i].glowableIndex - 1
+    end
+end
+
 function Renderer:addLight( e )
     table.insert( self.lights, e )
     e.lightIndex = table.maxn( self.lights )
@@ -58,11 +70,29 @@ function Renderer:updateLights( e )
 end
 
 function Renderer:load()
-    self.canvas = love.graphics.newCanvas( love.graphics.getDimensions() )
+    self.maskshader = love.graphics.newShader( [[
+        vec4 effect ( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ) {
+            // a discarded fragment will fail the stencil test.
+            if ( Texel( texture, texture_coords ).a == 0.0)
+                discard;
+            return vec4(1.0);
+        }
+    ]] )
+    self.lightcanvas = love.graphics.newCanvas( love.graphics.getDimensions() )
+    self.worldcanvas = love.graphics.newCanvas( love.graphics.getDimensions() )
+    -- Space layer
+    self.layers[ 1 ] = {}
+    -- Ground layer
+    self.layers[ 2 ] = {}
+    -- Everything else layer
+    self.layers[ 3 ] = {}
+    -- Special fullbright layer
+    self.layers[ 4 ] = {}
 end
 
 function Renderer:resize( w, h )
-    self.canvas = love.graphics.newCanvas( love.graphics.getDimensions() )
+    self.lightcanvas = love.graphics.newCanvas( w, h )
+    self.worldcanvas = love.graphics.newCanvas( w, h )
 end
 
 function Renderer:update( dt )
@@ -72,20 +102,26 @@ function Renderer:update( dt )
 end
 
 function Renderer:draw()
-    -- Draw world
+    -- Draw world to world canvas
     game.camerasystem:attach()
-    -- FIXME: May not actually traverse layers alphanumerically
-    for i,v in pairs( self.layers ) do
-        for o,w in pairs( v ) do
+    love.graphics.setCanvas( self.worldcanvas )
+    self.worldcanvas:clear()
+    for i=2,3 do
+        for o,w in pairs( self.layers[i] ) do
             love.graphics.setColor( w.color )
             love.graphics.draw( w.drawable, w.pos.x, w.pos.y, w.rot, w.scale.x, w.scale.y, w.originoffset.x, w.originoffset.y )
+            love.graphics.setColor( 255, 255, 255, 255 )
         end
     end
+    love.graphics.setCanvas()
+    game.camerasystem:detach()
 
-    -- Draw lights
+    -- Draw lights to light canvas
     if not self.fullbright then
-        love.graphics.setCanvas( self.canvas )
-        self.canvas:clear()
+        game.camerasystem:attach()
+        love.graphics.setCanvas( self.lightcanvas )
+        love.graphics.setBlendMode( "additive" )
+        self.lightcanvas:clear()
         for i,v in pairs( self.lights ) do
             if v.shadowmeshdraw ~= nil then
                 love.graphics.setInvertedStencil( function()
@@ -97,15 +133,50 @@ function Renderer:draw()
             love.graphics.setColor( 255, 255, 255, 255 )
             love.graphics.setInvertedStencil( nil )
         end
-        love.graphics.setInvertedStencil( nil )
+        love.graphics.setInvertedStencil()
+
+        -- Draw glowables to the light canvas
+        for i,v in pairs( self.glowables ) do
+            love.graphics.draw( v.glowdrawable, v.pos.x, v.pos.y, v.rot, v.scale.x, v.scale.y, v.gloworiginoffset.x, v.gloworiginoffset.y )
+        end
+
         love.graphics.setCanvas()
         game.camerasystem:detach()
-        love.graphics.setBlendMode( "multiplicative" )
-        love.graphics.draw( self.canvas )
-        love.graphics.setBlendMode( "alpha" )
-    else
-        game.camerasystem:detach()
     end
+    -- Draw world to screen
+    love.graphics.setBlendMode( "alpha" )
+    love.graphics.draw( self.worldcanvas )
+
+    -- Multiply the light canvas to the world, but only if we have fullbright disabled
+    if not self.fullbright then
+        love.graphics.setBlendMode( "multiplicative" )
+        love.graphics.draw( self.lightcanvas )
+        love.graphics.setBlendMode( "alpha" )
+    end
+
+    -- Now draw the space layer behind everything using stencils
+    -- Things drawn in space are always fullbright
+    love.graphics.setInvertedStencil( function()
+        -- Shader is required to discard completely transparent fragments
+        love.graphics.setShader( self.maskshader )
+        love.graphics.draw( self.worldcanvas )
+        love.graphics.setShader()
+    end )
+    for i,v in pairs( self.layers[1] ) do
+        love.graphics.setColor( v.color )
+        love.graphics.draw( v.drawable, v.pos.x, v.pos.y, v.rot, v.scale.x, v.scale.y, v.originoffset.x, v.originoffset.y )
+        love.graphics.setColor( 255, 255, 255, 255 )
+    end
+    love.graphics.setInvertedStencil()
+
+    game.camerasystem:attach()
+    -- Draw special top-layer that's always fullbright, for things like ghosts and such
+    for i,v in pairs( self.layers[4] ) do
+        love.graphics.setColor( v.color )
+        love.graphics.draw( v.drawable, v.pos.x, v.pos.y, v.rot, v.scale.x, v.scale.y, v.originoffset.x, v.originoffset.y )
+        love.graphics.setColor( 255, 255, 255, 255 )
+    end
+    game.camerasystem:detach()
 end
 
 return Renderer

@@ -3,11 +3,11 @@ local Drawable = compo.component:extends()
 function Drawable:init( e )
     -- Set the default drawable to the classic purple and black
     -- checkerboard found in source games.
-    e.drawable = love.graphics.newImage( "data/textures/null.png" )
+    e.drawable = e.drawable or love.graphics.newImage( "data/textures/null.png" )
     e.originoffset = game.vector( e.drawable:getWidth() / 2, e.drawable:getHeight() / 2 )
     e.scale = game.vector( 1, 1 )
     e.color = { 255, 255, 255, 255 }
-    e.layer = 0
+    e.layer = 2
 
     e.setDrawable = function( e, object )
         e.drawable = object

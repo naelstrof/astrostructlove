@@ -17,6 +17,7 @@ compo.camera = require( "game/components/camera" )
 compo.controllable = require( "game/components/controllable" )
 compo.blockslight = require( "game/components/blockslight" )
 compo.emitslight = require( "game/components/emitslight" )
+compo.starfield = require( "game/components/starfield" )
 --
 
 game.entity = require( "lib/entity" )
@@ -26,6 +27,7 @@ game.entities = require( "game/systems/entities" )
 game.renderer = require( "game/systems/renderer" )
 game.camerasystem = require( "game/systems/camerasystem" )
 game.controlsystem = require( "game/systems/controlsystem" )
+game.starsystem = require( "game/systems/starsystem" )
 --
 
 gamestates = {}

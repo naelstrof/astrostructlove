@@ -10,7 +10,7 @@ function ControlSystem:addEntity( e )
 end
 
 function ControlSystem:removeEntity( e )
-    table.remove( self.entities, e.entitiesIndex )
+    table.remove( self.entities, e.controlsystemIndex )
     -- Have to update all the indicies of all the other entities.
     for i=e.controlsystemIndex, table.maxn( self.entities ), 1 do
         self.entities[i].controlsystemIndex = self.entities[i].controlsystemIndex - 1

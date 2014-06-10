@@ -35,8 +35,8 @@ function BlocksLight:init( e )
         }
     end
 
-    e.getShadowVolume = function( e, lightpos, radius )
-        local verticies = {}
+    e.getShadowVolume = function( e, lightpos, lightradius )
+        local volumeverticies = {}
         local max = table.maxn( e.shadowmesh )
         -- Get a list of backfaces
         for i=1, max, 1 do
@@ -59,19 +59,19 @@ function BlocksLight:init( e )
             local facing = faceunitvector * facetolight > 0
             if not facing then
                 local lightangle = lightpos:angleTo( v1 )
-                local v1extrude = v1 - game.vector( math.cos( lightangle ), math.sin( lightangle ) ) * radius
+                local v1extrude = v1 - game.vector( math.cos( lightangle ), math.sin( lightangle ) ) * lightradius
                 lightangle = lightpos:angleTo( v2 )
-                local v2extrude = v2 - game.vector( math.cos( lightangle ), math.sin( lightangle ) ) * radius
-                table.insert( verticies, { v1.x, v1.y, 0, 0, 255, 255, 255 } )
-                table.insert( verticies, { v1extrude.x, v1extrude.y, 0, 0, 255, 255, 255 } )
-                table.insert( verticies, { v2.x, v2.y, 0, 0, 255, 255, 255 } )
+                local v2extrude = v2 - game.vector( math.cos( lightangle ), math.sin( lightangle ) ) * lightradius
+                table.insert( volumeverticies, { v1.x, v1.y, 0, 0, 255, 255, 255 } )
+                table.insert( volumeverticies, { v1extrude.x, v1extrude.y, 0, 0, 255, 255, 255 } )
+                table.insert( volumeverticies, { v2.x, v2.y, 0, 0, 255, 255, 255 } )
 
-                table.insert( verticies, { v2extrude.x, v2extrude.y, 0, 0, 255, 255, 255 } )
-                table.insert( verticies, { v2.x, v2.y, 0, 0, 255, 255, 255 } )
-                table.insert( verticies, { v1extrude.x, v1extrude.y, 0, 0, 255, 255, 255 } )
+                table.insert( volumeverticies, { v2extrude.x, v2extrude.y, 0, 0, 255, 255, 255 } )
+                table.insert( volumeverticies, { v2.x, v2.y, 0, 0, 255, 255, 255 } )
+                table.insert( volumeverticies, { v1extrude.x, v1extrude.y, 0, 0, 255, 255, 255 } )
             end
         end
-        return verticies
+        return volumeverticies
     end
     game.renderer:updateLights()
 

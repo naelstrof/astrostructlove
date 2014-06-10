@@ -118,11 +118,12 @@ function Renderer:draw()
 
     -- Draw lights to light canvas
     if not self.fullbright then
-        game.camerasystem:attach()
-        love.graphics.setCanvas( self.lightcanvas )
         love.graphics.setBlendMode( "additive" )
+        love.graphics.setCanvas( self.lightcanvas )
         self.lightcanvas:clear()
+        game.camerasystem:attach()
         for i,v in pairs( self.lights ) do
+            -- Use stencils to create shadows
             if v.shadowmeshdraw ~= nil then
                 love.graphics.setInvertedStencil( function()
                     love.graphics.draw( v.shadowmeshdraw )
@@ -131,7 +132,6 @@ function Renderer:draw()
             love.graphics.setColor( 255, 255, 255, 255 * v.lightintensity )
             love.graphics.draw( v.lightdrawable, v.pos.x, v.pos.y, v.lightrot, v.lightscale.x, v.lightscale.y, v.lightoriginoffset.x, v.lightoriginoffset.y )
             love.graphics.setColor( 255, 255, 255, 255 )
-            love.graphics.setInvertedStencil( nil )
         end
         love.graphics.setInvertedStencil()
 

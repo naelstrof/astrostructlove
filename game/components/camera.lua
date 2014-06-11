@@ -13,6 +13,11 @@ local setZoom = function( e, zoom )
     e.camera:zoomTo( zoom )
 end
 
+local Zoom = function( e, zoom )
+    e.zoom = e.zoom * zoom
+    e.camera:zoom( zoom )
+end
+
 local getZoom = function( e )
     return e.zoom
 end
@@ -42,6 +47,7 @@ local Camera = {
     setRot = setRot,
     setZoom = setZoom,
     getZoom = getZoom,
+    Zoom = Zoom,
     toWorld = toWorld
 }
 

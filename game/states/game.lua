@@ -23,7 +23,7 @@ function Game:enter()
             name="metalwall",
             components={ compo.drawable, compo.blockslight },
             image="data/textures/metalwall.png",
-            attributes={ drawable=love.graphics.newImage( "data/textures/metalwall.png" ) }
+            attributes={ drawable=love.graphics.newImage( "data/textures/metalwall.png" ), layer=3 }
         }
     }
     Game.furnitureentities = {
@@ -31,7 +31,7 @@ function Game:enter()
             name="lamp",
             components={ compo.drawable, compo.emitslight, compo.controllable },
             image="data/textures/lamp.png",
-            attributes={ drawable=love.graphics.newImage( "data/textures/lamp.png" ) }
+            attributes={ drawable=love.graphics.newImage( "data/textures/lamp.png" ), layer=3 }
         },
         {
             name="controlpanel",
@@ -39,7 +39,8 @@ function Game:enter()
             image="data/textures/controlpanel.png",
             attributes={
                             drawable=love.graphics.newImage( "data/textures/controlpanel.png" ),
-                            glowdrawable=love.graphics.newImage( "data/textures/controlpanel_illumination.png" )
+                            glowdrawable=love.graphics.newImage( "data/textures/controlpanel_illumination.png" ),
+                            layer = 3
                        }
         }
     }

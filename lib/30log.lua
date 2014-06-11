@@ -31,6 +31,15 @@ local function deep_copy(t, dest, aType)
   return r
 end
 
+local function lcopy( t, dest )
+    local t = t or {}
+    local r = dest or {}
+    for i,v in pairs( t ) do
+        r[i] = v
+    end
+    return r
+end
+
 local function instantiate(self,...)
   assert(_classes[self], 'new() should be called from a class.')
   local instance = deep_copy(self)

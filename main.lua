@@ -1,6 +1,5 @@
 require( "lib/NikolaiResokav-LoveFrames" )
 
-love.class = require( "lib/30log" )
 game = {}
 
 -- Addons
@@ -9,9 +8,11 @@ game.vector = require( "lib/hump/vector" )
 game.timer = require( "lib/hump/timer" )
 game.camera = require( "lib/hump/camera" )
 
+-- Class support
+love.class = require( "lib/30log" )
+
 compo = {}
 -- Components
-compo.component = require( "lib/component" )
 compo.drawable = require( "game/components/drawable" )
 compo.glows = require( "game/components/glows" )
 compo.camera = require( "game/components/camera" )

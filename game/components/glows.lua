@@ -1,27 +1,28 @@
-local Glows = compo.component:extends()
+local setGlowDrawable = function( e, object )
+    self.glowdrawable = object
+    self.gloworiginoffset = game.vector( self.glowdrawable:getWidth() / 2, self.glowdrawable:getHeight() / 2 )
+end
 
-function Glows:init( e )
-    e.glowdrawable = e.glowdrawable or love.graphics.newImage( "data/textures/null.png" )
-    e.gloworiginoffset = game.vector( e.glowdrawable:getWidth() / 2, e.glowdrawable:getHeight() / 2 )
+local getGlowDrawable = function( e )
+    return self.glowdrawable
+end
 
-    e.setGlowDrawable = function( e, object )
-        e.glowdrawable = object
-        e.gloworiginoffset = game.vector( e.glowdrawable:getWidth() / 2, e.glowdrawable:getHeight() / 2 )
-    end
-
-    e.getGlowDrawable = function( e )
-        return e.glowdrawable
-    end
-
+local init = function( e )
     game.renderer:addGlowable( e )
 end
 
-function Glows:deinit( e )
-    e.glowdrawable = nil
-    e.gloworiginoffset = nil
-    e.setGlowDrawable = nil
-    e.getGlowDrawable = nil
+local deinit = function( e )
     game.renderer:removeGlowable( e )
 end
+
+local Glows = {
+    __name = "Glows",
+    glowdrawable = love.graphics.newImage( "data/textures/null.png" ),
+    gloworiginoffset = game.vector( 0, 0 ),
+    init = init,
+    deinit = deinit,
+    setGlowDrawable = setGlowDrawable,
+    getGlowDrawable = getGlowDrawable
+}
 
 return Glows

@@ -50,9 +50,9 @@ local deinit = function( e )
 end
 
 local Drawable = {
+    __name = "Drawable",
     -- Set the default drawable to the classic purple and black
     -- checkerboard found in source games.
-    __name = "Drawable",
     drawable = love.graphics.newImage( "data/textures/null.png" ),
     originoffset = game.vector( 32, 32 ),
     scale = game.vector( 1, 1 ),

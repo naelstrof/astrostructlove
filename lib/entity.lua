@@ -10,8 +10,6 @@ local Entity = love.class( { components = nil,
                              rot = 0
                            } )
 
-Entity.__name = "Entity"
-
 function Entity:__init( components, attributes )
     self.pos = game.vector( 0, 0 )
     attributes = attributes or {}
@@ -32,7 +30,7 @@ function Entity:__init( components, attributes )
                 if self.chains[o] == nil then
                     self.chains[o] = { self[o] }
                 end
-                table.insert( self.chains[o], w )
+                table.insert( self.chains[o], 1, w )
                 self[o] = function( ... )
                     self:startChain( o, { ... } )
                 end
@@ -49,10 +47,12 @@ end
 
 function Entity:startChain( index, tableofargs )
     table.remove( tableofargs, 1 )
+    -- Do in reverse so that the old position can be referenced
     for i, v in pairs( self.chains[index] ) do
         self.tempfunction = v
         self:tempfunction( unpack( tableofargs ) )
     end
+    self.tempfunction = nil
 end
 
 function Entity:remove()

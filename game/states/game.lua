@@ -1,9 +1,10 @@
 local Game = {}
 
 function Game:enter()
-    Game.camera = game.entity( { compo.camera, compo.controllable } )
+    Game.camera = game.entity( { compo.camera, compo.controllable, compo.networked } )
     game.camerasystem:setActive( Game.camera )
     game.renderer:setFullbright( true )
+    game.demosystem:record( "test" )
 
     Game.gridsize = 64
     Game.gridoffsetx = 0
@@ -13,7 +14,7 @@ function Game:enter()
     Game.floorentities = {
         {
             name="metalfloor",
-            components={ compo.drawable },
+            components={ compo.drawable, compo.networked },
             image="data/textures/metalfloor.png",
             attributes={ drawable=love.graphics.newImage( "data/textures/metalfloor.png" ) }
         }
@@ -21,7 +22,7 @@ function Game:enter()
     Game.wallentities = {
         {
             name="metalwall",
-            components={ compo.drawable, compo.blockslight },
+            components={ compo.drawable, compo.blockslight, compo.networked },
             image="data/textures/metalwall.png",
             attributes={ drawable=love.graphics.newImage( "data/textures/metalwall.png" ), layer=3 }
         }
@@ -29,13 +30,13 @@ function Game:enter()
     Game.furnitureentities = {
         {
             name="lamp",
-            components={ compo.drawable, compo.emitslight, compo.controllable },
+            components={ compo.drawable, compo.emitslight, compo.controllable, compo.networked },
             image="data/textures/lamp.png",
             attributes={ drawable=love.graphics.newImage( "data/textures/lamp.png" ), layer=3 }
         },
         {
             name="controlpanel",
-            components={ compo.drawable, compo.glows },
+            components={ compo.drawable, compo.glows, compo.networked },
             image="data/textures/controlpanel.png",
             attributes={
                             drawable=love.graphics.newImage( "data/textures/controlpanel.png" ),
@@ -47,7 +48,7 @@ function Game:enter()
     Game.logicentities = {
         {
             name="starfield",
-            components={ compo.starfield },
+            components={ compo.starfield, compo.networked },
             image="data/textures/logic.png",
             attributes={}
         }
@@ -212,6 +213,7 @@ function Game:enter()
 end
 
 function Game:leave()
+    game.demosystem:leave()
     loveframes.util:RemoveAll()
     for i,v in pairs( game.entities:getAll() ) do
         v:remove()
@@ -301,6 +303,7 @@ function Game:update( dt )
     end
     game.starsystem:update( dt )
     game.renderer:update( dt )
+    game.demosystem:update( dt )
     loveframes.update( dt )
 end
 

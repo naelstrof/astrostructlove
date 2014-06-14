@@ -2,7 +2,6 @@
 require( "luabins" )
 require( "zlib" )
 require( "lib/NikolaiResokav-LoveFrames" )
-require( "lib/Tserial" )
 
 game = {}
 
@@ -41,7 +40,8 @@ game.demosystem = require( "game/systems/demosystem" )
 gamestates = {}
 gamestates.menu = require( "game/states/menu" )
 gamestates.options = require( "game/states/options" )
-gamestates.game = require( "game/states/game" )
+gamestates.mapeditor = require( "game/states/mapeditor" )
+gamestates.demoplayback = require( "game/states/demoplayback" )
 
 function love.load()
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )

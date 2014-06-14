@@ -2,11 +2,15 @@ local Menu = {}
 
 function Menu:enter()
     frame = loveframes.Create( "frame" ):SetName( "Main Menu" ):Center():ShowCloseButton( false )
-    play = loveframes.Create( "button", frame ):CenterX():SetY( 40 ):SetText( "Play" )
+    play = loveframes.Create( "button", frame ):CenterX():SetY( 10 ):SetText( "Play Demo" )
+    mapeditor = loveframes.Create( "button", frame ):CenterX():SetY( 40 ):SetText( "Map Editor" )
     options = loveframes.Create( "button", frame ):CenterX():SetY( 70 ):SetText( "Options" )
     quit = loveframes.Create( "button", frame ):CenterX():SetY( 100 ):SetText( "Quit" )
     play.OnClick = function( object, x, y )
-        game.gamestate.switch( gamestates.game )
+        game.gamestate.switch( gamestates.demoplayback )
+    end
+    mapeditor.OnClick = function( object, x, y )
+        game.gamestate.switch( gamestates.mapeditor )
     end
     options.OnClick = function( object, x, y )
         game.gamestate.switch( gamestates.options )

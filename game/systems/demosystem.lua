@@ -2,13 +2,16 @@ local DemoSystem = love.class( {
     entities = {},
     removed = {},
     added = {},
-    humanreadable = false,
     recording = false,
+    playing = false,
     file = nil,
+    filelines = nil,
     updaterate = 15,
     timepassed = 0,
     tick = 0,
     totaltimepassed = 0,
+    prevframe = nil,
+    nextframe = nil,
     stream = nil
 } )
 
@@ -68,6 +71,22 @@ function DemoSystem:record( filename )
         error( errormsg )
     end
     self.recording = true
+    self.playing = false
+end
+
+function DemoSystem:play( filename )
+    self.stream = zlib.inflate()
+    if self.recording then
+        self:stop()
+    end
+    self.file = love.filesystem.newFile( filename, "r" )
+    self.filelines = self.file:lines()
+    self.playing = true
+    self.recording = false
+    print( string.sub( self.filelines(), 1, string.len( self.filelines() ) - 1 ) )
+    print( 1, luabins.load( self.stream( string.sub( self.filelines(), 1, string.len( self.filelines() ) - 1 ) ) ) )
+    print( 2, luabins.load( self.stream( self.filelines() ) ) )
+    error( "unimplemented" )
 end
 
 -- Creates a delta snapshot based on what has changed.
@@ -136,20 +155,28 @@ function DemoSystem:leave()
 end
 
 function DemoSystem:update( dt )
-    if not self.recording and self.file ~= nil then
-        return
-    end
-    self.totaltimepassed = self.totaltimepassed + dt
-    self.timepassed = self.timepassed + dt * 1000
-    while self.timepassed > self.updaterate do
-        self.tick = self.tick + 1
-        self.timepassed = self.timepassed - self.updaterate
-        local snapshot = self:generateSnapshot()
-        print( luabins.save( snapshot ) )
-        local string = self.stream( luabins.save( snapshot ), "sync" )
-        local success, errormsg = self.file:write( string .. "\n" )
-        if not success then
-            error( errormsg )
+    if self.recording and self.file ~= nil then
+        self.totaltimepassed = self.totaltimepassed + dt
+        self.timepassed = self.timepassed + dt * 1000
+        while self.timepassed > self.updaterate do
+            self.tick = self.tick + 1
+            self.timepassed = self.timepassed - self.updaterate
+            local snapshot = self:generateSnapshot()
+            print( luabins.save( snapshot ) )
+            local string = self.stream( luabins.save( snapshot ), "sync" )
+            local success, errormsg = self.file:write( string .. "\n" )
+            if not success then
+                error( errormsg )
+            end
+        end
+    elseif self.playing and self.file ~= nil then
+        self.totaltimepassed = self.totaltimepassed + dt
+        self.timepassed = self.timepassed + dt * 1000
+        while self.timepassed > self.updaterate do
+            self.tick = self.tick + 1
+            self.timepassed = self.timepassed - self.updaterate
+            self.prevframe = self.nextframe
+            --self.nextframe = 
         end
     end
 end

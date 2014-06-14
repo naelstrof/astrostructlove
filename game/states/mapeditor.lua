@@ -1,17 +1,17 @@
-local Game = {}
+local MapEditor = {}
 
-function Game:enter()
-    Game.camera = game.entity( { compo.camera, compo.controllable, compo.networked } )
-    game.camerasystem:setActive( Game.camera )
+function MapEditor:enter()
+    MapEditor.camera = game.entity( { compo.camera, compo.controllable, compo.networked } )
+    game.camerasystem:setActive( MapEditor.camera )
     game.renderer:setFullbright( true )
     game.demosystem:record( "test" )
 
-    Game.gridsize = 64
-    Game.gridoffsetx = 0
-    Game.gridoffsety = 0
-    Game.rotstepsize = math.pi / 2
-    Game.tool = "create"
-    Game.floorentities = {
+    MapEditor.gridsize = 64
+    MapEditor.gridoffsetx = 0
+    MapEditor.gridoffsety = 0
+    MapEditor.rotstepsize = math.pi / 2
+    MapEditor.tool = "create"
+    MapEditor.floorentities = {
         {
             name="metalfloor",
             components={ compo.drawable, compo.networked },
@@ -19,7 +19,7 @@ function Game:enter()
             attributes={ drawable=love.graphics.newImage( "data/textures/metalfloor.png" ) }
         }
     }
-    Game.wallentities = {
+    MapEditor.wallentities = {
         {
             name="metalwall",
             components={ compo.drawable, compo.blockslight, compo.networked },
@@ -27,7 +27,7 @@ function Game:enter()
             attributes={ drawable=love.graphics.newImage( "data/textures/metalwall.png" ), layer=3 }
         }
     }
-    Game.furnitureentities = {
+    MapEditor.furnitureentities = {
         {
             name="lamp",
             components={ compo.drawable, compo.emitslight, compo.controllable, compo.networked },
@@ -45,7 +45,7 @@ function Game:enter()
                        }
         }
     }
-    Game.logicentities = {
+    MapEditor.logicentities = {
         {
             name="starfield",
             components={ compo.starfield, compo.networked },
@@ -53,9 +53,9 @@ function Game:enter()
             attributes={}
         }
     }
-    Game.highlight = game.entity( { compo.drawable } )
-    Game.highlight:setColor( { 255, 255, 255, 0 } )
-    Game.highlight:setLayer( 4 )
+    MapEditor.highlight = game.entity( { compo.drawable } )
+    MapEditor.highlight:setColor( { 255, 255, 255, 0 } )
+    MapEditor.highlight:setLayer( 4 )
     frame = loveframes.Create( "frame" ):SetName( "Map Editor" ):ShowCloseButton( false ):SetHeight( 200 )
     frame:SetWidth( love.graphics.getWidth() )
     frame:SetPos( 0, love.graphics.getHeight()-frame:GetHeight() )
@@ -71,12 +71,12 @@ function Game:enter()
     grid:SetItemAutoSize( true )
     local create = loveframes.Create( "button" ):SetSize( 25, 25 ):SetText( "C" )
     create.OnClick = function( object, x, y )
-        Game.tool = "create"
-        Game.highlight = game.entity( { compo.drawable } )
-        Game.highlight:setColor( { 255, 255, 255, 0 } )
-        Game.highlight:setLayer( 4 )
-        if Game.currentEntity ~= nil then
-            Game.highlight:setDrawable( love.graphics.newImage( Game.currentEntity.image ) )
+        MapEditor.tool = "create"
+        MapEditor.highlight = game.entity( { compo.drawable } )
+        MapEditor.highlight:setColor( { 255, 255, 255, 0 } )
+        MapEditor.highlight:setLayer( 4 )
+        if MapEditor.currentEntity ~= nil then
+            MapEditor.highlight:setDrawable( love.graphics.newImage( MapEditor.currentEntity.image ) )
         end
     end
     local tooltip = loveframes.Create( "tooltip" )
@@ -85,8 +85,8 @@ function Game:enter()
     tooltip:SetText( "Create Tool" )
     local delete = loveframes.Create( "button" ):SetSize( 25, 25 ):SetText( "D" )
     delete.OnClick = function( object, x, y )
-        Game.tool = "delete"
-        Game.highlight:remove()
+        MapEditor.tool = "delete"
+        MapEditor.highlight:remove()
     end
     local tooltip = loveframes.Create( "tooltip" )
     tooltip:SetObject( delete )
@@ -99,51 +99,51 @@ function Game:enter()
     panel:SetPos( 90, 30 )
     panel:SetWidth( 128 )
     local floors = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
-    for i,v in pairs( Game.floorentities ) do
+    for i,v in pairs( MapEditor.floorentities ) do
         local temp = loveframes.Create( "imagebutton", floors ):SetImage( v.image ):SizeToImage():SetText( v.name )
         temp.OnClick = function()
-            Game.currentEntity = v
-            if Game.tool == "create" then
-                Game.highlight:setDrawable( love.graphics.newImage( v.image ) )
-                Game.highlight:setColor( { 255, 255, 255, 155 } )
+            MapEditor.currentEntity = v
+            if MapEditor.tool == "create" then
+                MapEditor.highlight:setDrawable( love.graphics.newImage( v.image ) )
+                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
             end
         end
         floors:AddItem( temp )
     end
     local walls = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
-    for i,v in pairs( Game.wallentities ) do
+    for i,v in pairs( MapEditor.wallentities ) do
         local temp = loveframes.Create( "imagebutton", walls ):SetImage( v.image ):SizeToImage():SetText( v.name )
         temp.OnClick = function()
-            Game.currentEntity = v
-            if Game.tool == "create" then
-                Game.highlight:setDrawable( love.graphics.newImage( v.image ) )
-                Game.highlight:setColor( { 255, 255, 255, 155 } )
+            MapEditor.currentEntity = v
+            if MapEditor.tool == "create" then
+                MapEditor.highlight:setDrawable( love.graphics.newImage( v.image ) )
+                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
             end
         end
         walls:AddItem( temp )
     end
 
     local furniture = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
-    for i,v in pairs( Game.furnitureentities ) do
+    for i,v in pairs( MapEditor.furnitureentities ) do
         local temp = loveframes.Create( "imagebutton", furniture ):SetImage( v.image ):SizeToImage():SetText( v.name )
         temp.OnClick = function()
-            Game.currentEntity = v
-            if Game.tool == "create" then
-                Game.highlight:setDrawable( love.graphics.newImage( v.image ) )
-                Game.highlight:setColor( { 255, 255, 255, 155 } )
+            MapEditor.currentEntity = v
+            if MapEditor.tool == "create" then
+                MapEditor.highlight:setDrawable( love.graphics.newImage( v.image ) )
+                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
             end
         end
         furniture:AddItem( temp )
     end
 
     local logic = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
-    for i,v in pairs( Game.logicentities ) do
+    for i,v in pairs( MapEditor.logicentities ) do
         local temp = loveframes.Create( "imagebutton", logic ):SetImage( v.image ):SizeToImage():SetText( v.name )
         temp.OnClick = function()
-            Game.currentEntity = v
-            if Game.tool == "create" then
-                Game.highlight:setDrawable( love.graphics.newImage( v.image ) )
-                Game.highlight:setColor( { 255, 255, 255, 155 } )
+            MapEditor.currentEntity = v
+            if MapEditor.tool == "create" then
+                MapEditor.highlight:setDrawable( love.graphics.newImage( v.image ) )
+                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
             end
         end
         logic:AddItem( temp )
@@ -154,13 +154,13 @@ function Game:enter()
     panel:AddTab( "Furniture", furniture )
     panel:AddTab( "Logic", logic )
 
-    Game.snap = loveframes.Create( "checkbox", frame ):SetText( "Snap to grid" ):SetPos( 220, 30 )
+    MapEditor.snap = loveframes.Create( "checkbox", frame ):SetText( "Snap to grid" ):SetPos( 220, 30 )
     local text = loveframes.Create( "text", frame ):SetText( "Grid size" ):SetPos( 220, 65 )
-    local gridsize = loveframes.Create( "textinput", frame ):SetText( tostring( Game.gridsize ) ):SetPos( 290, 60 ):SetWidth( 67 )
+    local gridsize = loveframes.Create( "textinput", frame ):SetText( tostring( MapEditor.gridsize ) ):SetPos( 290, 60 ):SetWidth( 67 )
     gridsize.OnFocusLost = function( object )
-        Game.gridsize = tonumber( object:GetText() )
-        if Game.gridsize == nil or Game.gridsize == 0 then
-            Game.gridsize = 1
+        MapEditor.gridsize = tonumber( object:GetText() )
+        if MapEditor.gridsize == nil or MapEditor.gridsize == 0 then
+            MapEditor.gridsize = 1
             object:SetText( "1" )
         end
     end
@@ -168,35 +168,35 @@ function Game:enter()
     gridsize:SetUsable( { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.' } )
 
     local text = loveframes.Create( "text", frame ):SetText( "Grid offset" ):SetPos( 220, 95 )
-    local gridoffsetx = loveframes.Create( "textinput", frame ):SetText( tostring( Game.gridoffsetx ) ):SetPos( 290, 90 ):SetWidth( 32 )
+    local gridoffsetx = loveframes.Create( "textinput", frame ):SetText( tostring( MapEditor.gridoffsetx ) ):SetPos( 290, 90 ):SetWidth( 32 )
     gridoffsetx.OnFocusLost = function( object )
-        Game.gridoffsetx = tonumber( object:GetText() )
-        if Game.gridoffsetx == nil  then
-            Game.gridoffsetx = 0
+        MapEditor.gridoffsetx = tonumber( object:GetText() )
+        if MapEditor.gridoffsetx == nil  then
+            MapEditor.gridoffsetx = 0
             object:SetText( "0" )
         end
     end
     gridoffsetx.OnEnter = gridoffsetx.OnFocusLost
     gridoffsetx:SetUsable( { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.' } )
 
-    local gridoffsety = loveframes.Create( "textinput", frame ):SetText( tostring( Game.gridoffsety ) ):SetPos( 325, 90 ):SetWidth( 32 )
+    local gridoffsety = loveframes.Create( "textinput", frame ):SetText( tostring( MapEditor.gridoffsety ) ):SetPos( 325, 90 ):SetWidth( 32 )
     gridoffsety.OnFocusLost = function( object )
-        Game.gridoffsety = tonumber( object:GetText() )
-        if Game.gridoffsety == nil  then
-            Game.gridoffsety = 0
+        MapEditor.gridoffsety = tonumber( object:GetText() )
+        if MapEditor.gridoffsety == nil  then
+            MapEditor.gridoffsety = 0
             object:SetText( "0" )
         end
     end
     gridoffsety.OnEnter = gridoffsety.OnFocusLost
     gridoffsety:SetUsable( { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.' } )
 
-    Game.snaprot = loveframes.Create( "checkbox", frame ):SetText( "Rotation snapping" ):SetPos( 220, 130 )
+    MapEditor.snaprot = loveframes.Create( "checkbox", frame ):SetText( "Rotation snapping" ):SetPos( 220, 130 )
     local text = loveframes.Create( "text", frame ):SetText( "Snap step" ):SetPos( 220, 165 )
-    local rotstepsize = loveframes.Create( "textinput", frame ):SetText( tostring( Game.rotstepsize / math.pi * 180 ) ):SetPos( 290, 160 ):SetWidth( 64 )
+    local rotstepsize = loveframes.Create( "textinput", frame ):SetText( tostring( MapEditor.rotstepsize / math.pi * 180 ) ):SetPos( 290, 160 ):SetWidth( 64 )
     rotstepsize.OnFocusLost = function( object )
-        Game.rotstepsize = tonumber( object:GetText() ) * math.pi / 180
-        if Game.rotstepsize == nil or Game.rotstepsize == 0 then
-            Game.rotstepsize = 1
+        MapEditor.rotstepsize = tonumber( object:GetText() ) * math.pi / 180
+        if MapEditor.rotstepsize == nil or MapEditor.rotstepsize == 0 then
+            MapEditor.rotstepsize = 1
             object:SetText( "1" )
         end
     end
@@ -212,7 +212,7 @@ function Game:enter()
 
 end
 
-function Game:leave()
+function MapEditor:leave()
     game.demosystem:leave()
     loveframes.util:RemoveAll()
     for i,v in pairs( game.entities:getAll() ) do
@@ -220,7 +220,7 @@ function Game:leave()
     end
 end
 
-function Game:draw()
+function MapEditor:draw()
 
     game.renderer:draw()
 
@@ -233,28 +233,28 @@ function Game:draw()
     love.graphics.line( 5, -5, -5, 5 )
     love.graphics.print( "0, 0", 10, 10 )
     -- A bunch of complicated math to draw a grid, but only inside of the view.
-    if Game.snap:GetChecked() then
+    if MapEditor.snap:GetChecked() then
         local zoom = ( 1 / game.camerasystem:getActive():getZoom() )
         local max = math.max( love.graphics.getWidth(), love.graphics.getHeight() ) * zoom
         local min = math.min( love.graphics.getWidth(), love.graphics.getHeight() ) * zoom
-        local difference = math.ceil( ( max - min ) / Game.gridsize ) * Game.gridsize
+        local difference = math.ceil( ( max - min ) / MapEditor.gridsize ) * MapEditor.gridsize
         local middle = game.camerasystem:getActive():getPos()
         local start = game.vector( middle.x - max / 2, middle.y - max / 2 )
         start = start * zoom
-        start = game.vector( math.floor( start.x / Game.gridsize + 0.5 ) * Game.gridsize, math.floor( start.y / Game.gridsize + 0.5 ) * Game.gridsize )
-        start = start + game.vector( Game.gridoffsetx, Game.gridoffsety )
+        start = game.vector( math.floor( start.x / MapEditor.gridsize + 0.5 ) * MapEditor.gridsize, math.floor( start.y / MapEditor.gridsize + 0.5 ) * MapEditor.gridsize )
+        start = start + game.vector( MapEditor.gridoffsetx, MapEditor.gridoffsety )
         local endp = game.vector( middle.x + max / 2, middle.y + max / 2 )
         endp = endp * zoom
         endp = endp + game.vector( difference, difference )
-        for x=start.x,endp.x,Game.gridsize do
+        for x=start.x,endp.x,MapEditor.gridsize do
             love.graphics.line( x, middle.y + max / 2 + difference, x, middle.y - max / 2 - difference )
         end
-        for y=start.y,endp.y,Game.gridsize do
+        for y=start.y,endp.y,MapEditor.gridsize do
             love.graphics.line( middle.x + max / 2 + difference, y, middle.x - max / 2 - difference, y )
         end
     end
 
-    if Game.tool == "delete" then
+    if MapEditor.tool == "delete" then
         ent = game.entities:getClicked()
         if ent ~= nil then
             love.graphics.setColor( { 255, 0, 0, 155 } )
@@ -264,13 +264,13 @@ function Game:draw()
     end
 
     local mousepos = game.camerasystem:getWorldMouse()
-    if Game.placer ~= nil and Game.startplace:dist( mousepos ) > 10 then
+    if MapEditor.placer ~= nil and MapEditor.startplace:dist( mousepos ) > 10 then
         love.graphics.setColor( { 255, 0, 0, 155 } )
-        love.graphics.line( Game.startplace.x-5, Game.startplace.y-5, Game.startplace.x+5, Game.startplace.y+5 )
-        love.graphics.line( Game.startplace.x+5, Game.startplace.y-5, Game.startplace.x-5, Game.startplace.y+5 )
-        love.graphics.print( tostring( Game.placer:getRot() / math.pi * 180 ), Game.startplace.x + 10, Game.startplace.y + 10 )
+        love.graphics.line( MapEditor.startplace.x-5, MapEditor.startplace.y-5, MapEditor.startplace.x+5, MapEditor.startplace.y+5 )
+        love.graphics.line( MapEditor.startplace.x+5, MapEditor.startplace.y-5, MapEditor.startplace.x-5, MapEditor.startplace.y+5 )
+        love.graphics.print( tostring( MapEditor.placer:getRot() / math.pi * 180 ), MapEditor.startplace.x + 10, MapEditor.startplace.y + 10 )
         love.graphics.setColor( { 0, 255, 0, 155 } )
-        love.graphics.line( Game.startplace.x, Game.startplace.y, mousepos.x, mousepos.y )
+        love.graphics.line( MapEditor.startplace.x, MapEditor.startplace.y, mousepos.x, mousepos.y )
         love.graphics.setColor( { 0, 0, 255, 155 } )
         love.graphics.line( mousepos.x-5, mousepos.y-5, mousepos.x+5, mousepos.y+5 )
         love.graphics.line( mousepos.x+5, mousepos.y-5, mousepos.x-5, mousepos.y+5 )
@@ -280,26 +280,26 @@ function Game:draw()
     loveframes.draw()
 end
 
-function Game:update( dt )
+function MapEditor:update( dt )
     local mousepos = game.camerasystem:getWorldMouse()
-    if Game.snap:GetChecked() then
-        mousepos = mousepos - game.vector( Game.gridoffsetx, Game.gridoffsety )
+    if MapEditor.snap:GetChecked() then
+        mousepos = mousepos - game.vector( MapEditor.gridoffsetx, MapEditor.gridoffsety )
     end
     game.controlsystem:update( dt )
-    if ( Game.snap:GetChecked() ) then
-        Game.highlight:setPos( game.vector( math.floor( (mousepos.x - Game.gridsize / 2) / Game.gridsize + 0.5 ) * Game.gridsize, math.floor( (mousepos.y - Game.gridsize / 2) / Game.gridsize + 0.5 ) * Game.gridsize ) + game.vector( Game.gridsize, Game.gridsize ) / 2 )
-        Game.highlight:setPos( Game.highlight:getPos() + game.vector( Game.gridoffsetx, Game.gridoffsety ) )
+    if ( MapEditor.snap:GetChecked() ) then
+        MapEditor.highlight:setPos( game.vector( math.floor( (mousepos.x - MapEditor.gridsize / 2) / MapEditor.gridsize + 0.5 ) * MapEditor.gridsize, math.floor( (mousepos.y - MapEditor.gridsize / 2) / MapEditor.gridsize + 0.5 ) * MapEditor.gridsize ) + game.vector( MapEditor.gridsize, MapEditor.gridsize ) / 2 )
+        MapEditor.highlight:setPos( MapEditor.highlight:getPos() + game.vector( MapEditor.gridoffsetx, MapEditor.gridoffsety ) )
     else
-        Game.highlight:setPos( mousepos )
+        MapEditor.highlight:setPos( mousepos )
     end
-    if Game.placer ~= nil and Game.startplace:dist( mousepos ) > 10 then
-        if ( Game.snaprot:GetChecked() ) then
-            Game.placer:setRot( math.floor( Game.startplace:angleTo( mousepos ) / Game.rotstepsize + 0.5 ) * Game.rotstepsize )
+    if MapEditor.placer ~= nil and MapEditor.startplace:dist( mousepos ) > 10 then
+        if ( MapEditor.snaprot:GetChecked() ) then
+            MapEditor.placer:setRot( math.floor( MapEditor.startplace:angleTo( mousepos ) / MapEditor.rotstepsize + 0.5 ) * MapEditor.rotstepsize )
         else
-            Game.placer:setRot( Game.startplace:angleTo( mousepos ) )
+            MapEditor.placer:setRot( MapEditor.startplace:angleTo( mousepos ) )
         end
-    elseif Game.placer ~= nil then
-        Game.placer:setRot( 0 )
+    elseif MapEditor.placer ~= nil then
+        MapEditor.placer:setRot( 0 )
     end
     game.starsystem:update( dt )
     game.renderer:update( dt )
@@ -307,22 +307,22 @@ function Game:update( dt )
     loveframes.update( dt )
 end
 
-function Game:mousepressed( x, y, button )
+function MapEditor:mousepressed( x, y, button )
     -- Only interpret input when we're not clicking on a loveframes
     -- element
     local mousepos = game.camerasystem:getWorldMouse()
     if table.maxn( loveframes.util.GetCollisions() ) <= 1 then
         if button == 'l' then
-            if Game.tool == "create" then
-                if Game.currentEntity ~= nil then
-                    Game.placer = game.entity( Game.currentEntity.components, Game.currentEntity.attributes )
-                    if not Game.snap:GetChecked() then
-                        Game.placer:setPos( mousepos )
+            if MapEditor.tool == "create" then
+                if MapEditor.currentEntity ~= nil then
+                    MapEditor.placer = game.entity( MapEditor.currentEntity.components, MapEditor.currentEntity.attributes )
+                    if not MapEditor.snap:GetChecked() then
+                        MapEditor.placer:setPos( mousepos )
                     else
-                        Game.placer:setPos( Game.highlight:getPos() )
+                        MapEditor.placer:setPos( MapEditor.highlight:getPos() )
                     end
-                    Game.startplace = mousepos
-                    Game.highlight:setColor( { 255, 255, 255, 0 } )
+                    MapEditor.startplace = mousepos
+                    MapEditor.highlight:setColor( { 255, 255, 255, 0 } )
                 end
             end
         elseif button == "wu" then
@@ -334,14 +334,14 @@ function Game:mousepressed( x, y, button )
     loveframes.mousepressed( x, y, button )
 end
 
-function Game:mousereleased( x, y, button )
+function MapEditor:mousereleased( x, y, button )
     if button == 'l' then
-        if Game.tool == "create" then
-            if Game.placer ~= nil then
-                Game.highlight:setColor( { 255, 255, 255, 155 } )
-                Game.placer = nil
+        if MapEditor.tool == "create" then
+            if MapEditor.placer ~= nil then
+                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
+                MapEditor.placer = nil
             end
-        elseif Game.tool == "delete" then
+        elseif MapEditor.tool == "delete" then
             ent = game.entities:getClicked()
             if ent ~= nil then
                 ent:remove()
@@ -351,26 +351,26 @@ function Game:mousereleased( x, y, button )
     loveframes.mousereleased( x, y, button )
 end
 
-function Game:keypressed( key, unicode )
+function MapEditor:keypressed( key, unicode )
     if key == "f" then
         game.renderer:toggleFullbright()
     end
     loveframes.keypressed( key, unicode )
 end
 
-function Game:keyreleased( key )
+function MapEditor:keyreleased( key )
     loveframes.keyreleased( key )
 end
 
-function Game:textinput( text )
+function MapEditor:textinput( text )
     loveframes.textinput( text )
 end
 
-function Game:resize( w, h )
+function MapEditor:resize( w, h )
     frame:SetWidth( love.graphics.getWidth() )
     frame:SetPos( 0, love.graphics.getHeight()-frame:GetHeight() )
     topbar:SetWidth( love.graphics.getWidth() )
     game.renderer:resize( w, h )
 end
 
-return Game
+return MapEditor

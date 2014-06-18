@@ -2,6 +2,7 @@ local DemoSystem = love.class( {
     entities = {},
     removed = {},
     added = {},
+    lookup = {},
     recording = false,
     playing = false,
     file = nil,
@@ -11,8 +12,7 @@ local DemoSystem = love.class( {
     tick = 0,
     totaltimepassed = 0,
     prevframe = nil,
-    nextframe = nil,
-    stream = nil
+    nextframe = nil
 } )
 
 function DemoSystem:copy( orig )
@@ -36,17 +36,21 @@ function DemoSystem:addEntity( e )
 
     -- We record entities we add so that we know to create them
     -- before working with the next snapshot
-    local comps = {}
-    for i,v in pairs( e.components ) do
-        table.insert( comps, v.__name )
+    if self.recording then
+        local comps = {}
+        for i,v in pairs( e.components ) do
+            table.insert( comps, v.__name )
+        end
+        table.insert( self.added, comps )
     end
-    table.insert( self.added, comps )
 end
 
 function DemoSystem:removeEntity( e )
     -- We record entities that we remove, so that we know to remove
     -- them before working with the next snapshot
-    table.insert( self.removed, e.demoIndex )
+    if self.recording then
+        table.insert( self.removed, e.entityIndex )
+    end
     table.remove( self.entities, e.demoIndex )
     -- Have to update all the indicies of all the other entities.
     for i=e.entitiesIndex, table.maxn( self.entities ), 1 do
@@ -54,8 +58,16 @@ function DemoSystem:removeEntity( e )
     end
 end
 
+-- Generates string->component object table
+-- to easily look up components via string
+function DemoSystem:generateComponentKeys()
+    self.lookup = {}
+    for i,v in pairs( compo ) do
+        self.lookup[ v.__name ] = v
+    end
+end
+
 function DemoSystem:record( filename )
-    self.stream = zlib.deflate()
     local i = 0
     local original = filename
     filename = filename .. ".bin"
@@ -65,7 +77,7 @@ function DemoSystem:record( filename )
         i = i + 1
     end
     self.file = love.filesystem.newFile( filename, "w" )
-    local string = self.stream( luabins.save( self:generateFullSnapshot() ), "sync" )
+    local string = luabins.save( self:generateFullSnapshot() )
     local success, errormsg = self.file:write( string .. "\n" )
     if not success then
         error( errormsg )
@@ -75,7 +87,7 @@ function DemoSystem:record( filename )
 end
 
 function DemoSystem:play( filename )
-    self.stream = zlib.inflate()
+    self:generateComponentKeys()
     if self.recording then
         self:stop()
     end
@@ -83,10 +95,17 @@ function DemoSystem:play( filename )
     self.filelines = self.file:lines()
     self.playing = true
     self.recording = false
-    print( string.sub( self.filelines(), 1, string.len( self.filelines() ) - 1 ) )
-    print( 1, luabins.load( self.stream( string.sub( self.filelines(), 1, string.len( self.filelines() ) - 1 ) ) ) )
-    print( 2, luabins.load( self.stream( self.filelines() ) ) )
-    error( "unimplemented" )
+    local string = string.sub( self.filelines(), 1, -2 )
+    print( string )
+    print( luabins.load( string ) )
+    self.prevframe = luabins.load( self.filelines() )
+    self.nextframe = luabins.load( self.filelines() )
+    for i,v in pairs( self.prevframe ) do
+        print( i, v )
+    end
+    for i,v in pairs( self.nextframe ) do
+        print( i, v )
+    end
 end
 
 -- Creates a delta snapshot based on what has changed.
@@ -162,8 +181,7 @@ function DemoSystem:update( dt )
             self.tick = self.tick + 1
             self.timepassed = self.timepassed - self.updaterate
             local snapshot = self:generateSnapshot()
-            print( luabins.save( snapshot ) )
-            local string = self.stream( luabins.save( snapshot ), "sync" )
+            local string = luabins.save( snapshot )
             local success, errormsg = self.file:write( string .. "\n" )
             if not success then
                 error( errormsg )
@@ -171,13 +189,27 @@ function DemoSystem:update( dt )
         end
     elseif self.playing and self.file ~= nil then
         self.totaltimepassed = self.totaltimepassed + dt
-        self.timepassed = self.timepassed + dt * 1000
-        while self.timepassed > self.updaterate do
+        while self.timepassed > self.nextframe.time do
             self.tick = self.tick + 1
-            self.timepassed = self.timepassed - self.updaterate
             self.prevframe = self.nextframe
-            --self.nextframe = 
+            -- This is where we spawn/delete everything it asks
+            for i,v in pairs( self.prevframe.removed ) do
+                self.entities[ v ]:remove()
+            end
+            for i,v in pairs( self.prevframe.added ) do
+                local components = {}
+                for o,w in pairs( v ) do
+                    -- We use a lookup table to speed up string->component
+                    -- conversion
+                    table.insert( components, self.lookup[w] )
+                end
+                local ent = game.entity( components )
+            end
+            self.nextframe = luabins.load( self.filelines() )
         end
+        error( "unimplemented" )
+        --for i,v in pairs( self.entities ) do
+        --end
     end
 end
 

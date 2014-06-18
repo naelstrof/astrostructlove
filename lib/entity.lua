@@ -28,9 +28,11 @@ function Entity:__init( components, attributes )
             elseif type( self[o] ) == "function" and type( w ) == "function" then
                 -- We attempt to chain similar functions
                 if self.chains[o] == nil then
-                    self.chains[o] = { self[o] }
+                    self.chains[o] = { default=self[o] }
                 end
-                table.insert( self.chains[o], 1, w )
+                -- v ( the component ) is guaranteed to be unique
+                -- for the purposes of chaining.
+                self.chains[o][v] = w
                 self[o] = function( ... )
                     self:startChain( o, { ... } )
                 end
@@ -45,13 +47,37 @@ function Entity:__init( components, attributes )
     game.entities:addEntity( self )
 end
 
+function Entity:removeComponent( comp )
+    -- First we call the component's specific deinit function
+    self.tempfunction = self.chains["deinit"][ comp ]
+    self:tempfunction()
+    self.tempfunction = nil
+    -- Because chains use the component as an index, we can easily
+    -- remove chained functions.
+    for i, v in pairs( self.chains ) do
+        v[comp] = nil
+    end
+    -- Remove the component because we're not using it anymore.
+    for i, v in pairs( self.components ) do
+        if v == comp then
+            v = nil
+        end
+    end
+end
+
 function Entity:startChain( index, tableofargs )
     table.remove( tableofargs, 1 )
-    -- Do in reverse so that the old position can be referenced
+    local args = unpack( tableofargs )
     for i, v in pairs( self.chains[index] ) do
-        self.tempfunction = v
-        self:tempfunction( unpack( tableofargs ) )
+        -- We always execute the original function last
+        -- so that the old information can be referenced.
+        if i ~= default then
+            self.tempfunction = v
+            self:tempfunction( args )
+        end
     end
+    self.tempfunction = self.chains[ index ][ "default" ]
+    self:tempfunction( args )
     self.tempfunction = nil
 end
 

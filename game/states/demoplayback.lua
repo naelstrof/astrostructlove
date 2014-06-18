@@ -1,7 +1,7 @@
 local Playback = {}
 
 function Playback:enter()
-    game.demosystem:play( "test_16.bin" )
+    game.demosystem:play( "test.bin" )
 end
 
 function Playback:leave()

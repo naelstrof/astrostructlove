@@ -31,6 +31,9 @@ local getColor = function( e )
 end
 
 local setLayer = function( e, l )
+    if e.layer == l then
+        return
+    end
     game.renderer:removeEntity( e )
     e.layer = l
     game.renderer:addEntity( e )

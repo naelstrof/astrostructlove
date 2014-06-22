@@ -2,7 +2,6 @@ local DemoSystem = love.class( {
     entities = {},
     removed = {},
     added = {},
-    lookup = {},
     recording = false,
     playing = false,
     file = nil,
@@ -17,16 +16,19 @@ local DemoSystem = love.class( {
 
 function DemoSystem:copy( orig )
     local copy = {}
-    for i,v in next, orig, nil do
-        local vtype = type( v )
-        if vtype ~= "function" and i~= "__index" and i~= "components" and i~= "chains" and vtype ~= "thread" and vtype ~= "userdata" then
-            if vtype == "table" then
-                copy[i] = self:copy( v )
-            else
-                copy[i] = v
-            end
-        end
-    end
+    --for i,v in next, orig, nil do
+        --local vtype = type( v )
+        --if vtype ~= "function" and i~= "__index" and i~= "components" and i~= "chains" and vtype ~= "thread" and vtype ~= "userdata" then
+            --if vtype == "table" then
+                --copy[i] = self:copy( v )
+            --else
+                --copy[i] = v
+            --end
+        --end
+    --end
+    -- Only network positions and rotations for now
+    copy.pos = orig.pos
+    copy.rot = orig.rot
     return copy
 end
 
@@ -37,11 +39,9 @@ function DemoSystem:addEntity( e )
     -- We record entities we add so that we know to create them
     -- before working with the next snapshot
     if self.recording then
-        local comps = {}
-        for i,v in pairs( e.components ) do
-            table.insert( comps, v.__name )
-        end
-        table.insert( self.added, comps )
+        -- Only network over these critical attributes.
+        local ent = { __name=e.__name, pos=e:getPos(), rot=e:getRot() }
+        table.insert( self.added, ent )
     end
 end
 
@@ -49,7 +49,7 @@ function DemoSystem:removeEntity( e )
     -- We record entities that we remove, so that we know to remove
     -- them before working with the next snapshot
     if self.recording then
-        table.insert( self.removed, e.entityIndex )
+        table.insert( self.removed, e.demoIndex )
     end
     table.remove( self.entities, e.demoIndex )
     -- Have to update all the indicies of all the other entities.
@@ -58,26 +58,17 @@ function DemoSystem:removeEntity( e )
     end
 end
 
--- Generates string->component object table
--- to easily look up components via string
-function DemoSystem:generateComponentKeys()
-    self.lookup = {}
-    for i,v in pairs( compo ) do
-        self.lookup[ v.__name ] = v
-    end
-end
-
 function DemoSystem:record( filename )
     local i = 0
     local original = filename
-    filename = filename .. ".bin"
+    filename = filename .. ".txt"
     -- Make sure we have a file that doesn't exist
     while love.filesystem.exists( filename ) do
-        filename = original .. "_" .. tostring( i ) .. ".bin"
+        filename = original .. "_" .. tostring( i ) .. ".txt"
         i = i + 1
     end
     self.file = love.filesystem.newFile( filename, "w" )
-    local string = luabins.save( self:generateFullSnapshot() )
+    local string = Tserial.pack( self:generateFullSnapshot() )
     local success, errormsg = self.file:write( string .. "\n" )
     if not success then
         error( errormsg )
@@ -87,7 +78,6 @@ function DemoSystem:record( filename )
 end
 
 function DemoSystem:play( filename )
-    self:generateComponentKeys()
     if self.recording then
         self:stop()
     end
@@ -95,16 +85,18 @@ function DemoSystem:play( filename )
     self.filelines = self.file:lines()
     self.playing = true
     self.recording = false
-    local string = string.sub( self.filelines(), 1, -2 )
-    print( string )
-    print( luabins.load( string ) )
-    self.prevframe = luabins.load( self.filelines() )
-    self.nextframe = luabins.load( self.filelines() )
-    for i,v in pairs( self.prevframe ) do
-        print( i, v )
-    end
-    for i,v in pairs( self.nextframe ) do
-        print( i, v )
+    self.prevframe = Tserial.unpack( self.filelines() )
+    self.nextframe = Tserial.unpack( self.filelines() )
+    self.tick = self.prevframe.tick
+    for i,v in pairs( self.prevframe.added ) do
+        local ent = game.entity( v.__name )
+        ent:setPos( game.vector( v.pos.x, v.pos.y ) )
+        ent:setRot( v.rot )
+        -- Automatically set the default camera
+        if ent:hasComponent( compo.camera ) then
+            game.camerasystem:setActive( ent )
+        end
+        --print( "Created ent", ent.__name, "at", ent:getPos() )
     end
 end
 
@@ -118,11 +110,12 @@ function DemoSystem:generateSnapshot()
     snapshot["removed"] = self.removed
     self.removed = {}
     snapshot["added"] = self.added
+    snapshot["entities"] = {}
     self.added = {}
     for i,v in pairs( self.entities ) do
         if v.netchanged then
             v.netchanged = false
-            table.insert( snapshot, v.demoIndex, self:copy( v ) )
+            table.insert( snapshot.entities, v.demoIndex, self:copy( v ) )
         end
     end
     return snapshot
@@ -133,11 +126,8 @@ end
 function DemoSystem:generateFullSnapshot( update )
     local added = {}
     for i,v in pairs( self.entities ) do
-        local comps = {}
-        for o,w in pairs( v.components ) do
-            table.insert( comps, w.__name )
-        end
-        table.insert( added, comps )
+        local ent = { __name=v.__name, pos=v:getPos(), rot=v:getRot() }
+        table.insert( added, ent )
     end
     local snapshot = {}
     snapshot["time"] = self.totaltimepassed
@@ -148,8 +138,9 @@ function DemoSystem:generateFullSnapshot( update )
         self.added = {}
     end
     snapshot["full"] = true
+    snapshot["entities"] = {}
     for i,v in pairs( self.entities ) do
-        table.insert( snapshot, v.demoIndex, self:copy( v ) )
+        table.insert( snapshot.entities, v.demoIndex, self:copy( v ) )
     end
     return snapshot
 end
@@ -166,11 +157,7 @@ function DemoSystem:stop()
 end
 
 function DemoSystem:leave()
-    if self.file ~= nil then
-        self.file:close()
-        self.file = nil
-    end
-    self.recording = false
+    self:stop()
 end
 
 function DemoSystem:update( dt )
@@ -181,7 +168,7 @@ function DemoSystem:update( dt )
             self.tick = self.tick + 1
             self.timepassed = self.timepassed - self.updaterate
             local snapshot = self:generateSnapshot()
-            local string = luabins.save( snapshot )
+            local string = Tserial.pack( snapshot )
             local success, errormsg = self.file:write( string .. "\n" )
             if not success then
                 error( errormsg )
@@ -189,27 +176,41 @@ function DemoSystem:update( dt )
         end
     elseif self.playing and self.file ~= nil then
         self.totaltimepassed = self.totaltimepassed + dt
-        while self.timepassed > self.nextframe.time do
+        while self.totaltimepassed > self.nextframe.time do
             self.tick = self.tick + 1
+            --print( "Moved to tick", self.tick )
             self.prevframe = self.nextframe
             -- This is where we spawn/delete everything it asks
             for i,v in pairs( self.prevframe.removed ) do
+                --print( "Removed ent", v )
                 self.entities[ v ]:remove()
             end
             for i,v in pairs( self.prevframe.added ) do
-                local components = {}
-                for o,w in pairs( v ) do
-                    -- We use a lookup table to speed up string->component
-                    -- conversion
-                    table.insert( components, self.lookup[w] )
+                local ent = game.entity( v.__name )
+                ent:setPos( game.vector( unpack( v.pos ) ) )
+                ent:setRot( v.rot )
+                local pent = self.prevframe.entities[ ent.demoIndex ]
+                if pent ~= nil then
+                    ent:setPos( game.vector( pent.pos.x, pent.pos.y ) )
+                    ent:setRot( pent.rot )
                 end
-                local ent = game.entity( components )
+                --print( "Created ent", ent.demoIndex, ent.__name, "at", ent:getPos() )
             end
-            self.nextframe = luabins.load( self.filelines() )
+            self.nextframe = Tserial.unpack( self.filelines() )
         end
-        error( "unimplemented" )
-        --for i,v in pairs( self.entities ) do
-        --end
+        -- Uses linear progression
+        local x = ( self.totaltimepassed - self.prevframe.time ) / self.nextframe.time
+        for i,v in pairs( self.entities ) do
+            local pent = self.prevframe.entities[ v.demoIndex ]
+            local fent = self.nextframe.entities[ v.demoIndex ]
+            -- Make sure the entity is changing somehow
+            if pent ~= nil and fent ~= nil then
+                local ppos = game.vector( pent.pos.x, pent.pos.y )
+                local fpos = game.vector( fent.pos.x, pent.pos.y )
+                v:setPos( ppos + ( fpos - ppos ) * x )
+                v:setRot( pent.rot + ( fent.rot - pent.rot ) * x )
+            end
+        end
     end
 end
 

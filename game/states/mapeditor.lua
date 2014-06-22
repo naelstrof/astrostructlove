@@ -1,7 +1,7 @@
 local MapEditor = {}
 
 function MapEditor:enter()
-    MapEditor.camera = game.entity( { compo.camera, compo.controllable, compo.networked } )
+    MapEditor.camera = game.entity:new( "ghost" )
     game.camerasystem:setActive( MapEditor.camera )
     game.renderer:setFullbright( true )
     game.demosystem:record( "test" )
@@ -11,51 +11,6 @@ function MapEditor:enter()
     MapEditor.gridoffsety = 0
     MapEditor.rotstepsize = math.pi / 2
     MapEditor.tool = "create"
-    MapEditor.floorentities = {
-        {
-            name="metalfloor",
-            components={ compo.drawable, compo.networked },
-            image="data/textures/metalfloor.png",
-            attributes={ drawable=love.graphics.newImage( "data/textures/metalfloor.png" ) }
-        }
-    }
-    MapEditor.wallentities = {
-        {
-            name="metalwall",
-            components={ compo.drawable, compo.blockslight, compo.networked },
-            image="data/textures/metalwall.png",
-            attributes={ drawable=love.graphics.newImage( "data/textures/metalwall.png" ), layer=3 }
-        }
-    }
-    MapEditor.furnitureentities = {
-        {
-            name="lamp",
-            components={ compo.drawable, compo.emitslight, compo.controllable, compo.networked },
-            image="data/textures/lamp.png",
-            attributes={ drawable=love.graphics.newImage( "data/textures/lamp.png" ), layer=3 }
-        },
-        {
-            name="controlpanel",
-            components={ compo.drawable, compo.glows, compo.networked },
-            image="data/textures/controlpanel.png",
-            attributes={
-                            drawable=love.graphics.newImage( "data/textures/controlpanel.png" ),
-                            glowdrawable=love.graphics.newImage( "data/textures/controlpanel_illumination.png" ),
-                            layer = 3
-                       }
-        }
-    }
-    MapEditor.logicentities = {
-        {
-            name="starfield",
-            components={ compo.starfield, compo.networked },
-            image="data/textures/logic.png",
-            attributes={}
-        }
-    }
-    MapEditor.highlight = game.entity( { compo.drawable } )
-    MapEditor.highlight:setColor( { 255, 255, 255, 0 } )
-    MapEditor.highlight:setLayer( 4 )
     frame = loveframes.Create( "frame" ):SetName( "Map Editor" ):ShowCloseButton( false ):SetHeight( 200 )
     frame:SetWidth( love.graphics.getWidth() )
     frame:SetPos( 0, love.graphics.getHeight()-frame:GetHeight() )
@@ -72,11 +27,16 @@ function MapEditor:enter()
     local create = loveframes.Create( "button" ):SetSize( 25, 25 ):SetText( "C" )
     create.OnClick = function( object, x, y )
         MapEditor.tool = "create"
-        MapEditor.highlight = game.entity( { compo.drawable } )
-        MapEditor.highlight:setColor( { 255, 255, 255, 0 } )
-        MapEditor.highlight:setLayer( 4 )
         if MapEditor.currentEntity ~= nil then
-            MapEditor.highlight:setDrawable( love.graphics.newImage( MapEditor.currentEntity.image ) )
+            if MapEditor.highlight ~= nil then
+                MapEditor.highlight:remove()
+                MapEditor.highlight = nil
+            end
+            MapEditor.highlight = game.entity:new( MapEditor.currentEntity.__name )
+            if MapEditor.highlight:hasComponent( compo.drawable ) then
+                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
+                MapEditor.highlight:setLayer( 4 )
+            end
         end
     end
     local tooltip = loveframes.Create( "tooltip" )
@@ -87,6 +47,7 @@ function MapEditor:enter()
     delete.OnClick = function( object, x, y )
         MapEditor.tool = "delete"
         MapEditor.highlight:remove()
+        MapEditor.highlight = nil
     end
     local tooltip = loveframes.Create( "tooltip" )
     tooltip:SetObject( delete )
@@ -98,61 +59,26 @@ function MapEditor:enter()
     local panel = loveframes.Create( "tabs", frame ):SetHeight( 165 )
     panel:SetPos( 90, 30 )
     panel:SetWidth( 128 )
-    local floors = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
-    for i,v in pairs( MapEditor.floorentities ) do
-        local temp = loveframes.Create( "imagebutton", floors ):SetImage( v.image ):SizeToImage():SetText( v.name )
+    local ents = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
+    for i,v in pairs( game.gamemode.entities ) do
+        local temp = loveframes.Create( "imagebutton", ents ):SetImage( v.image ):SizeToImage():SetText( v.__name )
         temp.OnClick = function()
             MapEditor.currentEntity = v
             if MapEditor.tool == "create" then
-                MapEditor.highlight:setDrawable( love.graphics.newImage( v.image ) )
-                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
+                if MapEditor.highlight ~= nil then
+                    MapEditor.highlight:remove()
+                    MapEditor.highlight = nil
+                end
+                MapEditor.highlight = game.entity:new( MapEditor.currentEntity.__name )
+                if MapEditor.highlight:hasComponent( compo.drawable ) then
+                    MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
+                    MapEditor.highlight:setLayer( 4 )
+                end
             end
         end
-        floors:AddItem( temp )
+        ents:AddItem( temp )
     end
-    local walls = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
-    for i,v in pairs( MapEditor.wallentities ) do
-        local temp = loveframes.Create( "imagebutton", walls ):SetImage( v.image ):SizeToImage():SetText( v.name )
-        temp.OnClick = function()
-            MapEditor.currentEntity = v
-            if MapEditor.tool == "create" then
-                MapEditor.highlight:setDrawable( love.graphics.newImage( v.image ) )
-                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
-            end
-        end
-        walls:AddItem( temp )
-    end
-
-    local furniture = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
-    for i,v in pairs( MapEditor.furnitureentities ) do
-        local temp = loveframes.Create( "imagebutton", furniture ):SetImage( v.image ):SizeToImage():SetText( v.name )
-        temp.OnClick = function()
-            MapEditor.currentEntity = v
-            if MapEditor.tool == "create" then
-                MapEditor.highlight:setDrawable( love.graphics.newImage( v.image ) )
-                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
-            end
-        end
-        furniture:AddItem( temp )
-    end
-
-    local logic = loveframes.Create( "list" ):SetPadding( 5 ):SetSpacing( 5 )
-    for i,v in pairs( MapEditor.logicentities ) do
-        local temp = loveframes.Create( "imagebutton", logic ):SetImage( v.image ):SizeToImage():SetText( v.name )
-        temp.OnClick = function()
-            MapEditor.currentEntity = v
-            if MapEditor.tool == "create" then
-                MapEditor.highlight:setDrawable( love.graphics.newImage( v.image ) )
-                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
-            end
-        end
-        logic:AddItem( temp )
-    end
-
-    panel:AddTab( "Floors", floors )
-    panel:AddTab( "Walls", walls )
-    panel:AddTab( "Furniture", furniture )
-    panel:AddTab( "Logic", logic )
+    panel:AddTab( "Entities", ents )
 
     MapEditor.snap = loveframes.Create( "checkbox", frame ):SetText( "Snap to grid" ):SetPos( 220, 30 )
     local text = loveframes.Create( "text", frame ):SetText( "Grid size" ):SetPos( 220, 65 )
@@ -255,7 +181,7 @@ function MapEditor:draw()
     end
 
     if MapEditor.tool == "delete" then
-        ent = game.entities:getClicked()
+        local ent = game.entities:getClicked()
         if ent ~= nil then
             love.graphics.setColor( { 255, 0, 0, 155 } )
             love.graphics.line( ent:getPos().x-5, ent:getPos().y-5, ent:getPos().x+5, ent:getPos().y+5 )
@@ -286,11 +212,13 @@ function MapEditor:update( dt )
         mousepos = mousepos - game.vector( MapEditor.gridoffsetx, MapEditor.gridoffsety )
     end
     game.controlsystem:update( dt )
-    if ( MapEditor.snap:GetChecked() ) then
-        MapEditor.highlight:setPos( game.vector( math.floor( (mousepos.x - MapEditor.gridsize / 2) / MapEditor.gridsize + 0.5 ) * MapEditor.gridsize, math.floor( (mousepos.y - MapEditor.gridsize / 2) / MapEditor.gridsize + 0.5 ) * MapEditor.gridsize ) + game.vector( MapEditor.gridsize, MapEditor.gridsize ) / 2 )
-        MapEditor.highlight:setPos( MapEditor.highlight:getPos() + game.vector( MapEditor.gridoffsetx, MapEditor.gridoffsety ) )
-    else
-        MapEditor.highlight:setPos( mousepos )
+    if MapEditor.highlight ~= nil then
+        if ( MapEditor.snap:GetChecked() ) then
+            MapEditor.highlight:setPos( game.vector( math.floor( (mousepos.x - MapEditor.gridsize / 2) / MapEditor.gridsize + 0.5 ) * MapEditor.gridsize, math.floor( (mousepos.y - MapEditor.gridsize / 2) / MapEditor.gridsize + 0.5 ) * MapEditor.gridsize ) + game.vector( MapEditor.gridsize, MapEditor.gridsize ) / 2 )
+            MapEditor.highlight:setPos( MapEditor.highlight:getPos() + game.vector( MapEditor.gridoffsetx, MapEditor.gridoffsety ) )
+        else
+            MapEditor.highlight:setPos( mousepos )
+        end
     end
     if MapEditor.placer ~= nil and MapEditor.startplace:dist( mousepos ) > 10 then
         if ( MapEditor.snaprot:GetChecked() ) then
@@ -315,14 +243,15 @@ function MapEditor:mousepressed( x, y, button )
         if button == 'l' then
             if MapEditor.tool == "create" then
                 if MapEditor.currentEntity ~= nil then
-                    MapEditor.placer = game.entity( MapEditor.currentEntity.components, MapEditor.currentEntity.attributes )
+                    MapEditor.placer = game.entity:new( MapEditor.currentEntity.__name )
                     if not MapEditor.snap:GetChecked() then
                         MapEditor.placer:setPos( mousepos )
                     else
                         MapEditor.placer:setPos( MapEditor.highlight:getPos() )
                     end
                     MapEditor.startplace = mousepos
-                    MapEditor.highlight:setColor( { 255, 255, 255, 0 } )
+                    MapEditor.highlight:remove()
+                    MapEditor.highlight = nil
                 end
             end
         elseif button == "wu" then
@@ -338,11 +267,19 @@ function MapEditor:mousereleased( x, y, button )
     if button == 'l' then
         if MapEditor.tool == "create" then
             if MapEditor.placer ~= nil then
-                MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
+                if MapEditor.highlight ~= nil then
+                    MapEditor.highlight:remove()
+                    MapEditor.highlight = nil
+                end
+                MapEditor.highlight = game.entity:new( MapEditor.currentEntity.__name )
+                if MapEditor.highlight:hasComponent( compo.drawable ) then
+                    MapEditor.highlight:setColor( { 255, 255, 255, 155 } )
+                    MapEditor.highlight:setLayer( 4 )
+                end
                 MapEditor.placer = nil
             end
         elseif MapEditor.tool == "delete" then
-            ent = game.entities:getClicked()
+            local ent = game.entities:getClicked()
             if ent ~= nil then
                 ent:remove()
             end

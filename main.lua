@@ -1,7 +1,8 @@
 --require( "luarocks.loader" )
-require( "luabins" )
-require( "zlib" )
+--require( "luabins" )
+--require( "zlib" )
 require( "lib/NikolaiResokav-LoveFrames" )
+require( "lib/Tserial" )
 
 game = {}
 
@@ -35,6 +36,10 @@ game.camerasystem = require( "game/systems/camerasystem" )
 game.controlsystem = require( "game/systems/controlsystem" )
 game.starsystem = require( "game/systems/starsystem" )
 game.demosystem = require( "game/systems/demosystem" )
+--
+
+-- Current Gamemode
+game.gamemode = require( "game/gamemodes/default" )
 --
 
 gamestates = {}

@@ -1,7 +1,8 @@
 local Playback = {}
 
 function Playback:enter()
-    game.demosystem:play( "test.bin" )
+    game.renderer:setFullbright( true )
+    game.demosystem:play( "test.txt" )
 end
 
 function Playback:leave()
@@ -25,6 +26,9 @@ function Playback:mousereleased( x, y, button )
 end
 
 function Playback:keypressed( key, unicode )
+    if key == "f" then
+        game.renderer:toggleFullbright()
+    end
 end
 
 function Playback:keyreleased( key )
@@ -34,6 +38,7 @@ function Playback:textinput( text )
 end
 
 function Playback:resize( w, h )
+    game.renderer:resize( w, h )
 end
 
 return Playback

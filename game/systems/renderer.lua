@@ -5,18 +5,8 @@
 local Renderer = love.class( { layers = {}, lights={}, glowables={}, worldcanvas=nil, lightcanvas=nil, fullbright=false, maskshader=nil } )
 
 function Renderer:addEntity( e )
-    if e.layer == nil then
-        startlayer = 2
-    else
-        startlayer = e.layer
-    end
-
-    if self.layers[ startlayer ] == nil then
-        self.layers[ startlayer ] = {}
-    end
-    table.insert( self.layers[ startlayer ], e )
-    e.rendererIndex = table.maxn( self.layers[ startlayer] )
-    e.layer = startlayer
+    table.insert( self.layers[ e.layer ], e )
+    e.rendererIndex = table.maxn( self.layers[ e.layer ] )
 end
 
 function Renderer:setFullbright( fullbright )

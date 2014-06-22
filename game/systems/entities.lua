@@ -20,7 +20,7 @@ function Entities:getAll()
     -- Must return a copy so the user can't manually edit the table
     -- This keeps bugs like removing entities with :remove() messing
     -- with the table size or structure in the middle of a loop.
-    ents = {}
+    local ents = {}
     for i,v in pairs( self.entities ) do
         ents[i] = v
     end
@@ -29,12 +29,12 @@ end
 
 -- TODO: Needs some kind of optimization so we don't have to loop through every entity in the world.
 function Entities:getNearby( pos, radius )
-    ents = {}
+    local ents = {}
     for i,v in pairs( self.entities ) do
         if v:hasComponent( compo.drawable ) then
             -- FIXME: This could be way more accurate, its assuming everything is a circle because I'm a lazy ass.
             -- Perhaps a component could describe the shape of something? May need to implement a shape collision library.
-            vradius = math.max( v:getDrawable():getWidth()*v:getScale().x, v:getDrawable():getHeight()*v:getScale().y )
+            local vradius = math.max( v:getDrawable():getWidth()*v:getScale().x, v:getDrawable():getHeight()*v:getScale().y )
             if pos:dist( v:getPos() ) < (radius + vradius) / 2 then
                 table.insert( ents, v )
             end
@@ -48,12 +48,12 @@ function Entities:getNearby( pos, radius )
 end
 
 function Entities:getClicked()
-    mousepos = game.camerasystem:getWorldMouse()
+    local mousepos = game.camerasystem:getWorldMouse()
     -- FIXME: Having a radius selection of 1 means that selection could be more annoying or less annoying when attempting to click on singular pixel objects
     -- testing may have to be done.
-    ents = self:getNearby( mousepos, 1 )
+    local ents = self:getNearby( mousepos, 1 )
     -- Find the top-most drawable entity
-    topmost = nil
+    local topmost = nil
     for i,v in pairs( ents ) do
         if v:hasComponent( compo.drawable ) then
             if topmost == nil or topmost.layer < v.layer or ( topmost.rendererIndex < v.rendererIndex and topmost.layer <= v.layer ) then

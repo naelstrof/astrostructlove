@@ -1,6 +1,12 @@
 --require( "luarocks.loader" )
 --require( "luabins" )
 --require( "zlib" )
+
+-- Clamps a number to within a certain range, with optional rounding
+function math.clamp( n, low, high )
+    return math.min( math.max( n, low ), high )
+end
+
 require( "lib/NikolaiResokav-LoveFrames" )
 require( "lib/Tserial" )
 

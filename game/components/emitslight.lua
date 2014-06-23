@@ -20,24 +20,24 @@ local updateShadowVolumes = function( e )
 end
 
 local update = function( e, dt )
-    e.time = e.time + ( dt * 10 )
-    local pos = math.floor( e.time % #e.lightflickermap ) + 1
-    local char = string.sub( e.lightflickermap, pos, pos )
+    if type( e.lightflickermap ) ~= "table" then
+        error( "Please use setFlickerMap() to set flicker maps!" )
+    end
+    -- Goes at 10 values a second
+    e.lighttime = e.lighttime + ( dt * 10 )
+    local pos = math.floor( e.lighttime % #e.lightflickermap ) + 1
     local npos = pos + 1
     if npos > #e.lightflickermap then
         npos = 1
     end
-    local nchar = string.sub( e.lightflickermap, npos, npos )
-    --local nchar = string.sub( e.lightflickermap, npos+1, npos+1 )
-    -- 0 = a, 1 = z, m = 0.5
-    local flickera = ( string.byte( char ) - 97 ) / 24
-    local flickerb = ( string.byte( nchar ) - 97 ) / 24
-
-    local func = e.time - math.floor( e.time )
-
+    local flickera = e.lightflickermap[ pos ]
+    local flickerb = e.lightflickermap[ npos ]
+    -- Just uses a simple linear function to interpolate the flickermap values
+    local func = e.lighttime - math.floor( e.lighttime )
     local flicker =  flickera * (1-func) + flickerb * func
     e.lightintensity = e.baselightintensity * flicker
-    --e.lightscale = e.baselightscale * flicker
+    -- Clamp between 0 and 1
+    e.lightintensity = math.clamp( e.lightintensity, 0, 1 )
 end
 
 local init = function( e )
@@ -47,9 +47,34 @@ local init = function( e )
     e.lightscale = game.vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getWidth() )
 
     e.baselightintensity = e.lightintensity
-    e.baselightscale = e.lightscale
-    e.time = math.random() * #e.lightflickermap
+    -- Set the flicker time to a random value, this way if we create
+    -- a ton of lights at once they'll flicker at different times
+    e.lighttime = math.random() * #e.lightflickermap
+    -- Convert the lightflickermap to more efficient values
+    e:setFlickerMap( e.lightflickermap )
     game.renderer:addLight( e )
+end
+
+-- Converts a valve-style flickermap into floats
+-- See https://developer.valvesoftware.com/wiki/Light#Appearances
+local setFlickerMap = function( e, flickermapstring )
+    local flickermap = {}
+    -- For each character
+    for char in string.gmatch( flickermapstring, "." ) do
+        -- 0 = a, 1 = z, m = 0.48
+        local val = ( string.byte( char ) - 97 ) / 25
+        table.insert( flickermap, val )
+    end
+    e.lightflickermap = flickermap
+end
+
+local setLightIntensity = function( e, lightintensity )
+    e.lightintensity = lightintensity
+    e.baselightintensity = e.lightintensity
+end
+
+local getLightIntensity = function( e )
+    return e.baselightintensity
 end
 
 local deinit = function( e )
@@ -66,8 +91,14 @@ local EmitsLight = {
     lightrot = 0,
     lightoriginoffset = game.vector( 0, 0 ),
     lightscale = game.vector( 1, 1 ),
-    lightintensity = 1,
-    lightflickermap = "mmnmmommommnonmmonqnmmo",
+    -- I set the light intensity to overflow due to the flickermap
+    -- nearly halving it in all parts of the flicker
+    lightintensity = 1.35,
+    -- Uses "Flicker B" by default.
+    lightflickermap = "nmonqnmomnmomomno",
+    setFlickerMap = setFlickerMap,
+    setLightIntensity = setLightIntensity,
+    getLightIntensity = getLightIntensity,
     updateShadowVolumes = updateShadowVolumes,
     update = update,
     init = init,

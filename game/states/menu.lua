@@ -1,13 +1,20 @@
 local Menu = {}
 
 function Menu:enter()
-    frame = loveframes.Create( "frame" ):SetName( "Main Menu" ):Center():ShowCloseButton( false )
-    play = loveframes.Create( "button", frame ):CenterX():SetY( 10 ):SetText( "Play Demo" )
-    mapeditor = loveframes.Create( "button", frame ):CenterX():SetY( 40 ):SetText( "Map Editor" )
-    options = loveframes.Create( "button", frame ):CenterX():SetY( 70 ):SetText( "Options" )
-    quit = loveframes.Create( "button", frame ):CenterX():SetY( 100 ):SetText( "Quit" )
+    frame = loveframes.Create( "frame" ):SetName( "Main Menu" ):Center():ShowCloseButton( false ):SetHeight( 160 )
+    play = loveframes.Create( "button", frame ):CenterX():SetY( 34 ):SetText( "Play Demo" )
+    mapeditor = loveframes.Create( "button", frame ):CenterX():SetY( 64 ):SetText( "Map Editor" )
+    options = loveframes.Create( "button", frame ):CenterX():SetY( 94 ):SetText( "Options" )
+    quit = loveframes.Create( "button", frame ):CenterX():SetY( 124 ):SetText( "Quit" )
     play.OnClick = function( object, x, y )
-        game.gamestate.switch( gamestates.demoplayback )
+        if love.filesystem.exists( "test.txt" ) then
+            game.gamestate.switch( gamestates.demoplayback )
+        else
+            local err = loveframes.Create( "frame" )
+            err:SetName( "Error" )
+            err:Center()
+            loveframes.Create( "text", err ):SetText( "Can't find file test.txt in game save directory.\n Try creating a demo in the map editor!" ):Center()
+        end
     end
     mapeditor.OnClick = function( object, x, y )
         game.gamestate.switch( gamestates.mapeditor )

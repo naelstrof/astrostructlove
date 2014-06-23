@@ -36,6 +36,23 @@ function Titlebar:init()
         menu:SetPos( 124, 20 )
     end
 
+    local demo = loveframes.Create( "button", self.topbar )
+    demo:SetText( "Demo" )
+    demo:SetPos( 70, 2 )
+    demo:SetWidth( 32 )
+    demo:SetHeight( 20 )
+    demo.OnClick = function()
+        local menu = loveframes.Create( "menu" )
+        menu:AddOption( "Toggle Recording", false, function()
+            if game.demosystem.recording then
+                game.demosystem:stop()
+            else
+                game.demosystem:record( "test" )
+            end
+        end )
+        menu:SetPos( 90, 20 )
+    end
+
 end
 
 function Titlebar:createGridSettings()

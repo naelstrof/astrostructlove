@@ -67,6 +67,7 @@ function DemoSystem:record( filename )
         filename = original .. "_" .. tostring( i ) .. ".txt"
         i = i + 1
     end
+    print( "Recording demo to " .. filename )
     self.file = love.filesystem.newFile( filename, "w" )
     local string = Tserial.pack( self:generateFullSnapshot() )
     local success, errormsg = self.file:write( string .. "\n" )
@@ -85,6 +86,7 @@ function DemoSystem:play( filename )
     self.filelines = self.file:lines()
     self.playing = true
     self.recording = false
+    -- FIXME: Assumes file will have more than two lines in it.
     self.prevframe = Tserial.unpack( self.filelines() )
     self.nextframe = Tserial.unpack( self.filelines() )
     self.tick = self.prevframe.tick
@@ -154,6 +156,7 @@ function DemoSystem:stop()
     self.tick = 0
     self.totaltimepassed = 0
     self.timepassed = 0
+    print( "Recording stopped!" )
 end
 
 function DemoSystem:leave()
@@ -196,7 +199,12 @@ function DemoSystem:update( dt )
                 end
                 --print( "Created ent", ent.demoIndex, ent.__name, "at", ent:getPos() )
             end
-            self.nextframe = Tserial.unpack( self.filelines() )
+            local test = self.filelines()
+            if test == nil then
+                self:stop()
+                return
+            end
+            self.nextframe = Tserial.unpack( test )
         end
         -- Uses linear progression
         local x = ( self.totaltimepassed - self.prevframe.time ) / self.nextframe.time

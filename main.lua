@@ -45,7 +45,7 @@ game.gamemode = require( "game/gamemodes/default" )
 gamestates = {}
 gamestates.menu = require( "game/states/menu" )
 gamestates.options = require( "game/states/options" )
-gamestates.mapeditor = require( "game/states/mapeditor" )
+gamestates.mapeditor = require( "game/states/mapeditor/mapeditor" )
 gamestates.demoplayback = require( "game/states/demoplayback" )
 
 function love.load()

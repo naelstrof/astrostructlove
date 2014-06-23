@@ -17,7 +17,7 @@ Default.entities = {
     },
     lamp = {
         __name="lamp",
-        components={ compo.drawable, compo.emitslight, compo.controllable, compo.networked },
+        components={ compo.drawable, compo.emitslight, compo.networked },
         image="data/textures/lamp.png",
         attributes={ drawable=love.graphics.newImage( "data/textures/lamp.png" ), layer=3 }
     },

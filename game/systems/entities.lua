@@ -35,7 +35,7 @@ function Entities:getNearby( pos, radius )
             -- FIXME: This could be way more accurate, its assuming everything is a circle because I'm a lazy ass.
             -- Perhaps a component could describe the shape of something? May need to implement a shape collision library.
             local vradius = math.max( v:getDrawable():getWidth()*v:getScale().x, v:getDrawable():getHeight()*v:getScale().y )
-            if pos:dist( v:getPos() ) < (radius + vradius) / 2 then
+            if pos:dist( v:getPos() ) < (radius + vradius) then
                 table.insert( ents, v )
             end
         else

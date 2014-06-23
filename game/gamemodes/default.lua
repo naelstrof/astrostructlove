@@ -19,7 +19,11 @@ Default.entities = {
         __name="lamp",
         components={ compo.drawable, compo.emitslight, compo.networked },
         image="data/textures/lamp.png",
-        attributes={ drawable=love.graphics.newImage( "data/textures/lamp.png" ), layer=3 }
+        attributes={
+            drawable=love.graphics.newImage( "data/textures/lamp.png" ),
+            lightdrawable=love.graphics.newImage( "data/textures/lamp_point.png" ),
+            layer=3
+        }
     },
     controlpanel = {
         __name="controlpanel",

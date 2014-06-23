@@ -88,6 +88,7 @@ end
 function Renderer:update( dt )
     for i,v in pairs( self.lights ) do
         v:updateShadowVolumes()
+        v:update( dt )
     end
 end
 

@@ -156,7 +156,7 @@ function DemoSystem:stop()
     self.tick = 0
     self.totaltimepassed = 0
     self.timepassed = 0
-    print( "Recording stopped!" )
+    print( "Recording/Playback stopped!" )
 end
 
 function DemoSystem:leave()
@@ -186,7 +186,9 @@ function DemoSystem:update( dt )
             -- This is where we spawn/delete everything it asks
             for i,v in pairs( self.prevframe.removed ) do
                 --print( "Removed ent", v )
-                self.entities[ v ]:remove()
+                if self.entities[v] ~= nil then
+                    self.entities[ v ]:remove()
+                end
             end
             for i,v in pairs( self.prevframe.added ) do
                 local ent = game.entity( v.__name )

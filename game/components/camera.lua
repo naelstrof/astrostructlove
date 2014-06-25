@@ -9,11 +9,17 @@ local setRot = function( e, rot )
 end
 
 local setZoom = function( e, zoom )
+    if e.zoom ~= zoom then
+        e:setNetworkChanged( "zoom" )
+    end
     e.zoom = zoom
     e.camera:zoomTo( zoom )
 end
 
 local Zoom = function( e, zoom )
+    if e.zoom * zoom ~= e.zoom then
+        e:setNetworkChanged( "zoom" )
+    end
     e.zoom = e.zoom * zoom
     e.camera:zoom( zoom )
 end
@@ -47,6 +53,8 @@ local Camera = {
     setRot = setRot,
     setZoom = setZoom,
     getZoom = getZoom,
+    networkedvars = { "zoom" },
+    networkedfunctions = { "setZoom" },
     Zoom = Zoom,
     toWorld = toWorld
 }

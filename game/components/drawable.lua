@@ -1,5 +1,4 @@
-local setDrawable = function( e, object )
-    e.drawable = object
+local setDrawable = function( e, object ) e.drawable = object
     e.originoffset = game.vector( e.drawable:getWidth() / 2, e.drawable:getHeight() / 2 )
 end
 
@@ -8,10 +7,25 @@ local getDrawable = function( e )
 end
 
 local setScale = function( e, x, y )
+    -- FIXME please for the love of god
+    -- I'M UGLY AND SLOW
     if game.vector.isvector( x ) and y == nil then
+        if e.scale ~= x then
+            e:setNetworkChanged( "scale" )
+        end
         e.scale = x
     elseif x ~= nil and y ~= nil then
-        e.scale = game.vector( x, y )
+        local t = game.vector( x, y )
+        if e.scale ~= t then
+            e:setNetworkChanged( "scale" )
+        end
+        e.scale = t
+    elseif x.x ~= nil and x.y ~= nil and y == nil then
+        local t = game.vector( x.x, x.y )
+        if e.scale ~= t then
+            e:setNetworkChanged( "scale" )
+        end
+        e.scale = t
     else
         error( "Failed to set scale: Invalid parameters supplied!" )
     end
@@ -22,6 +36,9 @@ local getScale = function( e )
 end
 
 local setColor = function( e, color )
+    if not table.equals( e.color, color ) then
+        e:setNetworkChanged( "color" )
+    end
     -- TODO: verify that this is a color
     e.color = color
 end
@@ -63,6 +80,8 @@ local Drawable = {
     layer = 2,
     setDrawable = setDrawable,
     getDrawable = getDrawable,
+    networkedvars = { "scale", "color" },
+    networkedfunctions = { "setScale", "setColor" },
     setScale = setScale,
     getScale = getScale,
     setColor = setColor,

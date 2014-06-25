@@ -14,21 +14,26 @@ local DemoSystem = love.class( {
     nextframe = nil
 } )
 
+function DemoSystem:deltacopy( orig )
+    local copy = {}
+    -- Network all networked vars
+    for i,v in pairs( orig.networkedvars ) do
+        -- but only network the ones that changed
+        if orig.networkedchanges[ v ] then
+            copy[v] = orig[v]
+        end
+    end
+    -- Reset any change flags
+    orig.networkedchanges = {}
+    return copy
+end
+
 function DemoSystem:copy( orig )
     local copy = {}
-    --for i,v in next, orig, nil do
-        --local vtype = type( v )
-        --if vtype ~= "function" and i~= "__index" and i~= "components" and i~= "chains" and vtype ~= "thread" and vtype ~= "userdata" then
-            --if vtype == "table" then
-                --copy[i] = self:copy( v )
-            --else
-                --copy[i] = v
-            --end
-        --end
-    --end
-    -- Only network positions and rotations for now
-    copy.pos = orig.pos
-    copy.rot = orig.rot
+    -- Network all networked vars
+    for i,v in pairs( orig.networkedvars ) do
+        copy[v] = orig[v]
+    end
     return copy
 end
 
@@ -40,7 +45,10 @@ function DemoSystem:addEntity( e )
     -- before working with the next snapshot
     if self.recording then
         -- Only network over these critical attributes.
-        local ent = { __name=e.__name, pos=e:getPos(), rot=e:getRot() }
+        local ent = { __name=e.__name }
+        for i,v in pairs( e.networkedvars ) do
+            ent[v] = e[v]
+        end
         table.insert( self.added, ent )
     end
 end
@@ -92,8 +100,14 @@ function DemoSystem:play( filename )
     self.tick = self.prevframe.tick
     for i,v in pairs( self.prevframe.added ) do
         local ent = game.entity( v.__name )
-        ent:setPos( game.vector( v.pos.x, v.pos.y ) )
-        ent:setRot( v.rot )
+        for o,w in pairs( ent.networkedvars ) do
+            local val = v[w]
+            -- Call the coorisponding function to set the
+            -- value
+            if val ~= nil then
+                ent[ ent.networkedfunctions[ o ] ]( ent, val )
+            end
+        end
         -- Automatically set the default camera
         if ent:hasComponent( compo.camera ) then
             game.camerasystem:setActive( ent )
@@ -117,7 +131,7 @@ function DemoSystem:generateSnapshot()
     for i,v in pairs( self.entities ) do
         if v.netchanged then
             v.netchanged = false
-            table.insert( snapshot.entities, v.demoIndex, self:copy( v ) )
+            table.insert( snapshot.entities, v.demoIndex, self:deltacopy( v ) )
         end
     end
     return snapshot
@@ -163,6 +177,29 @@ function DemoSystem:leave()
     self:stop()
 end
 
+function DemoSystem:interpolate( pt, ft, x )
+    if ft == nil then
+        return pt
+    end
+    if type( pt ) == "table" then
+        local t = {}
+        for i,v in pairs( pt ) do
+            local pastval = v
+            local futureval = ft[i]
+            if type( pastval ) == "table" then
+                t[i] = self:interpolate( pastval, futureval, x )
+            else
+                t[i] = pastval + ( futureval - pastval ) * x
+            end
+        end
+        return t
+    else
+        local pastval = pt
+        local futureval = ft
+        return pastval + ( futureval - pastval ) * x
+    end
+end
+
 function DemoSystem:update( dt )
     if self.recording and self.file ~= nil then
         self.totaltimepassed = self.totaltimepassed + dt
@@ -183,21 +220,34 @@ function DemoSystem:update( dt )
             self.tick = self.tick + 1
             --print( "Moved to tick", self.tick )
             self.prevframe = self.nextframe
-            -- This is where we spawn/delete everything it asks
+            -- This is where we delete everything it asks
             for i,v in pairs( self.prevframe.removed ) do
                 --print( "Removed ent", v )
                 if self.entities[v] ~= nil then
                     self.entities[ v ]:remove()
                 end
             end
+            -- This is where we add everything it asks
             for i,v in pairs( self.prevframe.added ) do
                 local ent = game.entity( v.__name )
-                ent:setPos( game.vector( unpack( v.pos ) ) )
-                ent:setRot( v.rot )
+                for o,w in pairs( ent.networkedvars ) do
+                    local val = v[w]
+                    -- Call the coorisponding function to set the
+                    -- value
+                    if val ~= nil then
+                        ent[ ent.networkedfunctions[ o ] ]( ent, val )
+                    end
+                end
                 local pent = self.prevframe.entities[ ent.demoIndex ]
                 if pent ~= nil then
-                    ent:setPos( game.vector( pent.pos.x, pent.pos.y ) )
-                    ent:setRot( pent.rot )
+                    for o,w in pairs( ent.networkedvars ) do
+                        local val = pent[w]
+                        -- Call the coorisponding function to set the
+                        -- value
+                        if val ~= nil then
+                            ent[ ent.networkedfunctions[ o ] ]( ent, val )
+                        end
+                    end
                 end
                 --print( "Created ent", ent.demoIndex, ent.__name, "at", ent:getPos() )
             end
@@ -215,10 +265,15 @@ function DemoSystem:update( dt )
             local fent = self.nextframe.entities[ v.demoIndex ]
             -- Make sure the entity is changing somehow
             if pent ~= nil and fent ~= nil then
-                local ppos = game.vector( pent.pos.x, pent.pos.y )
-                local fpos = game.vector( fent.pos.x, pent.pos.y )
-                v:setPos( ppos + ( fpos - ppos ) * x )
-                v:setRot( pent.rot + ( fent.rot - pent.rot ) * x )
+                for o,w in pairs( v.networkedvars ) do
+                    local pastval = pent[w]
+                    local futureval = fent[w]
+                    -- Call the coorisponding function to set the
+                    -- interpolated value (which can be a table)
+                    if pastval ~= nil then
+                        v[ v.networkedfunctions[ o ] ]( v, self:interpolate( pastval, futureval, x ) )
+                    end
+                end
             end
         end
     end

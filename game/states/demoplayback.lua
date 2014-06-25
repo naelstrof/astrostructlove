@@ -14,7 +14,7 @@ end
 
 function Playback:update( dt )
     game.demosystem:update( dt )
-    game.controlsystem:update( dt )
+    --game.controlsystem:update( dt )
     game.starsystem:update( dt )
     game.renderer:update( dt )
 end

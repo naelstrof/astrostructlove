@@ -7,6 +7,14 @@ function math.clamp( n, low, high )
     return math.min( math.max( n, low ), high )
 end
 
+function table.equals( t1, t2 )
+    if #t1 ~= #t2 then return false end
+    for i=1,#t1 do
+        if t1[i] ~= t2[i] then return false end
+    end
+    return true
+end
+
 require( "lib/NikolaiResokav-LoveFrames" )
 require( "lib/Tserial" )
 

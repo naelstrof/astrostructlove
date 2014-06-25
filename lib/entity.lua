@@ -9,10 +9,19 @@ local Entity = love.class( {
                              -- TODO: Make pos into __pos so that users never have to worry about conflicting names
                              pos = nil,
                              tempfunction = nil,
+                             networkedvars = { "pos", "rot" },
+                             networkedfunctions = { "setPos", "setRot" },
+                             networkedchanges = {},
+                             netchanged = true,
                              rot = 0,
                              valid = true
                            } )
 
+
+function Entity:setNetworkChanged( varname )
+    self.netchanged = true
+    self.networkedchanges[ varname ] = true
+end
 
 function Entity:deepCopy( t )
     if type(t) ~= "table" then return t end
@@ -27,6 +36,24 @@ function Entity:deepCopy( t )
     end
     setmetatable(target, meta)
     return target
+end
+
+-- This is pretty much a specialized function for the networkedvars
+-- table, which merges two tables while making sure there's no
+-- repeated variables
+function Entity:mergeNetworkTables( a, b )
+    for i,v in pairs( b ) do
+        local test = false
+        for o,w in pairs( a ) do
+            if v == w then
+                test = true
+                break
+            end
+        end
+        if not test then
+            table.insert( a, v )
+        end
+    end
 end
 
 --function Entity:__init( components, attributes )
@@ -63,6 +90,8 @@ function Entity:__init( name )
                 self[o] = function( ... )
                     self:startChain( o, { ... } )
                 end
+            elseif type( self[o] ) == "table" and type( w ) == "table" and( o == "networkedvars" or o == "networkedfunctions" ) then
+                self:mergeNetworkTables( self[o], w )
             end
             -- Every other variable is considered an override
         end
@@ -124,10 +153,25 @@ function Entity:remove()
 end
 
 function Entity:setPos( x, y )
+    -- FIXME please for the love of god
+    -- I'M UGLY AND SLOW
     if game.vector.isvector( x ) and y == nil then
+        if self.pos ~= x then
+            self:setNetworkChanged( "pos" )
+        end
         self.pos = x
     elseif x ~= nil and y ~= nil then
-        self.pos = game.vector( x, y )
+        local t = game.vector( x, y )
+        if self.pos ~= t then
+            self:setNetworkChanged( "pos" )
+        end
+        self.pos = t
+    elseif x.x ~= nil and x.y ~= nil and y == nil then
+        local t = game.vector( x.x, x.y )
+        if self.pos ~= t then
+            self:setNetworkChanged( "pos" )
+        end
+        self.pos = t
     else
         error( "Failed to set position: Invalid parameters supplied!" )
     end
@@ -138,6 +182,9 @@ function Entity:getPos( pos )
 end
 
 function Entity:setRot( rot )
+    if self.rot ~= rot then
+        self:setNetworkChanged( "rot" )
+    end
     self.rot = rot
 end
 

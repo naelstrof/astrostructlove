@@ -36,7 +36,8 @@ end
 
 function MapEditor:draw()
     local mousepos = self.grid:getMouse()
-    game.renderer:draw()
+    -- Draw debug
+    game.renderer:draw( true )
 
     if game.renderer:getFullbright() then
         love.graphics.setColor( { 255, 255, 255, 155 } )

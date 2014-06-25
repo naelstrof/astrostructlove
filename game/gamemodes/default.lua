@@ -1,6 +1,8 @@
 local Default = {}
 
-Default.____name = "Default"
+Default.__name = "Default"
+
+Default.map = "default"
 
 Default.entities = {
     metalfloor = {
@@ -38,7 +40,7 @@ Default.entities = {
     },
     starfield = {
         __name="starfield",
-        components={ compo.starfield, compo.networked },
+        components={ compo.starfield, compo.networked, compo.debugdrawable },
         image="data/textures/logic.png",
         attributes={}
     },
@@ -53,7 +55,16 @@ Default.entities = {
         components={ compo.camera, compo.controllable, compo.networked },
         image="data/textures/logic.png",
         attributes={}
+    },
+    playerspawn = {
+        __name="playerspawn",
+        components={ compo.debugdrawable },
+        image="data/textures/logic.png",
+        attributes={ }
     }
 }
+
+function Default:spawnPlayer()
+end
 
 return Default

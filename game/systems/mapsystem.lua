@@ -1,6 +1,7 @@
 local MapSystem = love.class( { } )
 
 function MapSystem:save( filename )
+    love.filesystem.createDirectory( "maps/" )
     filename = "maps/" .. filename .. ".txt"
     -- TODO: Error checking
     love.filesystem.write( filename, Tserial.pack( game.demosystem:generateFullSnapshot( false ) ) )

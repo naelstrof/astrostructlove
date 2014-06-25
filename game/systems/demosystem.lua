@@ -66,7 +66,8 @@ end
 function DemoSystem:record( filename )
     local i = 0
     local original = filename
-    filename = filename .. ".txt"
+    love.filesystem.createDirectory( "demos/" )
+    filename = "demos/" .. filename .. ".txt"
     -- Make sure we have a file that doesn't exist
     while love.filesystem.exists( filename ) do
         filename = original .. "_" .. tostring( i ) .. ".txt"
@@ -87,6 +88,7 @@ function DemoSystem:play( filename )
     if self.recording then
         self:stop()
     end
+    filename = "demos/" .. filename .. ".txt"
     self.file = love.filesystem.newFile( filename, "r" )
     self.filelines = self.file:lines()
     self.playing = true

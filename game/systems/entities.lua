@@ -41,7 +41,7 @@ function Entities:getNearby( pos, radius )
             -- FIXME: This could be way more accurate, its assuming everything is a circle because I'm a lazy ass.
             -- Perhaps a component could describe the shape of something? May need to implement a shape collision library.
             local vradius = math.max( v:getDrawable():getWidth()*v:getScale().x, v:getDrawable():getHeight()*v:getScale().y )
-            if pos:dist( v:getPos() ) < (radius + vradius) then
+            if pos:dist( v:getPos() ) < (radius + vradius)/2 then
                 table.insert( ents, v )
             end
         else
@@ -55,9 +55,9 @@ end
 
 function Entities:getClicked()
     local mousepos = game.camerasystem:getWorldMouse()
-    -- FIXME: Having a radius selection of 1 means that selection could be more annoying or less annoying when attempting to click on singular pixel objects
+    -- FIXME: Having a radius selection of 5 means that selection could be more annoying or less annoying when attempting to click on singular pixel objects
     -- testing may have to be done.
-    local ents = self:getNearby( mousepos, 1 )
+    local ents = self:getNearby( mousepos, 5 )
     -- Find the top-most drawable entity
     local topmost = nil
     for i,v in pairs( ents ) do
@@ -65,6 +65,8 @@ function Entities:getClicked()
             if topmost == nil or topmost.layer < v.layer or ( topmost.rendererIndex < v.rendererIndex and topmost.layer <= v.layer ) then
                 topmost = v
             end
+        else
+            topmost = v
         end
     end
     return topmost

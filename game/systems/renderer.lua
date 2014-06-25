@@ -2,7 +2,20 @@
 -- Adds several values to the entity that shouldn't be altered manually: rendererIndex, layer
 -- The values are used to locate the entity within the table.
 
-local Renderer = love.class( { layers = {}, lights={}, glowables={}, worldcanvas=nil, lightcanvas=nil, fullbright=false, maskshader=nil } )
+local Renderer = love.class( { layers = {}, lights={}, glowables={}, debugs={}, worldcanvas=nil, lightcanvas=nil, fullbright=false, maskshader=nil } )
+
+function Renderer:addDebugEntity( e )
+    table.insert( self.debugs, e )
+    e.debugrendererIndex = table.maxn( self.debugs )
+end
+
+function Renderer:removeDebugEntity( e )
+    table.remove( self.debugs, e.debugrendererIndex )
+    -- Have to update all the indicies of all the other entities
+    for i=e.debugrendererIndex, table.maxn( self.debugs ), 1 do
+        self.debugs[i].debugrendererIndex = self.debugs[i].debugrendererIndex - 1
+    end
+end
 
 function Renderer:addEntity( e )
     table.insert( self.layers[ e.layer ], e )
@@ -92,7 +105,8 @@ function Renderer:update( dt )
     end
 end
 
-function Renderer:draw()
+function Renderer:draw( debug )
+    debug = debug or false
     -- Draw world to world canvas
     game.camerasystem:attach()
     love.graphics.setCanvas( self.worldcanvas )
@@ -166,6 +180,15 @@ function Renderer:draw()
         love.graphics.setColor( v.color )
         love.graphics.draw( v.drawable, v.pos.x, v.pos.y, v.rot, v.scale.x, v.scale.y, v.originoffset.x, v.originoffset.y )
         love.graphics.setColor( 255, 255, 255, 255 )
+    end
+    if debug then
+        love.graphics.setColor( 255, 255, 255, 155 )
+        for i,v in pairs( self.debugs ) do
+            local p = v:getPos()
+            love.graphics.line( p.x-5, p.y-5, p.x+5, p.y+5 )
+            love.graphics.line( p.x+5, p.y-5, p.x-5, p.y+5 )
+            love.graphics.print( v.__name, p.x, p.y+10 )
+        end
     end
     game.camerasystem:detach()
 end

@@ -32,6 +32,7 @@ love.class = require( "lib/30log" )
 compo = {}
 -- Components
 compo.drawable = require( "game/components/drawable" )
+compo.debugdrawable = require( "game/components/debugdrawable" )
 compo.glows = require( "game/components/glows" )
 compo.camera = require( "game/components/camera" )
 compo.controllable = require( "game/components/controllable" )
@@ -55,6 +56,7 @@ game.mapsystem = require( "game/systems/mapsystem" )
 
 -- Current Gamemode
 game.gamemode = require( "game/gamemodes/default" )
+game.gamemodes = { require( "game/gamemodes/default" ) }
 --
 
 gamestates = {}
@@ -62,6 +64,7 @@ gamestates.menu = require( "game/states/menu" )
 gamestates.options = require( "game/states/options" )
 gamestates.mapeditor = require( "game/states/mapeditor/mapeditor" )
 gamestates.demoplayback = require( "game/states/demoplayback" )
+gamestates.singleplayer = require( "game/states/singleplayer" )
 
 function love.load()
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )

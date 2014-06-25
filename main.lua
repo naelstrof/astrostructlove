@@ -50,6 +50,7 @@ game.camerasystem = require( "game/systems/camerasystem" )
 game.controlsystem = require( "game/systems/controlsystem" )
 game.starsystem = require( "game/systems/starsystem" )
 game.demosystem = require( "game/systems/demosystem" )
+game.mapsystem = require( "game/systems/mapsystem" )
 --
 
 -- Current Gamemode

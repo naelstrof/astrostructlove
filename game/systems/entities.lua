@@ -16,6 +16,12 @@ function Entities:removeEntity( e )
     end
 end
 
+function Entities:removeAll()
+    for i,v in pairs( self:getAll() ) do
+        v:remove()
+    end
+end
+
 function Entities:getAll()
     -- Must return a copy so the user can't manually edit the table
     -- This keeps bugs like removing entities with :remove() messing

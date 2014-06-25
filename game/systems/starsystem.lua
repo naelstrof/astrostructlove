@@ -14,6 +14,12 @@ function Starfield:removeStarfield( e )
     end
 end
 
+function Starfield:resize( w, h )
+    for i,v in pairs( self.starfields ) do
+        v:resizeStarfield( w, h )
+    end
+end
+
 function Starfield:update( dt )
     for i,v in pairs( self.starfields ) do
         v:updateStarfield( dt )

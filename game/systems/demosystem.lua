@@ -28,8 +28,9 @@ function DemoSystem:deltacopy( orig )
     return copy
 end
 
+-- This is used to add new entities
 function DemoSystem:copy( orig )
-    local copy = {}
+    local copy = { __name=orig.__name }
     -- Network all networked vars
     for i,v in pairs( orig.networkedvars ) do
         copy[v] = orig[v]
@@ -45,11 +46,7 @@ function DemoSystem:addEntity( e )
     -- before working with the next snapshot
     if self.recording then
         -- Only network over these critical attributes.
-        local ent = { __name=e.__name }
-        for i,v in pairs( e.networkedvars ) do
-            ent[v] = e[v]
-        end
-        table.insert( self.added, ent )
+        table.insert( self.added, self:copy( e ) )
     end
 end
 
@@ -108,10 +105,6 @@ function DemoSystem:play( filename )
                 ent[ ent.networkedfunctions[ o ] ]( ent, val )
             end
         end
-        -- Automatically set the default camera
-        if ent:hasComponent( compo.camera ) then
-            game.camerasystem:setActive( ent )
-        end
         --print( "Created ent", ent.__name, "at", ent:getPos() )
     end
 end
@@ -139,7 +132,7 @@ end
 
 -- Same as generateSnapshot but it includes ALL entities, not just what
 -- has changed since the last snapshot
-function DemoSystem:generateFullSnapshot( update )
+function DemoSystem:generateFullSnapshot()
     local added = {}
     for i,v in pairs( self.entities ) do
         local ent = { __name=v.__name, pos=v:getPos(), rot=v:getRot() }
@@ -148,16 +141,13 @@ function DemoSystem:generateFullSnapshot( update )
     local snapshot = {}
     snapshot["time"] = self.totaltimepassed
     snapshot["tick"] = self.tick
-    snapshot["added"] = added
-    -- If we're told to empty the added queue do so.
-    if update then
-        self.added = {}
+    snapshot["added"] = {}
+    for i,v in pairs( self.entities ) do
+        table.insert( snapshot.added, v.demoIndex, self:copy( v ) )
     end
     snapshot["full"] = true
+    -- Since all of the entities are going to be added this frame, we don't have an entities table
     snapshot["entities"] = {}
-    for i,v in pairs( self.entities ) do
-        table.insert( snapshot.entities, v.demoIndex, self:copy( v ) )
-    end
     return snapshot
 end
 

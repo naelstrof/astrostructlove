@@ -21,7 +21,7 @@ end
 
 function MapEditor:enter()
     self.camera = game.entity:new( "ghost" )
-    game.camerasystem:setActive( self.camera )
+    self.camera:setActive( true )
     game.renderer:setFullbright( true )
 
     self.toolbox:init( MapEditor.tools )
@@ -31,9 +31,7 @@ end
 function MapEditor:leave()
     game.demosystem:leave()
     loveframes.util:RemoveAll()
-    for i,v in pairs( game.entities:getAll() ) do
-        v:remove()
-    end
+    game.entities:removeAll()
 end
 
 function MapEditor:draw()
@@ -113,6 +111,7 @@ end
 function MapEditor:resize( w, h )
     self.titlebar:resize( w, h )
     self.toolbox:resize( w, h )
+    game.starsystem:resize( w, h )
     game.renderer:resize( w, h )
 end
 

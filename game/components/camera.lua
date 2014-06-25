@@ -28,6 +28,16 @@ local getZoom = function( e )
     return e.zoom
 end
 
+local setActive = function( e, active )
+    if e.active ~= active then
+        e:setNetworkChanged( "active" )
+    end
+    e.active = active
+    if active then
+        game.camerasystem:setActive( e )
+    end
+end
+
 local toWorld = function( e, pos )
     local x,y = e.camera:worldCoords( pos.x, pos.y )
     return game.vector( x, y )
@@ -48,13 +58,15 @@ local Camera = {
     camera = game.camera( 0, 0 ),
     zoom = 1,
     init = init,
+    active = false,
     deinit = deinit,
     setPos = setPos,
     setRot = setRot,
     setZoom = setZoom,
+    setActive = setActive,
     getZoom = getZoom,
-    networkedvars = { "zoom" },
-    networkedfunctions = { "setZoom" },
+    networkedvars = { "zoom", "active" },
+    networkedfunctions = { "setZoom", "setActive" },
     Zoom = Zoom,
     toWorld = toWorld
 }

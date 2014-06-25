@@ -16,12 +16,39 @@ local createStarfield = function( e )
         local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
         e.stars[i]:setScale( game.vector( s, s ) )
     end
+    width = love.graphics.getWidth()
+    height = love.graphics.getHeight()
 end
 
 local updateStarfield = function( e, dt )
     for i, v in pairs( e.stars ) do
         v:setPos( v:getPos() + ( e.vel * dt * v:getScale().x ) )
+        -- Respawn stars that go off-screen
+        local maxwidth = 30
+        if v:getPos().x > width + maxwidth or v:getPos().x < -maxwidth then
+            v:setDrawable( e.starImages[ math.floor( math.random()*(table.maxn( e.starImages )-1) + 0.5 ) + 1 ] )
+            local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
+            v:setScale( game.vector( s, s ) )
+            v:setPos( game.vector( math.abs( v:getPos().x - ( width + maxwidth ) ), height * math.random() ) )
+        elseif v:getPos().y > height + maxwidth or v:getPos().y < -maxwidth then
+            v:setDrawable( e.starImages[ math.floor( math.random()*(table.maxn( e.starImages )-1) + 0.5 ) + 1 ] )
+            local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
+            v:setScale( game.vector( s, s ) )
+            v:setPos( game.vector( width * math.random(), math.abs( v:getPos().y - ( height + maxwidth ) ) ) )
+        end
     end
+end
+
+local resizeStarfield = function( e, w, h )
+    -- Get the multipliers to change the star positions
+    local xdiff =  w / width
+    local ydiff =  h / height
+    local multi = game.vector( xdiff, ydiff )
+    for i, v in pairs( e.stars ) do
+        v:setPos( v:getPos():permul( multi ) )
+    end
+    width = w
+    height = h
 end
 
 local init = function( e )
@@ -39,14 +66,18 @@ end
 local Starfield = {
     __name = "Starfield",
     stars = {},
-    maxStars = 64,
-    vel = game.vector( 2.5, 0.5 ),
+    maxStars = 128,
+    width = nil,
+    height = nil,
+    --vel = game.vector( 2.5, 0.5 ),
+    vel = game.vector( 25, 50 ),
     size = 0.5,
     sizeDeviation = 0.5,
     init = init,
     deinit = deinit,
     createStarfield = createStarfield,
     updateStarfield = updateStarfield,
+    resizeStarfield = resizeStarfield,
     starImages = { love.graphics.newImage( "data/textures/star.png" ),
                    love.graphics.newImage( "data/textures/star2.png" ) }
 }

@@ -23,15 +23,15 @@ function DeleteTool:draw()
 end
 
 function DeleteTool:mousepressed( x, y, button )
-end
-
-function DeleteTool:mousereleased( x, y, button )
     if button == 'l' then
         local ent = game.entities:getClicked()
         if ent ~= nil then
             ent:remove()
         end
     end
+end
+
+function DeleteTool:mousereleased( x, y, button )
 end
 
 return DeleteTool

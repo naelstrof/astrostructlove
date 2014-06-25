@@ -1,4 +1,6 @@
-local Titlebar = { }
+local Titlebar = {
+    savename = "default"
+}
 
 function Titlebar:init()
 
@@ -14,7 +16,14 @@ function Titlebar:init()
     filebutton:SetHeight( 20 )
     filebutton.OnClick = function()
         local menu = loveframes.Create( "menu" )
-        menu:AddOption( "Save", false, function()
+        menu:AddOption( "Load ...", false, function()
+            gamestates.mapeditor.titlebar:createLoadBox()
+        end )
+        menu:AddOption( "Save as ...", false, function()
+            gamestates.mapeditor.titlebar:createSaveAsBox()
+        end )
+        menu:AddOption( "Save as " .. gamestates.mapeditor.titlebar.savename, false, function()
+            game.mapsystem:save( gamestates.mapeditor.titlebar.savename )
         end )
         menu:AddOption( "Quit", false, function()
             game.gamestate.switch( gamestates.menu )
@@ -52,9 +61,110 @@ function Titlebar:init()
                 game.demosystem:record( "test" )
             end
         end )
-        menu:SetPos( 90, 20 )
+        menu:SetPos( 156, 20 )
     end
 
+end
+
+function Titlebar:createLoadBox()
+    if gamestates.mapeditor.saveasbox ~= nil then
+        gamestates.mapeditor.saveasbox:Remove()
+    end
+    gamestates.mapeditor.saveasbox = loveframes.Create( "frame" )
+    local frame = gamestates.mapeditor.saveasbox
+    frame:SetWidth( 128 )
+    frame:SetHeight( 256 )
+    frame:SetName( "Load Map ..." )
+    frame:Center()
+
+    local list = loveframes.Create( "list", frame )
+    list:SetPos( 4, 29 )
+    list:SetSize( 120, 222 )
+    list:SetPadding( 2 )
+    list:SetSpacing( 2 )
+
+    local files = love.filesystem.getDirectoryItems( "maps/" )
+    local added = false
+    for i, file in pairs( files ) do
+        local button = loveframes.Create( "button" )
+        button.file = string.sub( file, 1, -5 )
+        button:SetText( button.file )
+        button.OnClick = function( object )
+            gamestates.mapeditor.titlebar:createLoadConfirm( object.file )
+        end
+        added = true
+        list:AddItem( button )
+    end
+    if not added then
+        local text = loveframes.Create( "text", frame )
+        text:SetText( "No maps found :(" )
+        list:AddItem( text )
+    end
+end
+
+function Titlebar:createLoadConfirm( file )
+    if gamestates.mapeditor.loadbox ~= nil then
+        gamestates.mapeditor.loadbox:Remove()
+    end
+    gamestates.mapeditor.loadbox = loveframes.Create( "frame" )
+    local frame = gamestates.mapeditor.loadbox
+    frame:SetWidth( 300 )
+    frame:SetHeight( 110 )
+    frame:SetName( "Load " .. file )
+    frame:Center()
+    local text = loveframes.Create( "text", frame )
+    text:SetText( "Are you sure you want to load map " .. file .. "?\nAll unsaved progress will be lost!" )
+    text:Center()
+    text:SetY( 30 )
+    local button = loveframes.Create( "button", frame )
+    button:SetText( "Yes" )
+    button.file = file
+    button.frame = frame
+    button:SetPos( 20, 70 )
+    button.OnClick = function( object )
+        game.mapsystem:load( object.file )
+        object.frame:Remove()
+        if gamestates.mapeditor.saveasbox ~= nil then
+            gamestates.mapeditor.saveasbox:Remove()
+        end
+    end
+    local button = loveframes.Create( "button", frame )
+    button:SetText( "No" )
+    button:SetPos( 200, 70 )
+    button.frame = frame
+    button.OnClick = function( object )
+        object.frame:Remove()
+    end
+end
+
+function Titlebar:createSaveAsBox()
+    if gamestates.mapeditor.saveasbox ~= nil then
+        gamestates.mapeditor.saveasbox:Remove()
+    end
+    gamestates.mapeditor.saveasbox = loveframes.Create( "frame" )
+    local frame = gamestates.mapeditor.saveasbox
+    frame:SetWidth( 128 )
+    frame:SetHeight( 100 )
+    frame:SetName( "Save Map As ..." )
+    frame:Center()
+    local text = loveframes.Create( "textinput", frame )
+    text:SetX( 2 )
+    text:SetY( 30 )
+    text:SetWidth( 124 )
+    text.OnEnter = function( object )
+        object:Clear()
+    end
+    local button = loveframes.Create( "button", frame )
+    button:Center()
+    button:SetY( 60 )
+    button:SetText( "Save" )
+    button.input = text
+    button.frame = frame
+    button.OnClick = function( object )
+        gamestates.mapeditor.titlebar.savename = object.input:GetText()
+        game.mapsystem:save( object.input:GetText() )
+        object.frame:Remove()
+    end
 end
 
 function Titlebar:createGridSettings()

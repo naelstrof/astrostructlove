@@ -39,6 +39,7 @@ end
 
 function Playback:resize( w, h )
     game.renderer:resize( w, h )
+    game.starsystem:resize( dt )
 end
 
 return Playback

@@ -1,6 +1,11 @@
 -- An entity cannot be assumed to have anything besides a list of its
 -- components, position, and rotation.
 
+-- Oh and it keeps track of networked variables and their coorisponding
+-- functions to update the variables.
+-- It only supports networking simple types like tables, numbers, and strings.
+-- There's no recursive tables or functions or metadata allowed.
+
 -- An entity with "nil" components is literally nothing but a position and rotation.
 
 local Entity = love.class( {

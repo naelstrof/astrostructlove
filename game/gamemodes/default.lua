@@ -1,3 +1,5 @@
+-- So far all gamemodes do is have a spawnPlayer() hook, as well as have
+-- a list of entities that are possible to spawn.
 local Default = {}
 
 Default.__name = "Default"
@@ -61,10 +63,30 @@ Default.entities = {
         components={ compo.debugdrawable },
         image="data/textures/logic.png",
         attributes={ }
+    },
+    player = {
+        __name="player",
+        components={ compo.drawable, compo.camera, compo.controllable, compo.networked },
+        image="data/textures/human.png",
+        attributes={ drawable=love.graphics.newImage( "data/textures/human.png" ), layer=3 }
     }
 }
 
-function Default:spawnPlayer()
+function Default:spawnPlayer( id )
+    -- Spawn player at a random playerspawn
+    local ents = game.entities:getAllNamed( "playerspawn" )
+    local player = game.entity:new( "player" )
+    if table.getn( ents ) <= 0 then
+        player:setPos( game.vector( 0, 0 ) )
+    else
+        local rand = 1+( math.random() * ( table.getn( ents ) - 1 ) )
+        player:setPos( ents[ rand ]:getPos() )
+    end
+
+    -- If we're in control of the player
+    if id == 0 then
+        player:setActive( true )
+    end
 end
 
 return Default

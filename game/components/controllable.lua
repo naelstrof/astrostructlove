@@ -27,6 +27,16 @@ local setRotVel = function( e, rotvelocity )
     e.rotvelocity = rotvelocity
 end
 
+local setActive = function( e, active )
+    if e.active ~= active then
+        e:setNetworkChanged( "active" )
+    end
+    e.active = active
+    if active then
+        game.controlsystem:setActive( e )
+    end
+end
+
 local getRotVel = function( e )
     return e.rotvelocity
 end
@@ -49,12 +59,15 @@ local Controllable = {
     rotfriction = 0.01,
     init = init,
     deinit = deinit,
+    setActive = setActive,
     setVel = setVel,
     getVel = getVel,
     setSpeed = setSpeed,
     getSpeed = getSpeed,
     setRotVel = setRotVel,
     getRotVel = getRotVel,
+    networkedvars = { "active" },
+    networkedfunctions = { "setActive" },
     setRotSpeed = setRotSpeed,
     getRotSpeed = getRotSpeed
 }

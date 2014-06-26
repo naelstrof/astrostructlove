@@ -2,6 +2,8 @@ local Singleplayer = {}
 
 function Singleplayer:enter()
     game.mapsystem:load( game.gamemode.map )
+    -- Spawn ourselves in
+    game.gamemode:spawnPlayer( 0 )
 end
 
 function Singleplayer:leave()

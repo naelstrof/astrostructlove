@@ -5,7 +5,7 @@ local setPos = function( e, pos )
 end
 
 local setRot = function( e, rot )
-    e.camera:rotateTo( rot )
+    e.camera:rotateTo( -rot )
 end
 
 local setZoom = function( e, zoom )

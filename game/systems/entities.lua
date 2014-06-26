@@ -33,6 +33,16 @@ function Entities:getAll()
     return ents
 end
 
+function Entities:getAllNamed( name )
+    local ents = {}
+    for i,v in pairs( self.entities ) do
+        if v.__name == name then
+            table.insert( ents, v )
+        end
+    end
+    return ents
+end
+
 -- TODO: Needs some kind of optimization so we don't have to loop through every entity in the world.
 function Entities:getNearby( pos, radius )
     local ents = {}

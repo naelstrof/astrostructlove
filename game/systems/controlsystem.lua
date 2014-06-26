@@ -30,16 +30,17 @@ function ControlSystem:update( dt )
     else
         direction = game.vector( right - left, down - up ):normalized()
     end
-    rotdir = rotr - rotl
+    rotdir = rotl - rotr
 
     -- TODO: Gamepad controls
-
     for i,v in pairs( self.entities ) do
-        v:setRotVel( v:getRotVel() + rotdir * v:getRotSpeed() * dt )
-        v:setRot( v:getRot() + v:getRotVel() * dt )
+        if v == self.activecontrol then
+            v:setRotVel( v:getRotVel() + rotdir * v:getRotSpeed() * dt )
 
-        v:setVel( v:getVel() + direction:rotated( -v:getRot() ) * v:getSpeed() * dt )
+            v:setVel( v:getVel() + direction:rotated( v:getRot() ) * v:getSpeed() * dt )
+        end
         v:setPos( v:getPos() + v:getVel() * dt )
+        v:setRot( v:getRot() + v:getRotVel() * dt )
 
         -- TODO: Ground-specific friction
         v:setVel( v:getVel() * math.pow( v.friction, dt ) )
@@ -49,8 +50,8 @@ function ControlSystem:update( dt )
         if v:getVel():len() < 1 then
             v:setVel( game.vector( 0, 0 ) )
         end
-
     end
+
 end
 
 

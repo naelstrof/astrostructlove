@@ -63,13 +63,18 @@ end
 
 --function Entity:__init( components, attributes )
 -- Entities are initialized via their index within the gamemodes.entities
-function Entity:__init( name )
+function Entity:__init( name, extraattributes )
     self.__name = name
     self.pos = game.vector( 0, 0 )
     local attributes = game.gamemode.entities[ name ].attributes or {}
+    extraattributes = extraattributes or {}
     self.components = game.gamemode.entities[ name ].components
     -- Set up the attributes first as they may affect the components
     for i,v in pairs( attributes ) do
+        self[i] = v
+    end
+    -- This is for on-the-fly attributes/overrides
+    for i,v in pairs( extraattributes ) do
         self[i] = v
     end
     -- Attempt to inherit all functions and variables in each component

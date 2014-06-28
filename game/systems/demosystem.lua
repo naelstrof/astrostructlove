@@ -1,4 +1,5 @@
 local DemoSystem = love.class( {
+    uniqueid = 0,
     entities = {},
     removed = {},
     added = {},
@@ -14,8 +15,10 @@ local DemoSystem = love.class( {
     nextframe = nil
 } )
 
+-- This is used to create delta snapshots of entities,
+-- aka it only records/copies changes from the last deltacopy()
 function DemoSystem:deltacopy( orig )
-    local copy = {}
+    local copy = { demoIndex=orig.demoIndex }
     -- Network all networked vars
     for i,v in pairs( orig.networkedvars ) do
         -- but only network the ones that changed
@@ -30,7 +33,7 @@ end
 
 -- This is used to add new entities
 function DemoSystem:copy( orig )
-    local copy = { __name=orig.__name }
+    local copy = { __name=orig.__name, demoIndex=orig.demoIndex }
     -- Network all networked vars
     for i,v in pairs( orig.networkedvars ) do
         copy[v] = orig[v]
@@ -38,14 +41,26 @@ function DemoSystem:copy( orig )
     return copy
 end
 
-function DemoSystem:addEntity( e )
-    table.insert( self.entities, e )
-    e.demoIndex = table.maxn( self.entities )
+function DemoSystem:addEntity( e, uid )
+    uid = uid or self.uniqueid
+    -- table.insert( self.entities, e )
+    -- If our unique ID conflicts with something, remove the old
+    -- entity that had the id.
+    if self.entities[ uid ] ~= nil then
+        self.entities[ uid ]:remove()
+    end
+    self.entities[ uid ] = e
+    e.demoIndex = uid
+    if uid > self.uniqueid then
+        self.uniqueid = uid + 1
+    else
+        self.uniqueid = self.uniqueid + 1
+    end
 
     -- We record entities we add so that we know to create them
     -- before working with the next snapshot
     if self.recording then
-        -- Only network over these critical attributes.
+        -- self:copy makes sure we only network critical variables
         table.insert( self.added, self:copy( e ) )
     end
 end
@@ -56,18 +71,20 @@ function DemoSystem:removeEntity( e )
     if self.recording then
         table.insert( self.removed, e.demoIndex )
     end
-    table.remove( self.entities, e.demoIndex )
+    --table.remove( self.entities, e.demoIndex )
+    self.entities[ e.demoIndex ] = nil
     -- Have to update all the indicies of all the other entities.
-    for i=e.entitiesIndex, table.maxn( self.entities ), 1 do
-        self.entities[i].demoIndex = self.entities[i].demoIndex - 1
-    end
+    -- Just kidding now we have unique ids
+    --for i=e.entitiesIndex, table.maxn( self.entities ), 1 do
+        --self.entities[i].demoIndex = self.entities[i].demoIndex - 1
+    --end
 end
 
 function DemoSystem:record( filename )
     local i = 0
-    local original = filename
+    local original = "demos/" .. filename
     love.filesystem.createDirectory( "demos/" )
-    filename = "demos/" .. filename .. ".txt"
+    filename =  "demos/" .. filename .. ".txt"
     -- Make sure we have a file that doesn't exist
     while love.filesystem.exists( filename ) do
         filename = original .. "_" .. tostring( i ) .. ".txt"
@@ -98,7 +115,7 @@ function DemoSystem:play( filename )
     self.nextframe = Tserial.unpack( self.filelines() )
     self.tick = self.prevframe.tick
     for i,v in pairs( self.prevframe.added ) do
-        local ent = game.entity( v.__name )
+        local ent = game.entity( v.__name, { demoIndex=v.demoIndex } )
         for o,w in pairs( ent.networkedvars ) do
             local val = v[w]
             -- Call the coorisponding function to set the
@@ -215,13 +232,16 @@ function DemoSystem:update( dt )
             -- This is where we delete everything it asks
             for i,v in pairs( self.prevframe.removed ) do
                 --print( "Removed ent", v )
+                -- Given the unique ID's, we should never
+                -- have problems from directly removing
+                -- entities like this.
                 if self.entities[v] ~= nil then
                     self.entities[ v ]:remove()
                 end
             end
             -- This is where we add everything it asks
             for i,v in pairs( self.prevframe.added ) do
-                local ent = game.entity( v.__name )
+                local ent = game.entity( v.__name, { demoIndex=v.demoIndex } )
                 for o,w in pairs( ent.networkedvars ) do
                     local val = v[w]
                     -- Call the coorisponding function to set the

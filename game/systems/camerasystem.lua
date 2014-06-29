@@ -1,4 +1,4 @@
-local CameraSystem = love.class( { activecamera = nil } )
+local CameraSystem = common.class( { activecamera = nil } )
 
 function CameraSystem:setActive( e )
     if e:hasComponent( compo.camera ) then

@@ -1,10 +1,10 @@
-local MapSystem = love.class( { } )
+local MapSystem = common.class( { } )
 
 function MapSystem:save( filename )
     love.filesystem.createDirectory( "maps/" )
     filename = "maps/" .. filename .. ".txt"
     -- TODO: Error checking
-    love.filesystem.write( filename, Tserial.pack( game.demosystem:generateFullSnapshot( false ) ) )
+    love.filesystem.write( filename, Tserial.pack( game.demosystem:generateSnapshot() ) )
 end
 
 function MapSystem:load( filename )
@@ -13,8 +13,8 @@ function MapSystem:load( filename )
     game.entities:removeAll()
     local data = love.filesystem.read( filename )
     local snapshot = Tserial.unpack( data )
-    for i,v in pairs( snapshot.added ) do
-        local ent = game.entity:new( v.__name )
+    for i,v in pairs( snapshot.entities ) do
+        local ent = game.entity:new( v.__name, { demoIndex=v.demoIndex } )
         for o,w in pairs( ent.networkedvars ) do
             local val = v[w]
             -- Call the coorisponding function to set the

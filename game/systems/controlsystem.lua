@@ -1,4 +1,4 @@
-local ControlSystem = love.class( { entities = {}, activecontrol = nil } )
+local ControlSystem = common.class( { entities = {}, activecontrol = nil } )
 
 function ControlSystem:setActive( e )
     self.activecontrol = e
@@ -22,15 +22,15 @@ function ControlSystem:update( dt )
     rotdir = 0
 
     -- Keyboard controls
-    up, down, left, right = love.keyboard.isDown( "w" ) and 1 or 0, love.keyboard.isDown( "s" ) and 1 or 0, love.keyboard.isDown( "a" ) and 1 or 0, love.keyboard.isDown( "d" ) and 1 or 0
-    rotr, rotl = love.keyboard.isDown( "q" ) and 1 or 0, love.keyboard.isDown( "e" ) and 1 or 0
+    local up, down, left, right = control.current.up, control.current.down, control.current.left, control.current.right
+    local rotl, rotr = control.current.leanl, control.current.leanr
 
     if up - down == 0 and right - left == 0 then
         direction = game.vector( 0, 0 )
     else
         direction = game.vector( right - left, down - up ):normalized()
     end
-    rotdir = rotl - rotr
+    local rotdir = rotr - rotl
 
     -- TODO: Gamepad controls
     for i,v in pairs( self.entities ) do

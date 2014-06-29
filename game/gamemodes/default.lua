@@ -60,7 +60,7 @@ Default.entities = {
     },
     playerspawn = {
         __name="playerspawn",
-        components={ compo.debugdrawable },
+        components={ compo.debugdrawable, compo.networked },
         image="data/textures/logic.png",
         attributes={ }
     },
@@ -87,6 +87,7 @@ function Default:spawnPlayer( id )
     if id == 0 then
         player:setActive( true )
     end
+    return player
 end
 
 return Default

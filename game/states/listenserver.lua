@@ -1,11 +1,40 @@
-local ListenServer = {}
+local ListenServer = {
+    playercount = 1,
+    port = 27020,
+    server = nil
+}
 
 function ListenServer:enter()
-    game.renderer:setFullbright( true )
-    game.demosystem:play( "test.txt" )
+    game.mapsystem:load( game.gamemode.map )
+    -- game.renderer:setFullbright( true )
+    -- Spawn ourselves in
+    game.gamemode:spawnPlayer( 0 )
+    -- Set up the server
+    self.server = lube.server( self.port )
+    self.server:setCallback( self.onReceive, self.onConnect, self.onDisconnect )
+    self.server:setHandshake( game.version )
+end
+
+function ListenServer:onConnect( ip, port )
+    print( "Got a connection from " .. ip .. " on port " .. tostring( port ) )
+    local player = game.gamemode:spawnPlayer( self.playercount )
+    self.playercount = self.playercount + 1
+    game.network:addPlayer( ip, player )
+end
+
+function ListenServer:onReceive( data, ip, port )
+    print( "Recieved data " .. data .. " from " .. ip )
+    local t = Tserial:unpack( data )
+    game.network:updateClient( ip, t.controls, t.lastsnapshot )
+end
+
+function ListenServer:onDisconnect( ip, port )
+    print( ip .. " disconnected..." )
+    game.network:removePlayer( ip )
 end
 
 function ListenServer:leave()
+    self.server:disconnect()
 end
 
 function ListenServer:draw()
@@ -13,6 +42,8 @@ function ListenServer:draw()
 end
 
 function ListenServer:update( dt )
+    game.network:sendUpdates( dt )
+    self.server:update( dt )
     game.demosystem:update( dt )
     game.controlsystem:update( dt )
     game.starsystem:update( dt )
@@ -26,9 +57,6 @@ function ListenServer:mousereleased( x, y, button )
 end
 
 function ListenServer:keypressed( key, unicode )
-    if key == "f" then
-        game.renderer:toggleFullbright()
-    end
 end
 
 function ListenServer:keyreleased( key )

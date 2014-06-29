@@ -1,8 +1,6 @@
-local DemoSystem = love.class( {
+local DemoSystem = common.class( {
     uniqueid = 0,
     entities = {},
-    removed = {},
-    added = {},
     recording = false,
     playing = false,
     file = nil,
@@ -15,23 +13,28 @@ local DemoSystem = love.class( {
     nextframe = nil
 } )
 
--- This is used to create delta snapshots of entities,
--- aka it only records/copies changes from the last deltacopy()
-function DemoSystem:deltacopy( orig )
-    local copy = { demoIndex=orig.demoIndex }
+function DemoSystem:deltacopy( a, b )
+    local changed = false
+    local copy = {}
     -- Network all networked vars
-    for i,v in pairs( orig.networkedvars ) do
+    for i,v in pairs( b ) do
         -- but only network the ones that changed
-        if orig.networkedchanges[ v ] then
-            copy[v] = orig[v]
+        if a[i] ~= b[i] then
+            changed = true
+            copy[i] = b[i]
         end
     end
-    -- Reset any change flags
-    orig.networkedchanges = {}
-    return copy
+    if changed then
+        -- We don't need to copy the name or index in a delta copy
+        -- Due to entities being placed in the array using the index
+        copy.__name = nil
+        copy.demoIndex = nil
+        return copy
+    else
+        return nil
+    end
 end
 
--- This is used to add new entities
 function DemoSystem:copy( orig )
     local copy = { __name=orig.__name, demoIndex=orig.demoIndex }
     -- Network all networked vars
@@ -56,28 +59,10 @@ function DemoSystem:addEntity( e, uid )
     else
         self.uniqueid = self.uniqueid + 1
     end
-
-    -- We record entities we add so that we know to create them
-    -- before working with the next snapshot
-    if self.recording then
-        -- self:copy makes sure we only network critical variables
-        table.insert( self.added, self:copy( e ) )
-    end
 end
 
 function DemoSystem:removeEntity( e )
-    -- We record entities that we remove, so that we know to remove
-    -- them before working with the next snapshot
-    if self.recording then
-        table.insert( self.removed, e.demoIndex )
-    end
-    --table.remove( self.entities, e.demoIndex )
     self.entities[ e.demoIndex ] = nil
-    -- Have to update all the indicies of all the other entities.
-    -- Just kidding now we have unique ids
-    --for i=e.entitiesIndex, table.maxn( self.entities ), 1 do
-        --self.entities[i].demoIndex = self.entities[i].demoIndex - 1
-    --end
 end
 
 function DemoSystem:record( filename )
@@ -92,7 +77,8 @@ function DemoSystem:record( filename )
     end
     print( "Recording demo to " .. filename )
     self.file = love.filesystem.newFile( filename, "w" )
-    local string = Tserial.pack( self:generateFullSnapshot() )
+    self.prevframe = self:generateSnapshot()
+    local string = Tserial.pack( self:getFull( self.prevframe ) )
     local success, errormsg = self.file:write( string .. "\n" )
     if not success then
         error( errormsg )
@@ -115,7 +101,7 @@ function DemoSystem:play( filename )
     self.nextframe = Tserial.unpack( self.filelines() )
     self.tick = self.prevframe.tick
     for i,v in pairs( self.prevframe.added ) do
-        local ent = game.entity( v.__name, { demoIndex=v.demoIndex } )
+        local ent = game.entity:new( v.__name, { demoIndex=v.demoIndex } )
         for o,w in pairs( ent.networkedvars ) do
             local val = v[w]
             -- Call the coorisponding function to set the
@@ -128,45 +114,55 @@ function DemoSystem:play( filename )
     end
 end
 
--- Creates a delta snapshot based on what has changed.
-function DemoSystem:generateSnapshot()
-    local snapshot = {}
-    -- We show that some entities have been removed with this variable
-    -- That way indicies can be kept track of
-    snapshot["time"] = self.totaltimepassed
-    snapshot["tick"] = self.tick
-    snapshot["removed"] = self.removed
-    self.removed = {}
-    snapshot["added"] = self.added
-    snapshot["entities"] = {}
-    self.added = {}
-    for i,v in pairs( self.entities ) do
-        if v.netchanged then
-            v.netchanged = false
-            table.insert( snapshot.entities, v.demoIndex, self:deltacopy( v ) )
+-- Creates a delta snapshot based on what has changed, from a previous full snapshot
+function DemoSystem:getDiff( a, b )
+    local diffsnapshot = {}
+    diffsnapshot["time"] = b.time
+    diffsnapshot["tick"] = b.tick
+    diffsnapshot["removed"] = {}
+    diffsnapshot["added"] = {}
+    diffsnapshot["entities"] = {}
+    for i,v in pairs( a.entities ) do
+        if b.entities[ i ] == nil then
+            table.insert( diffsnapshot["removed"], v.demoIndex )
         end
+    end
+    for i,v in pairs( b.entities ) do
+        if a.entities[ i ] == nil then
+            table.insert( diffsnapshot["added"], v )
+        else
+            diffsnapshot["entities"][ v.demoIndex ] = self:deltacopy( a.entities[ i ], v )
+        end
+    end
+    return diffsnapshot
+end
+
+-- Get the difference between a nil snapshot to a snapshot
+function DemoSystem:getFull( a )
+    local snapshot = {}
+    snapshot["time"] = a.time
+    snapshot["tick"] = a.tick
+    snapshot["removed"] = {}
+    snapshot["added"] = {}
+    snapshot["entities"] = {}
+    for i,v in pairs( a.entities ) do
+        table.insert( snapshot["added"], v )
     end
     return snapshot
 end
 
 -- Same as generateSnapshot but it includes ALL entities, not just what
 -- has changed since the last snapshot
-function DemoSystem:generateFullSnapshot()
-    local added = {}
-    for i,v in pairs( self.entities ) do
-        local ent = { __name=v.__name, pos=v:getPos(), rot=v:getRot() }
-        table.insert( added, ent )
-    end
+function DemoSystem:generateSnapshot()
     local snapshot = {}
     snapshot["time"] = self.totaltimepassed
     snapshot["tick"] = self.tick
+    snapshot["removed"] = {}
     snapshot["added"] = {}
-    for i,v in pairs( self.entities ) do
-        table.insert( snapshot.added, v.demoIndex, self:copy( v ) )
-    end
-    snapshot["full"] = true
-    -- Since all of the entities are going to be added this frame, we don't have an entities table
     snapshot["entities"] = {}
+    for i,v in pairs( self.entities ) do
+        snapshot["entities"][ v.demoIndex ] = self:copy( v )
+    end
     return snapshot
 end
 
@@ -217,11 +213,12 @@ function DemoSystem:update( dt )
             self.tick = self.tick + 1
             self.timepassed = self.timepassed - self.updaterate
             local snapshot = self:generateSnapshot()
-            local string = Tserial.pack( snapshot )
+            local string = Tserial.pack( self:getDiff( self.prevframe, snapshot ) )
             local success, errormsg = self.file:write( string .. "\n" )
             if not success then
                 error( errormsg )
             end
+            self.prevframe = snapshot
         end
     elseif self.playing and self.file ~= nil then
         self.totaltimepassed = self.totaltimepassed + dt
@@ -235,7 +232,7 @@ function DemoSystem:update( dt )
                 -- Given the unique ID's, we should never
                 -- have problems from directly removing
                 -- entities like this.
-                if self.entities[v] ~= nil then
+                if self.entities[ v ] ~= nil then
                     self.entities[ v ]:remove()
                 end
             end

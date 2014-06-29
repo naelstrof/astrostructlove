@@ -14,6 +14,7 @@ function Singleplayer:draw()
 end
 
 function Singleplayer:update( dt )
+    game.bindsystem:update( dt )
     game.demosystem:update( dt )
     game.controlsystem:update( dt )
     game.starsystem:update( dt )

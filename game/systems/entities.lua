@@ -1,7 +1,7 @@
 -- Keeps track of all entities that are created so they can easily be filtered, disposed of, or otherwise
 -- worked with.
 
-local Entities = love.class( { entities = {} } )
+local Entities = common.class( { entities = {} } )
 
 function Entities:addEntity( e )
     table.insert( self.entities, e )
@@ -50,8 +50,8 @@ function Entities:getNearby( pos, radius )
         if v:hasComponent( compo.drawable ) then
             -- FIXME: This could be way more accurate, its assuming everything is a circle because I'm a lazy ass.
             -- Perhaps a component could describe the shape of something? May need to implement a shape collision library.
-            local vradius = math.max( v:getDrawable():getWidth()*v:getScale().x, v:getDrawable():getHeight()*v:getScale().y )
-            if pos:dist( v:getPos() ) < (radius + vradius)/2 then
+            local vradius = math.max( v:getDrawable():getWidth()*v:getScale().x, v:getDrawable():getHeight()*v:getScale().y ) / 2
+            if pos:dist( v:getPos() ) < radius + vradius then
                 table.insert( ents, v )
             end
         else

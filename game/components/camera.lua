@@ -9,17 +9,11 @@ local setRot = function( e, rot )
 end
 
 local setZoom = function( e, zoom )
-    if e.zoom ~= zoom then
-        e:setNetworkChanged( "zoom" )
-    end
     e.zoom = zoom
     e.camera:zoomTo( zoom )
 end
 
 local Zoom = function( e, zoom )
-    if e.zoom * zoom ~= e.zoom then
-        e:setNetworkChanged( "zoom" )
-    end
     e.zoom = e.zoom * zoom
     e.camera:zoom( zoom )
 end
@@ -29,9 +23,6 @@ local getZoom = function( e )
 end
 
 local setActive = function( e, active )
-    if e.active ~= active then
-        e:setNetworkChanged( "active" )
-    end
     e.active = active
     if active then
         game.camerasystem:setActive( e )

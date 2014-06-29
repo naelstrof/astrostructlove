@@ -8,7 +8,7 @@
 
 -- An entity with "nil" components is literally nothing but a position and rotation.
 
-local Entity = love.class( {
+local Entity = common.class( {
                              components = nil,
                              chains = {},
                              -- TODO: Make pos into __pos so that users never have to worry about conflicting names
@@ -16,17 +16,9 @@ local Entity = love.class( {
                              tempfunction = nil,
                              networkedvars = { "pos", "rot" },
                              networkedfunctions = { "setPos", "setRot" },
-                             networkedchanges = {},
-                             netchanged = true,
                              rot = 0,
                              valid = true
                            } )
-
-
-function Entity:setNetworkChanged( varname )
-    self.netchanged = true
-    self.networkedchanges[ varname ] = true
-end
 
 function Entity:deepCopy( t )
     if type(t) ~= "table" then return t end
@@ -166,21 +158,12 @@ function Entity:setPos( x, y )
     -- FIXME please for the love of god
     -- I'M UGLY AND SLOW
     if game.vector.isvector( x ) and y == nil then
-        if self.pos ~= x then
-            self:setNetworkChanged( "pos" )
-        end
         self.pos = x
     elseif x ~= nil and y ~= nil then
         local t = game.vector( x, y )
-        if self.pos ~= t then
-            self:setNetworkChanged( "pos" )
-        end
         self.pos = t
     elseif x.x ~= nil and x.y ~= nil and y == nil then
         local t = game.vector( x.x, x.y )
-        if self.pos ~= t then
-            self:setNetworkChanged( "pos" )
-        end
         self.pos = t
     else
         error( "Failed to set position: Invalid parameters supplied!" )
@@ -192,9 +175,6 @@ function Entity:getPos( pos )
 end
 
 function Entity:setRot( rot )
-    if self.rot ~= rot then
-        self:setNetworkChanged( "rot" )
-    end
     self.rot = rot
 end
 

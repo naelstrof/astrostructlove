@@ -17,17 +17,23 @@ end
 
 require( "lib/NikolaiResokav-LoveFrames" )
 require( "lib/Tserial" )
+-- Class support
+common = {}
+common.class = require( "lib/30log" )
+-- Need some lube I guess.
+require( "lib/LUBE" )
+-- goddamnit
+cock = require( "lib/cock" )
 
 game = {}
+
+game.version = "0.0.0"
 
 -- Addons
 game.gamestate = require( "lib/hump/gamestate" )
 game.vector = require( "lib/hump/vector" )
 game.timer = require( "lib/hump/timer" )
 game.camera = require( "lib/hump/camera" )
-
--- Class support
-love.class = require( "lib/30log" )
 
 compo = {}
 -- Components
@@ -52,6 +58,7 @@ game.controlsystem = require( "game/systems/controlsystem" )
 game.starsystem = require( "game/systems/starsystem" )
 game.demosystem = require( "game/systems/demosystem" )
 game.mapsystem = require( "game/systems/mapsystem" )
+game.bindsystem = require( "game/systems/bindsystem" )
 --
 
 -- Current Gamemode
@@ -69,6 +76,7 @@ gamestates.singleplayer = require( "game/states/singleplayer" )
 function love.load()
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )
     game.renderer:load()
+    game.bindsystem:load()
     game.gamestate.registerEvents()
     game.gamestate.switch( gamestates.menu )
 end

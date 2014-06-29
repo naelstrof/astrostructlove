@@ -1,4 +1,4 @@
-local Starfield = love.class( { starfields = {} } )
+local Starfield = common.class( { starfields = {} } )
 
 function Starfield:addStarfield( e )
     table.insert( self.starfields, e )

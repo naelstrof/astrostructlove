@@ -29,6 +29,7 @@ function MapEditor:enter()
 end
 
 function MapEditor:leave()
+    game.renderer:setFullbright( false )
     game.demosystem:leave()
     loveframes.util:RemoveAll()
     game.entities:removeAll()
@@ -37,7 +38,7 @@ end
 function MapEditor:draw()
     local mousepos = self.grid:getMouse()
     -- Draw debug
-    game.renderer:draw( true )
+    game.renderer:draw( game.renderer:getFullbright() )
 
     if game.renderer:getFullbright() then
         love.graphics.setColor( { 255, 255, 255, 155 } )
@@ -59,6 +60,7 @@ function MapEditor:draw()
 end
 
 function MapEditor:update( dt )
+    game.bindsystem:update( dt )
     local mousepos = self.grid:getMouse()
     if self.currenttool ~= nil then
         self.currenttool:update( dt, mousepos.x, mousepos.y )

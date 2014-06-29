@@ -28,9 +28,6 @@ local setRotVel = function( e, rotvelocity )
 end
 
 local setActive = function( e, active )
-    if e.active ~= active then
-        e:setNetworkChanged( "active" )
-    end
     e.active = active
     if active then
         game.controlsystem:setActive( e )

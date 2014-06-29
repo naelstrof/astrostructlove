@@ -25,8 +25,10 @@ function Playback:draw()
 end
 
 function Playback:update( dt )
+    -- We don't update game.bindsystem since you shouldn't be able to
+    -- move anything in the demo
     game.demosystem:update( dt )
-    --game.controlsystem:update( dt )
+    game.controlsystem:update( dt )
     game.starsystem:update( dt )
     game.renderer:update( dt )
     loveframes.update( dt )

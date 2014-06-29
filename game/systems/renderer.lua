@@ -2,7 +2,7 @@
 -- Adds several values to the entity that shouldn't be altered manually: rendererIndex, layer
 -- The values are used to locate the entity within the table.
 
-local Renderer = love.class( { layers = {}, lights={}, glowables={}, debugs={}, worldcanvas=nil, lightcanvas=nil, fullbright=false, maskshader=nil } )
+local Renderer = common.class( { layers = {}, lights={}, glowables={}, debugs={}, worldcanvas=nil, lightcanvas=nil, fullbright=false, maskshader=nil } )
 
 function Renderer:addDebugEntity( e )
     table.insert( self.debugs, e )

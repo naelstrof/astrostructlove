@@ -1,10 +1,10 @@
 
 local updateShadowVolumes = function( e )
-    if e.oldpos == e:getPos() then
+    if not e.changed then
         return
     end
+    e.changed = false
     local allverticies = {}
-    e.oldpos = e:getPos()
     local ents = game.entities:getNearby( e:getPos(), e.radius )
     for i,v in pairs( ents ) do
         if v:hasComponent( compo.blockslight ) then
@@ -68,6 +68,19 @@ local setFlickerMap = function( e, flickermapstring )
     e.lightflickermap = flickermap
 end
 
+local setPos = function( e, t )
+    e.changed = true
+end
+
+local setRot = function( e, r )
+    e.lightrot = r
+end
+
+local setRadius = function( e, r )
+    e.radius = r
+    e.changed = true
+end
+
 local setLightIntensity = function( e, lightintensity )
     e.lightintensity = lightintensity
     e.baselightintensity = e.lightintensity
@@ -84,7 +97,7 @@ end
 local EmitsLight = {
     __name = "EmitsLight",
     shadowmeshdraw = nil,
-    oldpos = nil,
+    changed = true,
     radius = 256,
     lightsize = 32,
     lightdrawable = love.graphics.newImage( "data/textures/point.png" ),

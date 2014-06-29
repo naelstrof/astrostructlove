@@ -69,7 +69,7 @@ end
 
 function Renderer:updateLights( e )
     for i,v in pairs( self.lights ) do
-        v.oldpos = nil
+        v.changed = true
     end
 end
 

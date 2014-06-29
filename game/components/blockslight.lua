@@ -74,6 +74,7 @@ local init = function( e )
 end
 
 local deinit = function( e )
+    game.renderer:updateLights()
 end
 
 local BlocksLight = {

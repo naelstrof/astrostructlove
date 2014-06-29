@@ -2,24 +2,56 @@
 -- Adds several values to the entity that shouldn't be altered manually: rendererIndex, layer
 -- The values are used to locate the entity within the table.
 
-local Renderer = common.class( { layers = {}, lights={}, glowables={}, debugs={}, worldcanvas=nil, lightcanvas=nil, fullbright=false, maskshader=nil } )
+local Renderer = common.class( {
+    uid = 0,
+    layers = {},
+    lights={},
+    glowables={},
+    debugs={},
+    worldcanvas=nil,
+    lightcanvas=nil,
+    fullbright=false,
+    maskshader=nil
+} )
 
 function Renderer:addDebugEntity( e )
-    table.insert( self.debugs, e )
-    e.debugrendererIndex = table.maxn( self.debugs )
+    self.debugs[ self.uid ] = e
+    e.debugrendererIndex = self.uid
+    self.uid = self.uid + 1
 end
 
 function Renderer:removeDebugEntity( e )
-    table.remove( self.debugs, e.debugrendererIndex )
-    -- Have to update all the indicies of all the other entities
-    for i=e.debugrendererIndex, table.maxn( self.debugs ), 1 do
-        self.debugs[i].debugrendererIndex = self.debugs[i].debugrendererIndex - 1
-    end
+    self.debugs[ e.debugrendererIndex ] = nil
 end
 
 function Renderer:addEntity( e )
-    table.insert( self.layers[ e.layer ], e )
-    e.rendererIndex = table.maxn( self.layers[ e.layer ] )
+    self.layers[ e.layer ][ self.uid ] = e
+    e.rendererIndex = self.uid
+    self.uid = self.uid + 1
+end
+
+function Renderer:removeEntity( e )
+    self.layers[ e.layer ][ e.rendererIndex ] = nil
+end
+
+function Renderer:addGlowable( e )
+    self.glowables[ self.uid ] = e
+    e.glowableIndex = self.uid
+    self.uid = self.uid + 1
+end
+
+function Renderer:removeGlowable( e )
+    self.glowables[ e.glowableIndex ] = nil
+end
+
+function Renderer:addLight( e )
+    self.lights[ self.uid ] = e
+    e.lightIndex = self.uid
+    self.uid = self.uid + 1
+end
+
+function Renderer:removeLight( e )
+    self.lights[ e.lightIndex ] = nil
 end
 
 function Renderer:setFullbright( fullbright )
@@ -34,37 +66,6 @@ function Renderer:toggleFullbright()
     self.fullbright = not self.fullbright
 end
 
-function Renderer:removeEntity( e )
-    table.remove( self.layers[ e.layer ], e.rendererIndex )
-    -- Have to update all the rendererIndicies of all the other entities in the same layer.
-    for i=e.rendererIndex, table.maxn( self.layers[ e.layer ] ), 1 do
-        self.layers[ e.layer ][i].rendererIndex = self.layers[ e.layer ][i].rendererIndex - 1
-    end
-end
-
-function Renderer:addGlowable( e )
-    table.insert( self.glowables, e )
-    e.glowableIndex = table.maxn( self.glowables )
-end
-
-function Renderer:removeGlowable( e )
-    table.remove( self.glowables, e.glowableIndex )
-    for i=e.glowableIndex, table.maxn( self.glowables ), 1 do
-        self.glowables[i].glowableIndex = self.glowables[i].glowableIndex - 1
-    end
-end
-
-function Renderer:addLight( e )
-    table.insert( self.lights, e )
-    e.lightIndex = table.maxn( self.lights )
-end
-
-function Renderer:removeLight( e )
-    table.remove( self.lights, e.lightIndex )
-    for i=e.lightIndex, table.maxn( self.lights ), 1 do
-        self.lights[i].lightIndex = self.lights[i].lightIndex - 1
-    end
-end
 
 function Renderer:updateLights( e )
     for i,v in pairs( self.lights ) do

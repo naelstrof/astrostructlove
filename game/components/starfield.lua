@@ -20,7 +20,7 @@ local createStarfield = function( e )
     height = love.graphics.getHeight()
 end
 
-local updateStarfield = function( e, dt )
+local update = function( e, dt )
     for i, v in pairs( e.stars ) do
         v:setPos( v:getPos() + ( e.vel * dt * v:getScale().x ) )
         -- Respawn stars that go off-screen
@@ -39,7 +39,7 @@ local updateStarfield = function( e, dt )
     end
 end
 
-local resizeStarfield = function( e, w, h )
+local resize = function( e, w, h )
     -- Get the multipliers to change the star positions
     local xdiff =  w / width
     local ydiff =  h / height
@@ -52,7 +52,7 @@ local resizeStarfield = function( e, w, h )
 end
 
 local init = function( e )
-    game.starsystem:addStarfield( e )
+    e:createStarfield()
 end
 
 local deinit = function( e )
@@ -60,7 +60,6 @@ local deinit = function( e )
         v:remove()
         e.stars[i] = nil
     end
-    game.starsystem:removeStarfield( e )
 end
 
 local Starfield = {
@@ -76,8 +75,8 @@ local Starfield = {
     init = init,
     deinit = deinit,
     createStarfield = createStarfield,
-    updateStarfield = updateStarfield,
-    resizeStarfield = resizeStarfield,
+    update = update,
+    resize = resize,
     starImages = { love.graphics.newImage( "data/textures/star.png" ),
                    love.graphics.newImage( "data/textures/star2.png" ) }
 }

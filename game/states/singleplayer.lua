@@ -15,9 +15,8 @@ end
 
 function Singleplayer:update( dt )
     game.bindsystem:update( dt )
+    game.entities:update( dt )
     game.demosystem:update( dt )
-    game.controlsystem:update( dt )
-    game.starsystem:update( dt )
     game.renderer:update( dt )
 end
 
@@ -38,6 +37,7 @@ end
 
 function Singleplayer:resize( w, h )
     game.renderer:resize( w, h )
+    game.entities:resize( w, h )
 end
 
 return Singleplayer

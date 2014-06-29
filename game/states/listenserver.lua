@@ -44,9 +44,8 @@ end
 function ListenServer:update( dt )
     game.network:sendUpdates( dt )
     self.server:update( dt )
+    game.entities:update( dt )
     game.demosystem:update( dt )
-    game.controlsystem:update( dt )
-    game.starsystem:update( dt )
     game.renderer:update( dt )
 end
 
@@ -67,6 +66,7 @@ end
 
 function ListenServer:resize( w, h )
     game.renderer:resize( w, h )
+    game.entities:resize( w, h )
 end
 
 return ListenServer

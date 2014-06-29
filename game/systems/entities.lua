@@ -82,4 +82,20 @@ function Entities:getClicked()
     return topmost
 end
 
+function Entities:update( dt )
+    for i,v in pairs( self.entities ) do
+        if v.update ~= nil then
+            v:update( dt )
+        end
+    end
+end
+
+function Entities:resize( w, h )
+    for i,v in pairs( self.entities ) do
+        if v.resize ~= nil then
+            v:update( w, h )
+        end
+    end
+end
+
 return Entities

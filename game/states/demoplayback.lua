@@ -27,9 +27,8 @@ end
 function Playback:update( dt )
     -- We don't update game.bindsystem since you shouldn't be able to
     -- move anything in the demo
+    game.entities:update( dt )
     game.demosystem:update( dt )
-    game.controlsystem:update( dt )
-    game.starsystem:update( dt )
     game.renderer:update( dt )
     loveframes.update( dt )
 end
@@ -59,7 +58,7 @@ end
 
 function Playback:resize( w, h )
     game.renderer:resize( w, h )
-    game.starsystem:resize( dt )
+    game.entities:resize( w, h )
 end
 
 return Playback

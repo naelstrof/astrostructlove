@@ -65,8 +65,7 @@ function MapEditor:update( dt )
     if self.currenttool ~= nil then
         self.currenttool:update( dt, mousepos.x, mousepos.y )
     end
-    game.controlsystem:update( dt )
-    game.starsystem:update( dt )
+    game.entities:update( dt )
     game.renderer:update( dt )
     game.demosystem:update( dt )
     loveframes.update( dt )
@@ -114,8 +113,8 @@ end
 function MapEditor:resize( w, h )
     self.titlebar:resize( w, h )
     self.toolbox:resize( w, h )
-    game.starsystem:resize( w, h )
     game.renderer:resize( w, h )
+    game.entities:resize( w, h )
 end
 
 return MapEditor

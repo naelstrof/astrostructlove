@@ -34,7 +34,6 @@ local toWorld = function( e, pos )
     return game.vector( x, y )
 end
 
-
 local init = function( e )
     e.camera:lookAt( e:getPos() )
     e.camera.x = 0

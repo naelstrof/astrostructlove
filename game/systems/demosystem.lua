@@ -77,7 +77,7 @@ function DemoSystem:record( filename )
     end
     print( "Recording demo to " .. filename )
     self.file = love.filesystem.newFile( filename, "w" )
-    self.prevframe = self:generateSnapshot()
+    self.prevframe = self:generateSnapshot( self.tick, self.totaltimepassed )
     local string = Tserial.pack( self:getFull( self.prevframe ) )
     local success, errormsg = self.file:write( string .. "\n" )
     if not success then
@@ -151,12 +151,13 @@ function DemoSystem:getFull( a )
     return snapshot
 end
 
--- Same as generateSnapshot but it includes ALL entities, not just what
--- has changed since the last snapshot
-function DemoSystem:generateSnapshot()
+-- Gets a snapshot of the current state of the game
+-- Manually specify the tick and time so that other systems
+-- Can generate snapshots
+function DemoSystem:generateSnapshot( tick, time )
     local snapshot = {}
-    snapshot["time"] = self.totaltimepassed
-    snapshot["tick"] = self.tick
+    snapshot["time"] = time
+    snapshot["tick"] = tick
     snapshot["removed"] = {}
     snapshot["added"] = {}
     snapshot["entities"] = {}
@@ -212,7 +213,7 @@ function DemoSystem:update( dt )
         while self.timepassed > self.updaterate do
             self.tick = self.tick + 1
             self.timepassed = self.timepassed - self.updaterate
-            local snapshot = self:generateSnapshot()
+            local snapshot = self:generateSnapshot( self.tick, self.totaltimepassed )
             local string = Tserial.pack( self:getDiff( self.prevframe, snapshot ) )
             local success, errormsg = self.file:write( string .. "\n" )
             if not success then

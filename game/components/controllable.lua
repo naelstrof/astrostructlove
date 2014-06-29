@@ -1,12 +1,20 @@
 
-local update = function( e, dt )
+local update = function( e, dt, id, tick )
     if e.active then
-        direction = 0
-        rotdir = 0
+        local direction = 0
+        local rotdir = 0
 
-        -- Keyboard controls
-        local up, down, left, right = control.current.up, control.current.down, control.current.left, control.current.right
-        local rotl, rotr = control.current.leanl, control.current.leanr
+        -- Id will be specified if we're updating a specific player's
+        -- entity, otherwise we're just updating ourselves
+        local up, down, left, right, rotl, rotr
+        if id == nil then
+            local up, down, left, right = control.current.up, control.current.down, control.current.left, control.current.right
+            local rotl, rotr = control.current.leanl, control.current.leanr
+        else
+            -- We use tick to get the correct instance of the controls
+            local up, down, left, right = game.network:getControls( id, tick ).up, game.network:getControls( id, tick ).down, game.network:getControls( id, tick ).left, game.network:getControls( id, tick ).right
+            local rotl, rotr = game.network:getControls( id, tick ).leanl, game.network:getControls( id, tick ).leanr
+        end
 
         if up - down == 0 and right - left == 0 then
             direction = game.vector( 0, 0 )

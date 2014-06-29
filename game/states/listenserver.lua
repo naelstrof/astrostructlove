@@ -19,18 +19,21 @@ function ListenServer:onConnect( ip, port )
     print( "Got a connection from " .. ip .. " on port " .. tostring( port ) )
     local player = game.gamemode:spawnPlayer( self.playercount )
     self.playercount = self.playercount + 1
-    game.network:addPlayer( ip, player )
+    local id = ip .. ":" .. tostring( port )
+    game.network:addPlayer( id, player )
 end
 
 function ListenServer:onReceive( data, ip, port )
-    print( "Recieved data " .. data .. " from " .. ip )
+    print( "Recieved data " .. data .. " from " .. ip .. ":" .. tostring( port ) )
     local t = Tserial:unpack( data )
-    game.network:updateClient( ip, t.controls, t.lastsnapshot )
+    local id = ip .. ":" .. tostring( port )
+    game.network:updateClient( id, t.controls, t.tick )
 end
 
 function ListenServer:onDisconnect( ip, port )
-    print( ip .. " disconnected..." )
-    game.network:removePlayer( ip )
+    local id = ip .. ":" .. tostring( port )
+    print( id .. " disconnected..." )
+    game.network:removePlayer( id )
 end
 
 function ListenServer:leave()
@@ -42,7 +45,7 @@ function ListenServer:draw()
 end
 
 function ListenServer:update( dt )
-    game.network:sendUpdates( dt )
+    game.network:update( dt )
     self.server:update( dt )
     game.entities:update( dt )
     game.demosystem:update( dt )

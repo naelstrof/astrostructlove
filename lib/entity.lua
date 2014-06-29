@@ -9,10 +9,11 @@
 -- An entity with "nil" components is literally nothing but a position and rotation.
 
 local Entity = common.class( {
-                             components = nil,
-                             -- TODO: Make pos into __pos so that users never have to worry about conflicting names
-                             tempfunction = nil,
-                           } )
+    __type = "Entity",
+    components = nil,
+    -- TODO: Make pos into __pos so that users never have to worry about conflicting names
+    tempfunction = nil,
+} )
 
 function Entity:deepCopy( t )
     if type(t) ~= "table" then return t end
@@ -27,24 +28,6 @@ function Entity:deepCopy( t )
     end
     setmetatable(target, meta)
     return target
-end
-
--- This is pretty much a specialized function for the networkedvars
--- table, which merges two tables while making sure there's no
--- repeated variables
-function Entity:mergeNetworkTables( a, b )
-    for i,v in pairs( b ) do
-        local test = false
-        for o,w in pairs( a ) do
-            if v == w then
-                test = true
-                break
-            end
-        end
-        if not test then
-            table.insert( a, v )
-        end
-    end
 end
 
 --function Entity:__init( components, attributes )
@@ -83,12 +66,13 @@ function Entity:__init( name, extraattributes )
                 self[o] = function( ... )
                     self:startChain( o, { ... } )
                 end
-            elseif type( self[o] ) == "table" and type( w ) == "table" and( o == "networkedvars" or o == "networkedfunctions" ) then
-                self:mergeNetworkTables( self[o], w )
             end
             -- Every other variable is considered an override
         end
     end
+    -- Purge networked stuff, the gamemode handles tracking these
+    self.networkedvars = nil
+    self.networkedfunctions = nil
     -- After we have inherited all functions and variables,
     -- we initialize each component. Since each component has
     -- an init function, it has been chained together.

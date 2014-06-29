@@ -13,33 +13,81 @@ local DemoSystem = common.class( {
     nextframe = nil
 } )
 
-function DemoSystem:deltacopy( a, b )
+function DemoSystem:compare( a, b )
+    if type( a ) == "table" and type( b ) == "table" then
+        return table.equals( a, b )
+    else
+        return a == b
+    end
+end
+
+function DemoSystem:deltanetcopy( a, b )
     local changed = false
-    local copy = {}
-    -- Network all networked vars
-    for i,v in pairs( b ) do
+    local netcopy = {}
+    -- Network only networked vars
+    for i,v in pairs( game.gamemode.entities[ b.__name ].networkedvars ) do
         -- but only network the ones that changed
-        if a[i] ~= b[i] then
+        if not self:compare( a[v], b[v] ) then
             changed = true
-            copy[i] = b[i]
+            netcopy[v] = b[v]
         end
     end
     if changed then
-        -- We don't need to copy the name or index in a delta copy
-        -- Due to entities being placed in the array using the index
-        copy.__name = nil
-        copy.demoIndex = nil
-        return copy
+        return netcopy
     else
         return nil
     end
 end
 
-function DemoSystem:copy( orig )
-    local copy = { __name=orig.__name, demoIndex=orig.demoIndex }
+function DemoSystem:netcopy( orig )
+    local netcopy = { __name=orig.__name, demoIndex=orig.demoIndex }
     -- Network all networked vars
-    for i,v in pairs( orig.networkedvars ) do
-        copy[v] = orig[v]
+    for i,v in pairs( game.gamemode.entities[ orig.__name ].networkedvars ) do
+        netcopy[v] = orig[v]
+    end
+    return netcopy
+end
+
+function DemoSystem:safecopy( orig )
+    local copy = {}
+    -- Get ALL the vars, besides the ones we don't want
+    for i,v in pairs( orig ) do
+        local t = type( v )
+        -- Don't copy yourself
+        -- or what you're already composed of
+        if i ~= "__index" and i ~= "components" then
+            if t == "table" then
+                copy[i] = self:safecopy( v )
+            -- Only copy simple values
+            elseif t == "string" or t == "boolean" or t == "number" then
+                copy[i] = v
+            else
+                return nil
+            end
+        end
+    end
+    return copy
+end
+
+-- Copy returns a shallow copy of an object,
+-- Only copies simple values
+-- Recurses safely by not recursing into tables that contain unsafe
+-- values
+function DemoSystem:copy( orig )
+    local copy = {}
+    -- Get ALL the vars, besides the ones we don't want
+    for i,v in pairs( orig ) do
+        local t = type( v )
+        -- Don't copy yourself
+        -- or what you're already composed of
+        if i ~= "__index" and i ~= "components" then
+            if t == "table" then
+                copy[i] = self:safecopy( v )
+            -- Only copy simple values
+            elseif t == "string" or t == "boolean" or t == "number" then
+                copy[i] = v
+            end
+        end
     end
     return copy
 end
@@ -101,13 +149,13 @@ function DemoSystem:play( filename )
     self.nextframe = Tserial.unpack( self.filelines() )
     self.tick = self.prevframe.tick
     for i,v in pairs( self.prevframe.added ) do
-        local ent = game.entity:new( v.__name, { demoIndex=v.demoIndex } )
-        for o,w in pairs( ent.networkedvars ) do
+        local ent = game.entity:new( v.__name, v )
+        for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
             local val = v[w]
             -- Call the coorisponding function to set the
             -- value
             if val ~= nil then
-                ent[ ent.networkedfunctions[ o ] ]( ent, val )
+                ent[ game.gamemode.entities[ ent.__name ].networkedfunctions[ o ] ]( ent, val )
             end
         end
         --print( "Created ent", ent.__name, "at", ent:getPos() )
@@ -131,7 +179,7 @@ function DemoSystem:getDiff( a, b )
         if a.entities[ i ] == nil then
             table.insert( diffsnapshot["added"], v )
         else
-            diffsnapshot["entities"][ v.demoIndex ] = self:deltacopy( a.entities[ i ], v )
+            diffsnapshot["entities"][ v.demoIndex ] = self:deltanetcopy( a.entities[ i ], v )
         end
     end
     return diffsnapshot
@@ -162,6 +210,7 @@ function DemoSystem:generateSnapshot( tick, time )
     snapshot["added"] = {}
     snapshot["entities"] = {}
     for i,v in pairs( self.entities ) do
+        -- We do full copies in snapshots
         snapshot["entities"][ v.demoIndex ] = self:copy( v )
     end
     return snapshot
@@ -239,24 +288,13 @@ function DemoSystem:update( dt )
             end
             -- This is where we add everything it asks
             for i,v in pairs( self.prevframe.added ) do
-                local ent = game.entity( v.__name, { demoIndex=v.demoIndex } )
-                for o,w in pairs( ent.networkedvars ) do
+                local ent = game.entity( v.__name, v )
+                for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
                     local val = v[w]
                     -- Call the coorisponding function to set the
                     -- value
                     if val ~= nil then
-                        ent[ ent.networkedfunctions[ o ] ]( ent, val )
-                    end
-                end
-                local pent = self.prevframe.entities[ ent.demoIndex ]
-                if pent ~= nil then
-                    for o,w in pairs( ent.networkedvars ) do
-                        local val = pent[w]
-                        -- Call the coorisponding function to set the
-                        -- value
-                        if val ~= nil then
-                            ent[ ent.networkedfunctions[ o ] ]( ent, val )
-                        end
+                        ent[ game.gamemode.entities[ ent.__name ].networkedfunctions[ o ] ]( ent, val )
                     end
                 end
                 --print( "Created ent", ent.demoIndex, ent.__name, "at", ent:getPos() )
@@ -275,13 +313,13 @@ function DemoSystem:update( dt )
             local fent = self.nextframe.entities[ v.demoIndex ]
             -- Make sure the entity is changing somehow
             if pent ~= nil and fent ~= nil then
-                for o,w in pairs( v.networkedvars ) do
+                for o,w in pairs( game.gamemode.entities[ v.__name ].networkedvars ) do
                     local pastval = pent[w]
                     local futureval = fent[w]
                     -- Call the coorisponding function to set the
                     -- interpolated value (which can be a table)
                     if pastval ~= nil then
-                        v[ v.networkedfunctions[ o ] ]( v, self:interpolate( pastval, futureval, x ) )
+                        v[ game.gamemode.entities[ v.__name ].networkedfunctions[ o ] ]( v, self:interpolate( pastval, futureval, x ) )
                     end
                 end
             end

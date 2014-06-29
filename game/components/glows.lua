@@ -8,6 +8,7 @@ local getGlowDrawable = function( e )
 end
 
 local init = function( e )
+    e.glowdrawable = e.glowdrawable or love.graphics.newImage( "data/textures/null.png" )
     e.gloworiginoffset = game.vector( e.glowdrawable:getWidth() / 2, e.glowdrawable:getHeight() / 2 )
     game.renderer:addGlowable( e )
 end
@@ -18,8 +19,8 @@ end
 
 local Glows = {
     __name = "Glows",
-    glowdrawable = love.graphics.newImage( "data/textures/null.png" ),
-    gloworiginoffset = game.vector( 32, 32 ),
+    glowdrawable = nil,
+    gloworiginoffset = nil,
     init = init,
     deinit = deinit,
     setGlowDrawable = setGlowDrawable,

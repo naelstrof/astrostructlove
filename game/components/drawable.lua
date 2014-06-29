@@ -49,7 +49,9 @@ local getLayer = function( e )
 end
 
 local init = function( e )
+    e.drawable = e.drawable or love.graphics.newImage( "data/textures/null.png" )
     e.originoffset = game.vector( e.drawable:getWidth() / 2, e.drawable:getHeight() / 2 )
+    e.scale = game.vector( e.scale.x, e.scale.y )
     game.renderer:addEntity( e )
 end
 
@@ -61,9 +63,9 @@ local Drawable = {
     __name = "Drawable",
     -- Set the default drawable to the classic purple and black
     -- checkerboard found in source games.
-    drawable = love.graphics.newImage( "data/textures/null.png" ),
-    originoffset = game.vector( 32, 32 ),
-    scale = game.vector( 1, 1 ),
+    drawable = nil,
+    originoffset = nil,
+    scale = { x=1, y=1 },
     color = { 255, 255, 255, 255 },
     layer = 2,
     setDrawable = setDrawable,

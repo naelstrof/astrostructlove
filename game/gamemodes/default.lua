@@ -72,6 +72,39 @@ Default.entities = {
     }
 }
 
+function Default:merge( a, b )
+    if b == nil then
+        return
+    end
+    for i,v in pairs( b ) do
+        local found = false
+        for o,m in pairs( a ) do
+            if v == m then
+                found = true
+                break
+            end
+        end
+        if not found then
+            table.insert( a, v )
+        end
+    end
+end
+
+-- This function fills out the entities' networking arrays so that
+-- game.networksystem and game.demosystem can know what variables
+-- matter
+-- TODO: Probably should move this out of the gamemode itself.
+function Default:generateNetworkedVars()
+    for i,ent in pairs( self.entities ) do
+        ent.networkedvars = {}
+        ent.networkedfunctions = {}
+        for o,comp in pairs( ent.components ) do
+            self:merge( ent.networkedvars, comp.networkedvars )
+            self:merge( ent.networkedfunctions, comp.networkedfunctions )
+        end
+    end
+end
+
 function Default:spawnPlayer( id )
     -- Spawn player at a random playerspawn
     local ents = game.entities:getAllNamed( "playerspawn" )

@@ -29,6 +29,7 @@ local cos, sin = math.cos, math.sin
 
 local camera = {}
 camera.__index = camera
+camera.__type = "Camera"
 
 local function new(x,y, zoom, rot)
 	x,y  = x or love.graphics.getWidth()/2, y or love.graphics.getHeight()/2

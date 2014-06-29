@@ -35,9 +35,7 @@ local toWorld = function( e, pos )
 end
 
 local init = function( e )
-    e.camera:lookAt( e:getPos() )
-    e.camera.x = 0
-    e.camera.y = 0
+    e.camera = game.camera( e:getPos().x, e:getPos().y )
 end
 
 local deinit = function( e )
@@ -45,7 +43,7 @@ end
 
 local Camera = {
     __name = "Camera",
-    camera = game.camera( 0, 0 ),
+    camera = nil,
     zoom = 1,
     init = init,
     active = false,

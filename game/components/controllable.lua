@@ -8,12 +8,12 @@ local update = function( e, dt, id, tick )
         -- entity, otherwise we're just updating ourselves
         local up, down, left, right, rotl, rotr
         if id == nil then
-            local up, down, left, right = control.current.up, control.current.down, control.current.left, control.current.right
-            local rotl, rotr = control.current.leanl, control.current.leanr
+            up, down, left, right = control.current.up, control.current.down, control.current.left, control.current.right
+            rotl, rotr = control.current.leanl, control.current.leanr
         else
             -- We use tick to get the correct instance of the controls
-            local up, down, left, right = game.network:getControls( id, tick ).up, game.network:getControls( id, tick ).down, game.network:getControls( id, tick ).left, game.network:getControls( id, tick ).right
-            local rotl, rotr = game.network:getControls( id, tick ).leanl, game.network:getControls( id, tick ).leanr
+            up, down, left, right = game.network:getControls( id, tick ).up, game.network:getControls( id, tick ).down, game.network:getControls( id, tick ).left, game.network:getControls( id, tick ).right
+            rotl, rotr = game.network:getControls( id, tick ).leanl, game.network:getControls( id, tick ).leanr
         end
 
         if up - down == 0 and right - left == 0 then
@@ -40,7 +40,6 @@ local update = function( e, dt, id, tick )
         e:setVel( game.vector( 0, 0 ) )
     end
 end
-
 
 local setSpeed = function( e, speed )
     e.speed = speed
@@ -78,12 +77,17 @@ local getRotVel = function( e )
     return e.rotvelocity
 end
 
+local init = function( e )
+    e.velocity = game.vector( e.velocity.x, e.velocity.y )
+end
+
 local Controllable = {
     __name = "Controllable",
     speed = 2048,
     rotspeed = math.pi*3,
-    velocity = game.vector( 0, 0 ),
+    velocity = { x = 0, y = 0 },
     rotvelocity = 0,
+    init = init,
     friction = 0.01,
     rotfriction = 0.01,
     --init = init,

@@ -52,6 +52,12 @@ local resize = function( e, w, h )
 end
 
 local init = function( e )
+    e.vel = game.vector( e.vel.x, e.vel.y )
+    local t = {}
+    for i,v in pairs( e.starImages ) do
+        table.insert( t, love.graphics.newImage( v ) )
+    end
+    e.starImages = t
     e:createStarfield()
 end
 
@@ -68,8 +74,7 @@ local Starfield = {
     maxStars = 128,
     width = nil,
     height = nil,
-    --vel = game.vector( 2.5, 0.5 ),
-    vel = game.vector( 25, 50 ),
+    vel = { x=25, y=50 },
     size = 0.5,
     sizeDeviation = 0.5,
     init = init,
@@ -77,8 +82,8 @@ local Starfield = {
     createStarfield = createStarfield,
     update = update,
     resize = resize,
-    starImages = { love.graphics.newImage( "data/textures/star.png" ),
-                   love.graphics.newImage( "data/textures/star2.png" ) }
+    starImages = { "data/textures/star.png",
+                   "data/textures/star2.png" }
 }
 
 return Starfield

@@ -93,7 +93,7 @@ end
 function Entities:resize( w, h )
     for i,v in pairs( self.entities ) do
         if v.resize ~= nil then
-            v:update( w, h )
+            v:resize( w, h )
         end
     end
 end

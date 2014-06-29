@@ -16,8 +16,8 @@ local createStarfield = function( e )
         local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
         e.stars[i]:setScale( game.vector( s, s ) )
     end
-    width = love.graphics.getWidth()
-    height = love.graphics.getHeight()
+    e.width = love.graphics.getWidth()
+    e.height = love.graphics.getHeight()
 end
 
 local update = function( e, dt )
@@ -25,30 +25,30 @@ local update = function( e, dt )
         v:setPos( v:getPos() + ( e.vel * dt * v:getScale().x ) )
         -- Respawn stars that go off-screen
         local maxwidth = 30
-        if v:getPos().x > width + maxwidth or v:getPos().x < -maxwidth then
+        if v:getPos().x > e.width + maxwidth or v:getPos().x < -maxwidth then
             v:setDrawable( e.starImages[ math.floor( math.random()*(table.maxn( e.starImages )-1) + 0.5 ) + 1 ] )
             local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
             v:setScale( game.vector( s, s ) )
-            v:setPos( game.vector( math.abs( v:getPos().x - ( width + maxwidth ) ), height * math.random() ) )
-        elseif v:getPos().y > height + maxwidth or v:getPos().y < -maxwidth then
+            v:setPos( game.vector( math.abs( v:getPos().x - ( e.width + maxwidth ) ), e.height * math.random() ) )
+        elseif v:getPos().y > e.height + maxwidth or v:getPos().y < -maxwidth then
             v:setDrawable( e.starImages[ math.floor( math.random()*(table.maxn( e.starImages )-1) + 0.5 ) + 1 ] )
             local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
             v:setScale( game.vector( s, s ) )
-            v:setPos( game.vector( width * math.random(), math.abs( v:getPos().y - ( height + maxwidth ) ) ) )
+            v:setPos( game.vector( e.width * math.random(), math.abs( v:getPos().y - ( e.height + maxwidth ) ) ) )
         end
     end
 end
 
 local resize = function( e, w, h )
     -- Get the multipliers to change the star positions
-    local xdiff =  w / width
-    local ydiff =  h / height
+    local xdiff =  w / e.width
+    local ydiff =  h / e.height
     local multi = game.vector( xdiff, ydiff )
     for i, v in pairs( e.stars ) do
         v:setPos( v:getPos():permul( multi ) )
     end
-    width = w
-    height = h
+    e.width = w
+    e.height = h
 end
 
 local init = function( e )

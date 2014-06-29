@@ -46,6 +46,7 @@ compo.blockslight = require( "game/components/blockslight" )
 compo.starfield = require( "game/components/starfield" )
 compo.emitslight = require( "game/components/emitslight" )
 compo.networked = require( "game/components/networked" )
+compo.default = require( "game/components/default" )
 --
 
 game.entity = require( "lib/entity" )

@@ -40,7 +40,7 @@ local getShadowVolume = function( e, lightpos, lightradius )
     return volumeverticies
 end
 
-local setPos = function( e, pos )
+local setPos = function( e, x, y )
     game.renderer:updateLights()
 end
 

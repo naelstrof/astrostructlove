@@ -9,19 +9,19 @@ Default.map = "default"
 Default.entities = {
     metalfloor = {
         __name="metalfloor",
-        components={ compo.drawable, compo.networked },
+        components={ compo.drawable, compo.networked, compo.default },
         image="data/textures/metalfloor.png",
         attributes={ drawable=love.graphics.newImage( "data/textures/metalfloor.png" ) }
     },
     metalwall = {
         __name="metalwall",
-        components={ compo.drawable, compo.blockslight, compo.networked },
+        components={ compo.drawable, compo.blockslight, compo.networked, compo.default },
         image="data/textures/metalwall.png",
         attributes={ drawable=love.graphics.newImage( "data/textures/metalwall.png" ), layer=3 }
     },
     lamp = {
         __name="lamp",
-        components={ compo.drawable, compo.emitslight, compo.networked },
+        components={ compo.drawable, compo.emitslight, compo.networked, compo.default },
         image="data/textures/lamp.png",
         attributes={
             drawable=love.graphics.newImage( "data/textures/lamp.png" ),
@@ -31,7 +31,7 @@ Default.entities = {
     },
     controlpanel = {
         __name="controlpanel",
-        components={ compo.drawable, compo.glows, compo.networked },
+        components={ compo.drawable, compo.glows, compo.networked, compo.default },
         image="data/textures/controlpanel.png",
         glowimage="data/textures/controlpanel_illumination.png",
         attributes={
@@ -42,31 +42,31 @@ Default.entities = {
     },
     starfield = {
         __name="starfield",
-        components={ compo.starfield, compo.networked, compo.debugdrawable },
+        components={ compo.starfield, compo.networked, compo.debugdrawable , compo.default },
         image="data/textures/logic.png",
         attributes={}
     },
     star= {
         __name="star",
-        components={ compo.drawable },
+        components={ compo.drawable, compo.default },
         image="data/textures/star.png",
         attributes={ layer=1, drawable=love.graphics.newImage( "data/textures/star.png" ) }
     },
     ghost = {
         __name="ghost",
-        components={ compo.camera, compo.controllable, compo.networked },
+        components={ compo.camera, compo.controllable, compo.networked, compo.default },
         image="data/textures/logic.png",
         attributes={}
     },
     playerspawn = {
         __name="playerspawn",
-        components={ compo.debugdrawable, compo.networked },
+        components={ compo.debugdrawable, compo.networked, compo.default },
         image="data/textures/logic.png",
         attributes={ }
     },
     player = {
         __name="player",
-        components={ compo.drawable, compo.camera, compo.controllable, compo.networked },
+        components={ compo.drawable, compo.camera, compo.controllable, compo.networked, compo.default },
         image="data/textures/human.png",
         attributes={ drawable=love.graphics.newImage( "data/textures/human.png" ), layer=3 }
     }

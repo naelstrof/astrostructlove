@@ -1,7 +1,7 @@
 -- Camera component allows an entity to control the view
 
-local setPos = function( e, pos )
-    e.camera:lookAt( pos.x, pos.y )
+local setPos = function( e, t )
+    e.camera:lookAt( t.x, t.y )
 end
 
 local setRot = function( e, rot )

@@ -7,6 +7,8 @@ local Network = {
     currenttime = 0,
     totaltime = 0,
     tick = 0,
+    backtick = 0,
+    maxsize = 1000,
     snapshots = {},
     players = {}
 }
@@ -24,7 +26,8 @@ function Network:addPlayer( id, ent )
 
         -- But only if they aren't ourselves.
         if id ~= 0 then
-            self.server.send( id, Tserial.pack( game.demosystem:getFull( snapshots[ tick ] ) ) )
+            local str = Tserial.pack( game.demosystem:getFull( self.snapshots[ self.tick ] ) )
+            self.server:send( Tserial.pack( game.demosystem:getFull( self.snapshots[ self.tick ] ) ), id )
         end
     end
 end
@@ -44,6 +47,9 @@ function Network:start( server )
     self.totaltime = 0
     self.currenttime = 0
     self.tick = 0
+    self.backtick = 0
+    -- Hold exactly 1.5 seconds worth of gamestates in memory
+    self.maxsize = 1500/self.updaterate
     self.snapshots[ self.tick ] = game.demosystem:generateSnapshot( self.tick, self.totaltime )
 end
 
@@ -60,6 +66,8 @@ function Network:update( dt )
     self.totaltime = self.totaltime + dt
     self.currenttime = self.currenttime + dt*1000
     if self.currenttime > self.updaterate then
+        -- Generate a new snapshot
+        self.snapshots[ self.tick ] = game.demosystem:generateSnapshot( self.tick, self.totaltime )
         self.currrenttime = self.currenttime % self.updaterate
         -- We find which player is furthest behind
         local minplayer = nil
@@ -84,7 +92,7 @@ function Network:update( dt )
             if v.id ~= 0 then
                 local snapa = self.snapshots[ v.tick ]
                 local snapb = self.snapshots[ self.tick ]
-                self.server.send( v.id, Tserial.pack( game.demosystem:getDiff( snapa, snapb ) ) )
+                self.server:send( Tserial.pack( game.demosystem:getDiff( snapa, snapb ) ), v.id )
             end
         end
     end
@@ -115,6 +123,9 @@ function Network:resimulate( snapshot )
 end
 
 function Network:getControls( id, tick )
+    if not self.running then
+        return control.current
+    end
     if tick == nil then
         tick = self.tick
     end

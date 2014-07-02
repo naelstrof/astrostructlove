@@ -74,6 +74,7 @@ gamestates.mapeditor = require( "game/states/mapeditor/mapeditor" )
 gamestates.demoplayback = require( "game/states/demoplayback" )
 gamestates.singleplayer = require( "game/states/singleplayer" )
 gamestates.listenserver = require( "game/states/listenserver" )
+gamestates.client = require( "game/states/client" )
 
 function love.load()
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )

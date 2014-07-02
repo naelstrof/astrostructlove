@@ -212,6 +212,7 @@ function server:update(dt)
 			if not self.clients[clientid] then
 				self.clients[clientid] = {ping = -dt}
 				if self.callbacks.connect then
+                    print( clientid )
 					self.callbacks.connect(clientid)
 				end
 			end

@@ -13,6 +13,10 @@ function Menu:enter()
     list:SetPadding( 4 )
     list:SetSpacing( 4 )
 
+    join = loveframes.Create( "button", frame )
+    join:SetText( "Join Server" )
+    list:AddItem( join )
+
     hostlisten = loveframes.Create( "button", frame )
     hostlisten:SetText( "Host Listen Server" )
     list:AddItem( hostlisten )
@@ -37,6 +41,9 @@ function Menu:enter()
     quit:SetText( "Quit" )
     list:AddItem( quit )
 
+    join.OnClick = function( object, x, y )
+        self:createJoinBox()
+    end
     hostlisten.OnClick = function( object, x, y )
         game.gamestate.switch( gamestates.listenserver )
     end
@@ -54,6 +61,36 @@ function Menu:enter()
     end
     quit.OnClick = function( object, x, y )
         love.event.quit()
+    end
+end
+
+function Menu:createJoinBox()
+    if self.playdemobox ~= nil then
+        self.playdemobox:Remove()
+    end
+    self.playdemobox = loveframes.Create( "frame" )
+    local frame = self.playdemobox
+    frame:SetWidth( 256 )
+    frame:SetHeight( 128 )
+    frame:SetName( "Join Server ..." )
+    frame:Center()
+
+    local text = loveframes.Create( "textinput", frame )
+    text:SetText( "50.77.44.41:27020" )
+    text:Center()
+
+    local button = loveframes.Create( "button", frame )
+    button:CenterX()
+    button:SetText( "Join" )
+    button:SetY( 90 )
+    button.txt = text
+
+    button.OnClick = function( object, x, y )
+        local text = object.txt:GetText()
+        local ip, port = text:match("^(.-):(%d+)$")
+        gamestates.client.ip = ip
+        gamestates.client.port = tonumber( port )
+        game.gamestate.switch( gamestates.client )
     end
 end
 

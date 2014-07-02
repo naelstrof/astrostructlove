@@ -11,6 +11,7 @@ function ListenServer:enter()
     game.gamemode:spawnPlayer( 0 )
     -- Set up the server
     self.server = lube.udpServer()
+    self.server:init()
     self.server.callbacks = { recv = self.onReceive, connect = self.onConnect, disconnect = self.onDisconnect }
     self.server.handshake = game.version
     self.server:listen( self.port )
@@ -18,20 +19,19 @@ function ListenServer:enter()
     game.network:start( self.server )
 end
 
-function ListenServer:onConnect( id )
+function ListenServer.onConnect( id )
     print( "Got a connection from " .. id )
-    local player = game.gamemode:spawnPlayer( self.playercount )
-    self.playercount = self.playercount + 1
-    game.network:addPlayer( id, player )
+    local player = game.gamemode:spawnPlayer( id )
+    gamestates.listenserver.playercount = gamestates.listenserver.playercount + 1
 end
 
-function ListenServer:onReceive( data, id )
+function ListenServer.onReceive( data, id )
     print( "Recieved data " .. data .. " from " .. id .. ":" .. tostring( port ) )
     local t = Tserial:unpack( data )
     game.network:updateClient( id, t.controls, t.tick )
 end
 
-function ListenServer:onDisconnect( id )
+function ListenServer.onDisconnect( id )
     print( id .. " disconnected..." )
     game.network:removePlayer( id )
 end

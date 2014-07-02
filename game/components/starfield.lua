@@ -1,20 +1,27 @@
 local createStarfield = function( e )
+    -- We grab any stars that exist still
+    local stars = game.entities:getAllNamed( "star" )
+    if table.getn( stars ) ~= nil then
+        e.stars = stars
+    end
     --for i, v in pairs( e.stars ) do
         --v:remove()
         --e.stars[i] = nil
     --end
     for i=1,e.maxStars,1 do
-        -- There's no need for this to be glowable, due to it being drawn to the space layer
-        e.stars[i] = game.entity:new( "star" )
-        -- god the math for this is retarded because lua tables start at 1...
-        e.stars[i]:setDrawable( e.starImages[ math.floor( math.random()*(table.maxn( e.starImages )-1) + 0.5 ) + 1 ] )
-        e.stars[i]:setLayer( 1 )
+        if e.stars[i] == nil then
+            -- There's no need for this to be glowable, due to it being drawn to the space layer
+            e.stars[i] = game.entity:new( "star" )
+            -- god the math for this is retarded because lua tables start at 1...
+            e.stars[i]:setDrawable( e.starImages[ math.floor( math.random()*(table.maxn( e.starImages )-1) + 0.5 ) + 1 ] )
+            e.stars[i]:setLayer( 1 )
 
-        local w,h = love.graphics.getDimensions()
-        -- Space layer isn't affected by camera, as such it doesn't need to take camera into account.
-        e.stars[i]:setPos( game.vector( w * math.random(), h * math.random() ) )
-        local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
-        e.stars[i]:setScale( game.vector( s, s ) )
+            local w,h = love.graphics.getDimensions()
+            -- Space layer isn't affected by camera, as such it doesn't need to take camera into account.
+            e.stars[i]:setPos( game.vector( w * math.random(), h * math.random() ) )
+            local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
+            e.stars[i]:setScale( game.vector( s, s ) )
+        end
     end
     e.width = love.graphics.getWidth()
     e.height = love.graphics.getHeight()
@@ -62,10 +69,14 @@ local init = function( e )
 end
 
 local deinit = function( e )
-    for i, v in pairs( e.stars ) do
-        v:remove()
-        e.stars[i] = nil
-    end
+    -- To allow for recreation (networking) of this entity without affecting
+    -- the stars, we simply leave the stars out.
+    -- createStarfield() will pick them back up when the entity
+    -- is created again.
+    -- for i, v in pairs( e.stars ) do
+        -- v:remove()
+        -- e.stars[i] = nil
+    -- end
 end
 
 local Starfield = {

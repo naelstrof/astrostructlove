@@ -10,33 +10,34 @@ function ListenServer:enter()
     -- Spawn ourselves in
     game.gamemode:spawnPlayer( 0 )
     -- Set up the server
-    self.server = lube.server( self.port )
-    self.server:setCallback( self.onReceive, self.onConnect, self.onDisconnect )
-    self.server:setHandshake( game.version )
+    self.server = lube.udpServer()
+    self.server.callbacks = { recv = self.onReceive, connect = self.onConnect, disconnect = self.onDisconnect }
+    self.server.handshake = game.version
+    self.server:listen( self.port )
+    -- Start the server!
+    game.network:start( self.server )
 end
 
-function ListenServer:onConnect( ip, port )
-    print( "Got a connection from " .. ip .. " on port " .. tostring( port ) )
+function ListenServer:onConnect( id )
+    print( "Got a connection from " .. id )
     local player = game.gamemode:spawnPlayer( self.playercount )
     self.playercount = self.playercount + 1
-    local id = ip .. ":" .. tostring( port )
     game.network:addPlayer( id, player )
 end
 
-function ListenServer:onReceive( data, ip, port )
-    print( "Recieved data " .. data .. " from " .. ip .. ":" .. tostring( port ) )
+function ListenServer:onReceive( data, id )
+    print( "Recieved data " .. data .. " from " .. id .. ":" .. tostring( port ) )
     local t = Tserial:unpack( data )
-    local id = ip .. ":" .. tostring( port )
     game.network:updateClient( id, t.controls, t.tick )
 end
 
-function ListenServer:onDisconnect( ip, port )
-    local id = ip .. ":" .. tostring( port )
+function ListenServer:onDisconnect( id )
     print( id .. " disconnected..." )
     game.network:removePlayer( id )
 end
 
 function ListenServer:leave()
+    self.network:stop()
     self.server:disconnect()
 end
 
@@ -45,11 +46,13 @@ function ListenServer:draw()
 end
 
 function ListenServer:update( dt )
-    game.network:update( dt )
-    self.server:update( dt )
-    game.entities:update( dt )
+    game.bindsystem:update( dt )
+    game.network:updateClient( 0, control.current, game.network:getTick() )
+    game.entities:update( dt, game.network:getTick() )
     game.demosystem:update( dt )
     game.renderer:update( dt )
+    game.network:update( dt )
+    self.server:update( dt )
 end
 
 function ListenServer:mousepressed( x, y, button )

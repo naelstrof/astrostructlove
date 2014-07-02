@@ -41,23 +41,29 @@ local update = function( e, dt )
 end
 
 local init = function( e )
-    e.lightrot = math.random()*math.pi*2
+    e.lightrot = e.lightrot or math.random()*math.pi*2
     e.lightoriginoffset = game.vector( e.lightdrawable:getWidth() / 2, e.lightdrawable:getHeight() / 2 )
     -- ONLY SCALE WIDTH, so we can have some light shafts and shit.
     e.lightscale = game.vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getWidth() )
 
-    e.baselightintensity = e.lightintensity
-    -- Set the flicker time to a random value, this way if we create
-    -- a ton of lights at once they'll flicker at different times
-    e.lighttime = math.random() * #e.lightflickermap
     -- Convert the lightflickermap to more efficient values
     e:setFlickerMap( e.lightflickermap )
+
+    -- Set the flicker time to a random value, this way if we create
+    -- a ton of lights at once they'll flicker at different times
+    e.lighttime = e.lighttime or ( math.random() * table.getn( e.lightflickermap ) )
     game.renderer:addLight( e )
 end
 
 -- Converts a valve-style flickermap into floats
 -- See https://developer.valvesoftware.com/wiki/Light#Appearances
 local setFlickerMap = function( e, flickermapstring )
+    -- If the flickermap was already converted to a table then just use it
+    if type( flickermapstring ) == "table" then
+        e.lightflickermap = flickermapstring
+        return
+    end
+    -- Otherwise we need to convert the string into a table of numbers.
     local flickermap = {}
     -- For each character
     for char in string.gmatch( flickermapstring, "." ) do
@@ -101,12 +107,16 @@ local EmitsLight = {
     radius = 256,
     lightsize = 32,
     lightdrawable = love.graphics.newImage( "data/textures/point.png" ),
-    lightrot = 0,
+    -- light rotations will be random unless otherwise specified
+    lightrot = nil,
+    -- The timing in the light flicker is random too, unless otherwise specified
+    lighttime = nil,
     lightoriginoffset = game.vector( 0, 0 ),
     lightscale = game.vector( 1, 1 ),
     -- I set the light intensity to overflow due to the flickermap
     -- nearly halving it in all parts of the flicker
-    lightintensity = 1.35,
+    baselightintensity = 1.35,
+    lightintensity = baselightintensity,
     -- Uses "Flicker B" by default.
     lightflickermap = "nmonqnmomnmomomno",
     setFlickerMap = setFlickerMap,

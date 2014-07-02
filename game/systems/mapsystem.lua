@@ -15,12 +15,12 @@ function MapSystem:load( filename )
     local snapshot = Tserial.unpack( data )
     for i,v in pairs( snapshot.entities ) do
         local ent = game.entity:new( v.__name, { demoIndex=v.demoIndex } )
-        for o,w in pairs( ent.networkedvars ) do
+        for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
             local val = v[w]
             -- Call the coorisponding function to set the
             -- value
             if val ~= nil then
-                ent[ ent.networkedfunctions[ o ] ]( ent, val )
+                ent[ game.gamemode.entities[ ent.__name ].networkedfunctions[ o ] ]( ent, val )
             end
         end
     end

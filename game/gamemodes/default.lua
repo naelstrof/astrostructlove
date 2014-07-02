@@ -108,7 +108,8 @@ end
 function Default:spawnPlayer( id )
     -- Spawn player at a random playerspawn
     local ents = game.entities:getAllNamed( "playerspawn" )
-    local player = game.entity:new( "player" )
+    -- Controllables need the playerid encoded with them
+    local player = game.entity:new( "player", { playerid=id } )
     if table.getn( ents ) <= 0 then
         player:setPos( game.vector( 0, 0 ) )
     else
@@ -120,6 +121,7 @@ function Default:spawnPlayer( id )
     if id == 0 then
         player:setActive( true )
     end
+    game.network:addPlayer( id, player )
     return player
 end
 

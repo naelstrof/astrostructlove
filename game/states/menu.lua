@@ -3,36 +3,43 @@ local Menu = {}
 function Menu:enter()
     frame = loveframes.Create( "frame" )
     frame:SetName( "Main Menu" )
-    frame:Center()
     frame:ShowCloseButton( false )
-    frame:SetHeight( 200 )
+    frame:SetHeight( 250 )
+    frame:Center()
+
+    list = loveframes.Create( "list", frame )
+    list:SetPos( 0, 26 )
+    list:SetHeight( 224 )
+    list:SetPadding( 4 )
+    list:SetSpacing( 4 )
+
+    hostlisten = loveframes.Create( "button", frame )
+    hostlisten:SetText( "Host Listen Server" )
+    list:AddItem( hostlisten )
 
     playsingle = loveframes.Create( "button", frame )
-    playsingle:SetWidth( 100 )
-    playsingle:CenterX()
-    playsingle:SetY( 34 )
     playsingle:SetText( "Play Singleplayer" )
+    list:AddItem( playsingle )
 
     playdemo = loveframes.Create( "button", frame )
-    playdemo:CenterX()
-    playdemo:SetY( 64 )
     playdemo:SetText( "Play Demo" )
+    list:AddItem( playdemo )
 
     mapeditor = loveframes.Create( "button", frame )
-    mapeditor:CenterX()
-    mapeditor:SetY( 94 )
     mapeditor:SetText( "Map Editor" )
+    list:AddItem( mapeditor )
 
     options = loveframes.Create( "button", frame )
-    options:CenterX()
-    options:SetY( 124 )
     options:SetText( "Options" )
+    list:AddItem( options )
 
     quit = loveframes.Create( "button", frame )
-    quit:CenterX()
-    quit:SetY( 154 )
     quit:SetText( "Quit" )
+    list:AddItem( quit )
 
+    hostlisten.OnClick = function( object, x, y )
+        game.gamestate.switch( gamestates.listenserver )
+    end
     playsingle.OnClick = function( object, x, y )
         self:createPlaySingleplayerBox()
     end

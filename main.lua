@@ -58,6 +58,7 @@ game.camerasystem = require( "game/systems/camerasystem" )
 game.demosystem = require( "game/systems/demosystem" )
 game.mapsystem = require( "game/systems/mapsystem" )
 game.bindsystem = require( "game/systems/bindsystem" )
+game.network = require( "game/systems/networksystem" )
 --
 
 -- Current Gamemode
@@ -72,6 +73,7 @@ gamestates.options = require( "game/states/options" )
 gamestates.mapeditor = require( "game/states/mapeditor/mapeditor" )
 gamestates.demoplayback = require( "game/states/demoplayback" )
 gamestates.singleplayer = require( "game/states/singleplayer" )
+gamestates.listenserver = require( "game/states/listenserver" )
 
 function love.load()
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )

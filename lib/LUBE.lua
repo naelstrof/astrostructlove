@@ -441,9 +441,13 @@ end
 lube = {}
 
 lube.Client = common.class(client)
-lube.udpClient = common.class(udpClient, lube.Client)
-lube.tcpClient = common.class(tcpClient, lube.Client)
+lube.udpClient = lube.Client:extends( udpClient )
+lube.tcpClient = lube.Client:extends( tcpClient )
+--lube.udpClient = common.class(udpClient, lube.Client)
+--lube.tcpClient = common.class(tcpClient, lube.Client)
 
 lube.Server = common.class(server)
-lube.udpServer = common.class(udpServer, lube.Server)
-lube.tcpServer = common.class(tcpServer, lube.Server)
+lube.udpServer = lube.Server:extends( udpServer )
+lube.tcpServer = lube.Server:extends( tcpServer )
+--lube.udpServer = common.class(udpServer, lube.Server)
+--lube.tcpServer = common.class(tcpServer, lube.Server)

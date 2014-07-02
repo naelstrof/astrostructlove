@@ -82,10 +82,10 @@ function Entities:getClicked()
     return topmost
 end
 
-function Entities:update( dt )
+function Entities:update( dt, tick )
     for i,v in pairs( self.entities ) do
         if v.update ~= nil then
-            v:update( dt )
+            v:update( dt, tick )
         end
     end
 end

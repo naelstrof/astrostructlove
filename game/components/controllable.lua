@@ -1,5 +1,5 @@
 
-local update = function( e, dt, id, tick )
+local update = function( e, dt, tick )
     if e.active then
         local direction = 0
         local rotdir = 0
@@ -7,14 +7,9 @@ local update = function( e, dt, id, tick )
         -- Id will be specified if we're updating a specific player's
         -- entity, otherwise we're just updating ourselves
         local up, down, left, right, rotl, rotr
-        if id == nil then
-            up, down, left, right = control.current.up, control.current.down, control.current.left, control.current.right
-            rotl, rotr = control.current.leanl, control.current.leanr
-        else
-            -- We use tick to get the correct instance of the controls
-            up, down, left, right = game.network:getControls( id, tick ).up, game.network:getControls( id, tick ).down, game.network:getControls( id, tick ).left, game.network:getControls( id, tick ).right
-            rotl, rotr = game.network:getControls( id, tick ).leanl, game.network:getControls( id, tick ).leanr
-        end
+        -- We use tick to get the correct instance of the controls
+        up, down, left, right = game.network:getControls( e.playerid, tick ).up, game.network:getControls( e.playerid, tick ).down, game.network:getControls( e.playerid, tick ).left, game.network:getControls( e.playerid, tick ).right
+        rotl, rotr = game.network:getControls( e.playerid, tick ).leanl, game.network:getControls( e.playerid, tick ).leanr
 
         if up - down == 0 and right - left == 0 then
             direction = game.vector( 0, 0 )
@@ -90,6 +85,7 @@ local Controllable = {
     init = init,
     friction = 0.01,
     rotfriction = 0.01,
+    playerid = 0,
     --init = init,
     --deinit = deinit,
     update = update,

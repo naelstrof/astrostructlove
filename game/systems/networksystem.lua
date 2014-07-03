@@ -7,7 +7,9 @@ local Network = {
     currenttime = 0,
     totaltime = 0,
     tick = 0,
-    backtick = 0,
+    -- We never want to remove the first snapshot due to it being used
+    -- constantly
+    backtick = 1,
     maxsize = 1000,
     snapshots = {},
     players = {}
@@ -22,12 +24,13 @@ function Network:addPlayer( id, ent )
     self.players[ id ] = player
     if self.server ~= nil then
         -- When a player connects, we immediately send over
-        -- the full current gamestate
-
-        -- But only if they aren't ourselves.
+        -- the mapname and then a diff snapshot from the beginning of the
+        -- game to now, this is usually cheaper than just sending
+        -- over the whole gamestate
         if id ~= 0 then
-            local str = Tserial.pack( game.demosystem:getFull( self.snapshots[ self.tick ] ) )
-            self.server:send( Tserial.pack( game.demosystem:getFull( self.snapshots[ self.tick ] ) ), id )
+            local t = game.demosystem:getDiff( self.snapshots[ 0 ], self.snapshots[ self.tick ] )
+            t.map = game.gamemode.map
+            self.server:send( Tserial.pack( t ), id )
         end
     end
 end
@@ -66,6 +69,7 @@ function Network:update( dt )
     self.totaltime = self.totaltime + dt
     self.currenttime = self.currenttime + dt*1000
     if self.currenttime > self.updaterate then
+        self.tick = self.tick + 1
         -- Generate a new snapshot
         self.snapshots[ self.tick ] = game.demosystem:generateSnapshot( self.tick, self.totaltime )
         self.currrenttime = self.currenttime % self.updaterate
@@ -81,20 +85,29 @@ function Network:update( dt )
         -- but only if the last input recieved is not on time (Which
         -- should pretty much be never given internet generally has a delay of
         -- more than 15 milliseconds)
-        if minplayer.tick ~= self.tick then
+        -- before we resimulate though, we save the last snapshot
+        local save = self.snapshots[ self.tick - 1 ]
+        if minplayer.tick ~= self.tick - 1 and minplayer.tick ~= nil then
             self:resimulate( minplayer.tick )
         end
 
-        -- Now that we have an updated game world, we send over diff updates
-        -- specific for each player's current gamestate
+        -- Now that we have an updated game world, we send over diff
+        -- updates based on our previous save of the game world.
         for i,v in pairs( self.players ) do
             -- Don't "send" anything to ourselves.
             if v.id ~= 0 then
-                local snapa = self.snapshots[ v.tick ]
+                local snapa = save
                 local snapb = self.snapshots[ self.tick ]
                 self.server:send( Tserial.pack( game.demosystem:getDiff( snapa, snapb ) ), v.id )
             end
         end
+    end
+    -- Remove ticks that are too far into the past
+    for i = self.backtick, self.tick - self.maxsize, 1 do
+        if i ~= 0 then
+            self.snapshots[ i ] = nil
+        end
+        self.backtick = self.backtick + 1
     end
 end
 
@@ -110,16 +123,42 @@ function Network:resimulate( snapshot )
     -- Get the timestep in seconds
     local timestep = self.updaterate / 1000
     -- Go back forward in time, with the new player inputs.
-    while time < self.totaltime - self.updaterate do
-        game.entities:update( self.updaterate, tick )
+    while time < self.snapshots[ self.tick ].time do
+        -- This is where we delete everything it asks in the timeline
+        local diffshot = game.demosystem:getDiff( self.snapshots[ tick - 1 ], self.snapshots[ tick ] )
+        for i,v in pairs( diffshot.removed ) do
+            --print( "Removed ent", v )
+            -- Given the unique ID's, we should never
+            -- have problems from directly removing
+            -- entities like this.
+            if game.demosystem.entities[ v ] ~= nil then
+                game.demosystem.entities[ v ]:remove()
+            end
+        end
+        -- This is where we add everything it asks in the timeline
+        for i,v in pairs( diffshot.added ) do
+            local ent = game.entity( v.__name, v )
+            for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
+                local val = v[w]
+                -- Call the coorisponding function to set the
+                -- value
+                if val ~= nil then
+                    ent[ game.gamemode.entities[ ent.__name ].networkedfunctions[ o ] ]( ent, val )
+                end
+            end
+        end
+        game.entities:update( timestep, tick )
         -- After we've updated, re-write the new snapshot over the old one
-        self.snapshots[ tick ] = game.demosystem:generateSnapshot( tick, time )
+        --self.snapshots[ tick ] = game.demosystem:generateSnapshot( tick, time )
+        time = self.snapshots[ tick ].time
         tick = tick + 1
-        time = time + self.updaterate
+        if self.snapshots[ tick ] == nil then
+            break
+        end
     end
     -- Make sure we end up at the right time
     game.entities:update( self.totaltime - time )
-    self.snapshots[ tick ] = game.demosystem:generateSnapshot( tick, self.totaltime )
+    --self.snapshots[ tick ] = game.demosystem:generateSnapshot( tick, self.totaltime )
 end
 
 function Network:getControls( id, tick )

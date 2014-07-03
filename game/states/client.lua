@@ -9,17 +9,28 @@ function Client:enter()
     self.client:init()
     self.client.callbacks = { recv = self.onReceive }
     self.client.handshake = game.version
-    print( self.ip, self.port )
     self.client:connect( self.ip, self.port )
 end
 
 function Client.onReceive( data )
     print( "Recieved data " .. type( data ) .. " " .. data )
-    --local t = Tserial:unpack( data )
+    local t = Tserial.unpack( data )
+    if t.map then
+        game.mapsystem:load( t.map )
+    end
+    if t.clientid then
+        game.client:setID( clientid )
+    end
+    if not game.client.running then
+        game.client:start( t )
+    else
+        game.client:addSnapshot( t )
+    end
 end
 
 function Client:leave()
     self.client:disconnect()
+    game.client:stop()
 end
 
 function Client:draw()
@@ -28,10 +39,11 @@ end
 
 function Client:update( dt )
     game.bindsystem:update( dt )
+    self.client:update( dt )
+    game.client:update( dt )
     game.entities:update( dt )
     game.demosystem:update( dt )
     game.renderer:update( dt )
-    self.client:update( dt )
 end
 
 function Client:mousepressed( x, y, button )

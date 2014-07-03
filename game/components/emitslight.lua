@@ -89,7 +89,7 @@ end
 
 local setLightIntensity = function( e, lightintensity )
     e.lightintensity = lightintensity
-    e.baselightintensity = e.lightintensity
+    e.baselightintensity = lightintensity
 end
 
 local getLightIntensity = function( e )

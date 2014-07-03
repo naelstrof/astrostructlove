@@ -170,6 +170,9 @@ function DemoSystem:getDiff( a, b )
     diffsnapshot["removed"] = {}
     diffsnapshot["added"] = {}
     diffsnapshot["entities"] = {}
+    if a == nil then
+        return diffsnapshot
+    end
     for i,v in pairs( a.entities ) do
         if b.entities[ i ] == nil then
             table.insert( diffsnapshot["removed"], v.demoIndex )

@@ -7,8 +7,6 @@ local ListenServer = {
 function ListenServer:enter()
     game.mapsystem:load( game.gamemode.map )
     -- game.renderer:setFullbright( true )
-    -- Spawn ourselves in
-    game.gamemode:spawnPlayer( 0 )
     -- Set up the server
     self.server = lube.udpServer()
     self.server:init()
@@ -17,6 +15,8 @@ function ListenServer:enter()
     self.server:listen( self.port )
     -- Start the server!
     game.network:start( self.server )
+    -- Spawn ourselves in
+    game.gamemode:spawnPlayer( 0 )
 end
 
 function ListenServer.onConnect( id )

@@ -35,7 +35,13 @@ local toWorld = function( e, pos )
 end
 
 local init = function( e )
-    e.camera = game.camera( e:getPos().x, e:getPos().y )
+    e.camera = game.camera()
+    e.camera:lookAt( e:getPos().x, e:getPos().y )
+    e.camera:zoomTo( e.zoom )
+    e.camera:rotateTo( -e.rot )
+    if e.active then
+        game.camerasystem:setActive( e )
+    end
 end
 
 local deinit = function( e )

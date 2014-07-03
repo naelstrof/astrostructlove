@@ -59,6 +59,7 @@ game.demosystem = require( "game/systems/demosystem" )
 game.mapsystem = require( "game/systems/mapsystem" )
 game.bindsystem = require( "game/systems/bindsystem" )
 game.network = require( "game/systems/networksystem" )
+game.client = require( "game/systems/clientsystem" )
 --
 
 -- Current Gamemode

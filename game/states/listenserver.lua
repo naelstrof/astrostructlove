@@ -26,9 +26,9 @@ function ListenServer.onConnect( id )
 end
 
 function ListenServer.onReceive( data, id )
-    print( "Recieved data " .. data .. " from " .. id .. ":" .. tostring( port ) )
-    local t = Tserial:unpack( data )
-    game.network:updateClient( id, t.controls, t.tick )
+    print( "Recieved data " .. data .. " from " .. id )
+    local t = Tserial.unpack( data )
+    game.network:updateClient( id, t.control, t.tick )
 end
 
 function ListenServer.onDisconnect( id )

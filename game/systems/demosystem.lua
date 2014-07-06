@@ -164,15 +164,15 @@ end
 
 -- Creates a delta snapshot based on what has changed, from a previous full snapshot
 function DemoSystem:getDiff( a, b )
+    if a == nil then
+        return self:getFull( b )
+    end
     local diffsnapshot = {}
     diffsnapshot["time"] = b.time
     diffsnapshot["tick"] = b.tick
     diffsnapshot["removed"] = {}
     diffsnapshot["added"] = {}
     diffsnapshot["entities"] = {}
-    if a == nil then
-        return diffsnapshot
-    end
     for i,v in pairs( a.entities ) do
         if b.entities[ i ] == nil then
             table.insert( diffsnapshot["removed"], v.demoIndex )

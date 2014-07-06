@@ -30,6 +30,7 @@ function Network:addPlayer( id, ent )
         if id ~= 0 then
             local t = game.demosystem:getDiff( self.snapshots[ 0 ], self.snapshots[ self.tick ] )
             t.map = game.gamemode.map
+            t.clientid = id
             self.server:send( Tserial.pack( t ), id )
         end
     end
@@ -112,6 +113,10 @@ function Network:update( dt )
 end
 
 function Network:resimulate( snapshot )
+    -- We won't resimulate anything that's out of our memory range
+    if snapshot <= self.backtick then
+        return
+    end
     -- Unfortunately we have to completely rebuild the world in order to
     -- resimulate the past
     game.entities:removeAll()
@@ -119,13 +124,13 @@ function Network:resimulate( snapshot )
         game.entity:new( v.__name, v )
     end
     local tick = snapshot
-    local time = self.snapshots[ snapshot ].time
-    -- Get the timestep in seconds
-    local timestep = self.updaterate / 1000
     -- Go back forward in time, with the new player inputs.
-    while time < self.snapshots[ self.tick ].time do
+    while tick < self.tick do
+        -- Gets the difference between the two snapshots
+        -- if a is nil it returns a full snapshot to be used
+        -- to recreate the world.
+        local diffshot = game.demosystem:getDiff( self.snapshots[ tick ], self.snapshots[ tick + 1 ] )
         -- This is where we delete everything it asks in the timeline
-        local diffshot = game.demosystem:getDiff( self.snapshots[ tick - 1 ], self.snapshots[ tick ] )
         for i,v in pairs( diffshot.removed ) do
             --print( "Removed ent", v )
             -- Given the unique ID's, we should never
@@ -147,18 +152,11 @@ function Network:resimulate( snapshot )
                 end
             end
         end
-        game.entities:update( timestep, tick )
-        -- After we've updated, re-write the new snapshot over the old one
-        --self.snapshots[ tick ] = game.demosystem:generateSnapshot( tick, time )
-        time = self.snapshots[ tick ].time
+        game.entities:update( self.snapshots[ tick + 1 ].time - self.snapshots[ tick ].time, tick )
         tick = tick + 1
-        if self.snapshots[ tick ] == nil then
-            break
-        end
+        -- After we've updated, re-write the new snapshot over the old one
+        self.snapshots[ tick ] = game.demosystem:generateSnapshot( tick, self.snapshots[ tick ].time )
     end
-    -- Make sure we end up at the right time
-    game.entities:update( self.totaltime - time )
-    --self.snapshots[ tick ] = game.demosystem:generateSnapshot( tick, self.totaltime )
 end
 
 function Network:getControls( id, tick )
@@ -181,11 +179,8 @@ function Network:getControls( id, tick )
         -- it can be nil, which should be accounted for
         local last = nil
         for i,v in pairs( self.players[ id ].snapshots ) do
-            if last == nil or i < tick and i - tick < last then
+            if last == nil or ( i < tick and i > last ) then
                 last = i
-            end
-            if last ~= nil and i > tick then
-                break
             end
         end
         return self.players[ id ].snapshots[ last ]

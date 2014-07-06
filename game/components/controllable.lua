@@ -1,6 +1,9 @@
 
 local update = function( e, dt, tick )
-    if e.active then
+    -- Active runs is true when we're the active player being
+    -- controlled by the client.
+    -- tick is not nil when we're being ran in a simulation
+    if e.active or ( tick ~= nil and game.network:getControls( e.playerid, tick ) ~= nil ) then
         local direction = 0
         local rotdir = 0
 

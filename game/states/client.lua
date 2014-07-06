@@ -19,10 +19,10 @@ function Client.onReceive( data )
         game.mapsystem:load( t.map )
     end
     if t.clientid then
-        game.client:setID( clientid )
+        game.client:setID( t.clientid )
     end
     if not game.client.running then
-        game.client:start( t )
+        game.client:start( t, gamestates.client.client )
     else
         game.client:addSnapshot( t )
     end

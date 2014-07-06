@@ -49,6 +49,8 @@ function Client:start( snapshot, client )
         end
         if ent.playerid == self.id then
             ent:setActive( true )
+        elseif ent.playerid then
+            ent:setActive( false )
         end
     end
 end
@@ -98,6 +100,10 @@ function Client:update( dt )
     -- If we're past the next frame, we up our tick and re-run ourselves.
     if self.time > self.nextshot.time then
         -- Here we send our current controls to the server
+        local t = {}
+        t.tick = self.tick
+        t.control = control.current
+        self.client:send( Tserial.pack( t ) )
         self.tick = self.nextshot.tick
         self.lastshot = self.prevshot
         self.prevshot = self.nextshot

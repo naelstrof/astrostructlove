@@ -21,7 +21,6 @@ local getRot = function( e )
 end
 
 local init = function( e )
-    e.pos = game.vector( e.pos.x, e.pos.y )
     game.entities:addEntity( e )
 end
 
@@ -31,7 +30,7 @@ end
 
 local Default = {
     __name = "Default",
-    pos = {x=0, y=0},
+    pos = game.vector( 0, 0 ),
     rot = 0,
     setPos = setPos,
     getPos = getPos,

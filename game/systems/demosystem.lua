@@ -34,6 +34,14 @@ function DemoSystem:applyDiff( diff )
     -- This is where we add everything it asks in the diff
     for i,v in pairs( diff.added ) do
         local ent = game.entity( v.__name, v )
+        for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
+            local val = v[ w ]
+            -- Call the coorisponding function to set the
+            -- value
+            if val ~= nil then
+                ent[ game.gamemode.entities[ ent.__name ].networkedfunctions[ o ] ]( ent, val )
+            end
+        end
     end
     -- Entities interpolation and such should be handled elsewhere
 end

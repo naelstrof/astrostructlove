@@ -22,24 +22,27 @@ local update = function( e, dt, tick )
         local rotdir = rotr - rotl
 
     -- TODO: Gamepad controls
-        --e:setRotVel( e:getRotVel() + rotdir * e:getRotSpeed() * dt )
+        e:setRotVel( e:getRotVel() + rotdir * e:getRotSpeed() * dt )
 
-        --e:setVel( e:getVel() + direction:rotated( e:getRot() ) * e:getSpeed() * dt )
-        e:setRotVel( rotdir * e:getRotSpeed() )
+        e:setVel( e:getVel() + direction:rotated( e:getRot() ) * e:getSpeed() * dt )
+        --e:setRotVel( rotdir * e:getRotSpeed() )
 
-        e:setVel( direction:rotated( e:getRot() ) * e:getSpeed() )
+        --e:setVel( direction:rotated( e:getRot() ) * e:getSpeed() )
     end
     e:setPos( e:getPos() + e:getVel() * dt )
     e:setRot( e:getRot() + e:getRotVel() * dt )
 
     -- TODO: Ground-specific friction
-    --e:setVel( e:getVel() * math.pow( e.friction, dt ) )
-    --e:setRotVel( e:getRotVel() * math.pow( e.rotfriction, dt ) )
+    e:setVel( e:getVel() * math.pow( e.friction, dt ) )
+    e:setRotVel( e:getRotVel() * math.pow( e.rotfriction, dt ) )
 
     -- FIXME: Need proper friction calculations
-    --if e:getVel():len() < 1 then
-        --e:setVel( game.vector( 0, 0 ) )
-    --end
+    if e:getVel():len() < 1 then
+        e:setVel( game.vector( 0, 0 ) )
+    end
+    if math.abs( e:getRotVel() ) < 0.001 then
+        e:setRotVel( 0 )
+    end
 end
 
 local setSpeed = function( e, speed )
@@ -79,14 +82,17 @@ local getRotVel = function( e )
 end
 
 local init = function( e )
+    -- Since we aren't networking velocity, it can be overridden as a
+    -- plain table. To fix this we just convert it back to a vector
+    -- whenever we initialize.
     e.velocity = game.vector( e.velocity.x, e.velocity.y )
 end
 
 local Controllable = {
     __name = "Controllable",
-    speed = 512,
-    rotspeed = math.pi*1,
-    velocity = { x = 0, y = 0 },
+    speed = 1024,
+    rotspeed = math.pi*2,
+    velocity = game.vector( 0, 0 ),
     rotvelocity = 0,
     init = init,
     friction = 0.02,

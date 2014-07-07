@@ -31,34 +31,15 @@ function Client:start( snapshot, client )
     self.prevshot = self.snapshots[ snapshot.tick ]
     self.nextshot = nil
     self.running = true
-    -- This is where we delete everything it asks
-    for i,v in pairs( self.prevshot.removed ) do
-        --print( "Removed ent", v )
-        -- Given the unique ID's, we should never
-        -- have problems from directly removing
-        -- entities like this.
-        if game.demosystem.entities[ v ] ~= nil then
-            game.demosystem.entities[ v ]:remove()
-        end
-    end
-    -- This is where we add everything it asks
-    for i,v in pairs( self.prevshot.added ) do
-        if v.playerid == self.id then
-            v.active = true
-        elseif v.active then
-            v.active = false
-        end
-        local ent = game.entity( v.__name, v )
+    -- Add/remove required entities
+    game.demosystem:applyDiff( self.prevshot )
+    -- Find our player
+    for i,v in pairs( game.demosystem.entities ) do
         if v.playerid == self.id then
             self.player = ent
-        end
-        for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
-            local val = v[w]
-            -- Call the coorisponding function to set the
-            -- value
-            if val ~= nil then
-                ent[ game.gamemode.entities[ ent.__name ].networkedfunctions[ o ] ]( ent, val )
-            end
+            v:setActive( true )
+        elseif v.playerid then
+            v:setActive( false )
         end
     end
 end
@@ -122,40 +103,16 @@ function Client:update( dt )
         self.tick = self.nextshot.tick
         self.lastshot = self.prevshot
         self.prevshot = self.nextshot
-        --local time = self.prevshot.time - self.lastshot.time
-        --while time > 0 do
-            --game.entities:update( 15/1000 )
-            --time = time - 15/1000
-        --end
         self.nextshot = nil
         -- This is where we delete everything it asks
-        for i,v in pairs( self.prevshot.removed ) do
-            --print( "Removed ent", v )
-            -- Given the unique ID's, we should never
-            -- have problems from directly removing
-            -- entities like this.
-            if game.demosystem.entities[ v ] ~= nil then
-                game.demosystem.entities[ v ]:remove()
-            end
-        end
-        -- This is where we add everything it asks
-        for i,v in pairs( self.prevshot.added ) do
-            if v.playerid == self.id then
-                v.active = true
-            elseif v.active then
-                v.active = false
-            end
-            local ent = game.entity( v.__name, v )
+        game.demosystem:applyDiff( self.prevshot )
+        -- Find our player
+        for i,v in pairs( game.demosystem.entities ) do
             if v.playerid == self.id then
                 self.player = ent
-            end
-            for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
-                local val = v[w]
-                -- Call the coorisponding function to set the
-                -- value
-                if val ~= nil then
-                    ent[ game.gamemode.entities[ ent.__name ].networkedfunctions[ o ] ]( ent, val )
-                end
+                v:setActive( true )
+            elseif v.playerid then
+                v:setActive( false )
             end
         end
         -- This is where we interpolate forward a bit

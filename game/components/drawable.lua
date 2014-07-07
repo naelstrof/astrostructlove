@@ -6,20 +6,11 @@ local getDrawable = function( e )
     return e.drawable
 end
 
-local setScale = function( e, x, y )
-    -- FIXME please for the love of god
-    -- I'M UGLY AND SLOW
-    if game.vector.isvector( x ) and y == nil then
-        e.scale = x
-    elseif x ~= nil and y ~= nil then
-        local t = game.vector( x, y )
-        e.scale = t
-    elseif x.x ~= nil and x.y ~= nil and y == nil then
-        local t = game.vector( x.x, x.y )
-        e.scale = t
-    else
+local setScale = function( e, t )
+    if t == nil or t.x == nil or t.y == nil then
         error( "Failed to set scale: Invalid parameters supplied!" )
     end
+    e.scale = game.vector( t.x, t.y )
 end
 
 local getScale = function( e )
@@ -27,8 +18,17 @@ local getScale = function( e )
 end
 
 local setColor = function( e, color )
-    -- TODO: verify that this is a color
-    e.color = color
+    local r = color[ 1 ]
+    local g = color[ 2 ]
+    local b = color[ 3 ]
+    local a = color[ 4 ]
+    if r and g and b and not a then
+        e.color = { r, g, b, 255 }
+    elseif r and g and b and a then
+        e.color = color
+    else
+        error( "Failed to set color: rgba components in a table required!" )
+    end
 end
 
 local getColor = function( e )
@@ -49,9 +49,7 @@ local getLayer = function( e )
 end
 
 local init = function( e )
-    e.drawable = e.drawable or love.graphics.newImage( "data/textures/null.png" )
     e.originoffset = game.vector( e.drawable:getWidth() / 2, e.drawable:getHeight() / 2 )
-    e.scale = game.vector( e.scale.x, e.scale.y )
     game.renderer:addEntity( e )
 end
 
@@ -63,9 +61,9 @@ local Drawable = {
     __name = "Drawable",
     -- Set the default drawable to the classic purple and black
     -- checkerboard found in source games.
-    drawable = nil,
+    drawable = love.graphics.newImage( "data/textures/null.png" ),
     originoffset = nil,
-    scale = { x=1, y=1 },
+    scale = game.vector( 1, 1 ),
     color = { 255, 255, 255, 255 },
     layer = 2,
     setDrawable = setDrawable,

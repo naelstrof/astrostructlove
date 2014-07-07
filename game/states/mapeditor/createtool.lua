@@ -91,8 +91,10 @@ function CreateTool:mousepressed( x, y, button )
         return
     end
     if button == 'l' then
-        self.highlighter:remove()
-        self.highlighter = nil
+        if self.highlighter then
+            self.highlighter:remove()
+            self.highlighter = nil
+        end
         self.placer = game.entity:new( self.selectedentity )
         self.placer:setPos( game.vector( x, y ) )
     end

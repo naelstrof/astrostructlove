@@ -72,7 +72,7 @@ function Entities:getClicked()
     local topmost = nil
     for i,v in pairs( ents ) do
         if v:hasComponent( compo.drawable ) then
-            if topmost == nil or topmost.layer < v.layer or ( topmost.rendererIndex < v.rendererIndex and topmost.layer <= v.layer ) then
+            if topmost == nil or not topmost:hasComponent( compo.drawable ) or topmost.layer < v.layer or ( topmost.rendererIndex < v.rendererIndex and topmost.layer <= v.layer ) then
                 topmost = v
             end
         else

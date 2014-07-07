@@ -113,7 +113,7 @@ function Default:spawnPlayer( id )
     if table.getn( ents ) <= 0 then
         player:setPos( game.vector( 0, 0 ) )
     else
-        local rand = 1+( math.random() * ( table.getn( ents ) - 1 ) )
+        local rand = 1+( math.floor( math.random() * ( table.getn( ents ) - 1 ) ) )
         player:setPos( ents[ rand ]:getPos() )
     end
 

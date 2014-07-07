@@ -41,7 +41,7 @@ local update = function( e, dt )
 end
 
 local init = function( e )
-    e.lightrot = e.lightrot or math.random()*math.pi*2
+    e.lightrot = e.lightrot or love.math.random()*math.pi*2
     e.lightoriginoffset = game.vector( e.lightdrawable:getWidth() / 2, e.lightdrawable:getHeight() / 2 )
     -- ONLY SCALE WIDTH, so we can have some light shafts and shit.
     e.lightscale = game.vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getWidth() )
@@ -51,7 +51,7 @@ local init = function( e )
 
     -- Set the flicker time to a random value, this way if we create
     -- a ton of lights at once they'll flicker at different times
-    e.lighttime = e.lighttime or ( math.random() * table.getn( e.lightflickermap ) )
+    e.lighttime = e.lighttime or ( love.math.random() * table.getn( e.lightflickermap ) )
     game.renderer:addLight( e )
 end
 

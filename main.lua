@@ -90,6 +90,7 @@ gamestates.listenserver = require( "game/states/listenserver" )
 gamestates.client = require( "game/states/client" )
 
 function love.load()
+    love.math.setRandomSeed( love.timer.getTime() )
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )
     game.renderer:load()
     game.bindsystem:load()

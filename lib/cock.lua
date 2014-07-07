@@ -149,7 +149,7 @@ local lg_getWidth = love.graphics.getWidth
 local lg_getHeight = love.graphics.getHeight
 local table_insert = table.insert
 local table_remove = table.remove
-local mabs, mmin, mmax, mrand = math.abs, math.min, math.max, math.random
+local mabs, mmin, mmax, mrand = math.abs, math.min, math.max, love.math.random
 
 local l_keypressed, l_keyreleased = 0, 0
 local l_mousepressed, l_mousereleased = 0, 0

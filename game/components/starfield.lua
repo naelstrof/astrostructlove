@@ -9,22 +9,22 @@ local respawnStar = function( e, i, offscreen, xaxis, maxwidth )
         e.stars[i] = game.entity:new( "star" )
     end
     -- god the math for this is retarded because lua tables start at 1...
-    e.stars[i]:setDrawable( e.starImages[ math.floor( math.random()*(table.maxn( e.starImages )-1) + 0.5 ) + 1 ] )
+    e.stars[i]:setDrawable( e.starImages[ math.floor( love.math.random()*(table.maxn( e.starImages )-1) + 0.5 ) + 1 ] )
     e.stars[i]:setLayer( 1 )
 
     local w,h = love.graphics.getDimensions()
     -- Space layer isn't affected by camera, as such it doesn't need to take camera into account.
     if not offscreen then
-        e.stars[i]:setPos( game.vector( w * math.random(), h * math.random() ) )
+        e.stars[i]:setPos( game.vector( w * love.math.random(), h * love.math.random() ) )
     else
         -- Place it off-screen in the way of our velocity
         if xaxis then
-            e.stars[i]:setPos( game.vector( math.abs( e.stars[i]:getPos().x - ( e.width + maxwidth ) ), e.height * math.random() ) )
+            e.stars[i]:setPos( game.vector( math.abs( e.stars[i]:getPos().x - ( e.width + maxwidth ) ), e.height * love.math.random() ) )
         else
-            e.stars[i]:setPos( game.vector( e.width * math.random(), math.abs( e.stars[i]:getPos().y - ( e.height + maxwidth ) ) ) )
+            e.stars[i]:setPos( game.vector( e.width * love.math.random(), math.abs( e.stars[i]:getPos().y - ( e.height + maxwidth ) ) ) )
         end
     end
-    local s = e.size + math.random() * e.sizeDeviation - math.random() * e.sizeDeviation
+    local s = e.size + love.math.random() * e.sizeDeviation - love.math.random() * e.sizeDeviation
     e.stars[i]:setScale( game.vector( s, s ) )
 end
 

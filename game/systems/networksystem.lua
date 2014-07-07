@@ -21,7 +21,9 @@ function Network:addPlayer( id, ent )
     player.id = id
     player.ent = ent
     player.snapshots = {}
+    player.newsnapshots = {}
     player.tick = 0
+    player.newtick = 0
     self.players[ id ] = player
     if self.server ~= nil then
         -- When a player connects, we immediately send over
@@ -42,6 +44,8 @@ function Network:removePlayer( id )
 end
 
 function Network:updateClient( id, controls, tick )
+    --self.players[ id ].newsnapshots[ tick ] = controls
+    --self.players[ id ].newtick = tick
     self.players[ id ].snapshots[ tick ] = controls
     self.players[ id ].tick = tick
 end
@@ -67,6 +71,24 @@ function Network:stop()
     self.tick = 0
 end
 
+function Network:mergeControls()
+    for i,v in pairs( self.players ) do
+        for o,w in pairs( v.newsnapshots ) do
+            v.snapshots[ o ] = w
+        end
+        v.tick = v.newtick
+        v.newsnapshots = {}
+    end
+    -- Here we also purge unneeded snapshots
+    for i,v in pairs( self.players ) do
+        for o,w in pairs( v.snapshots ) do
+            if o < self.backtick + 1 then
+                v[o] = nil
+            end
+        end
+    end
+end
+
 -- We send out updates at the current updaterate
 function Network:update( dt )
     self.currenttime = self.currenttime + dt*1000
@@ -74,19 +96,23 @@ function Network:update( dt )
         -- We find which player is furthest behind
         local minplayer = nil
         for i,v in pairs( self.players ) do
-            if minplayer == nil or v.tick < minplayer.tick then
+            if minplayer == nil or v.newtick < minplayer.newtick then
                 minplayer = v
             end
         end
         -- Then we go back in time and resimulate everything from where
         -- we last recieved an input from that player
-        if minplayer.tick ~= self.tick and minplayer.tick ~= nil then
-            self:resimulate( minplayer.tick )
-        end
-
-        if love.mouse.isDown( "l" ) then
-            self:resimulate( self.tick - 10 )
-        end
+        --if minplayer.newtick ~= self.tick and minplayer.newtick ~= nil then
+            --self:unsimulate( minplayer.newtick )
+            -- Merging the controls simply updates the player controls
+            -- with what we recieved.
+            -- We have to do that here so that we can accurately go back
+            -- in time is all.
+            --self:mergeControls()
+            --self:simulate( minplayer.newtick )
+        --else
+            --self:mergeControls()
+        --end
 
         -- May have to skip a few snapshots to catch up
         while self.currenttime > self.updaterate do
@@ -113,6 +139,9 @@ function Network:update( dt )
 end
 
 function Network:unsimulate( snapshot )
+    if snapshot < self.backtick + 1 then
+        snapshot = self.backtick + 1
+    end
     -- Go back backward in time
     for i = self.tick, snapshot + 1, -1 do
         -- Gets the difference between the two snapshots
@@ -129,6 +158,9 @@ function Network:unsimulate( snapshot )
 end
 
 function Network:simulate( snapshot )
+    if snapshot < self.backtick + 1 then
+        snapshot = self.backtick + 1
+    end
     local saveshot = self.snapshots[ snapshot ]
     for i = snapshot, self.tick - 1, 1 do
         -- Gets the difference between the two snapshots

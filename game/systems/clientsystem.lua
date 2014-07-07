@@ -7,8 +7,11 @@ local Client = {
     lastshot = nil,
     prevshot = nil,
     nextshot = nil,
-    id = 0,
-    delay = 100/1000,
+    id = nil,
+    player = nil,
+    playerpos = game.vector(0,0),
+    predictionfixspeed = 8,
+    delay = 50/1000,
     client = nil,
     snapshots = {}
 }
@@ -42,10 +45,13 @@ function Client:start( snapshot, client )
     for i,v in pairs( self.prevshot.added ) do
         if v.playerid == self.id then
             v.active = true
-        elseif v.playerid or v.active then
+        elseif v.active then
             v.active = false
         end
         local ent = game.entity( v.__name, v )
+        if v.playerid == self.id then
+            self.player = ent
+        end
         for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
             local val = v[w]
             -- Call the coorisponding function to set the
@@ -68,6 +74,13 @@ end
 function Client:update( dt )
     if not self.running then
         return
+    end
+    -- Use a light spring to fix prediction errors
+    if self.player ~= nil and self.playerpos ~= nil then
+        local diff = self.playerpos - self.player:getPos()
+        diff:normalize_inplace()
+        local dist = self.player:getPos():dist( self.playerpos )
+        self.player:setPos( self.player:getPos() + diff * dist * dt * self.predictionfixspeed )
     end
     self.time = self.time + dt
     -- We shouldn't do anything as long as we're too far in the
@@ -109,6 +122,11 @@ function Client:update( dt )
         self.tick = self.nextshot.tick
         self.lastshot = self.prevshot
         self.prevshot = self.nextshot
+        --local time = self.prevshot.time - self.lastshot.time
+        --while time > 0 do
+            --game.entities:update( 15/1000 )
+            --time = time - 15/1000
+        --end
         self.nextshot = nil
         -- This is where we delete everything it asks
         for i,v in pairs( self.prevshot.removed ) do
@@ -124,10 +142,13 @@ function Client:update( dt )
         for i,v in pairs( self.prevshot.added ) do
             if v.playerid == self.id then
                 v.active = true
-            elseif v.playerid or v.active then
+            elseif v.active then
                 v.active = false
             end
             local ent = game.entity( v.__name, v )
+            if v.playerid == self.id then
+                self.player = ent
+            end
             for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
                 local val = v[w]
                 -- Call the coorisponding function to set the
@@ -147,16 +168,14 @@ function Client.interpolate( prevshot, nextshot, x )
     for i,v in pairs( game.demosystem.entities ) do
         local pent = prevshot.entities[ v.demoIndex ]
         local fent = nextshot.entities[ v.demoIndex ]
-        -- We do NOT extrapolate/interpolate our player, it's simulated
-        -- I mean unless we're off by too much
-        --if x > 1 and v.playerid == game.client.id and fent ~= nil and fent.pos ~= nil then
-            --pent = v
-            --local p = game.vector( fent.pos.x, fent.pos.y )
-            --if v:getPos():dist( p ) < 64 then
-                --pent = nil
-                --fent = nil
-            --end
-        --end
+        -- We do NOT extrapolate/interpolate our player
+        -- Since it's so important to have it be responsive
+        -- as well as smooth, we use a light spring instead to fix
+        -- prediction errors
+        if x > 1 and v.playerid == game.client.id and fent ~= nil and fent.pos ~= nil then
+            game.client.playerpos = game.vector( fent.pos.x, fent.pos.y )
+            return
+        end
         -- Since everything is delta-compressed, only a nil future entity
         -- would indicate that the entity didn't change.
         -- So we're going to have to fill in the past entity snapshot

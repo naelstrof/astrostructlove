@@ -26,7 +26,6 @@ function ListenServer.onConnect( id )
 end
 
 function ListenServer.onReceive( data, id )
-    print( "Recieved data " .. data .. " from " .. id )
     local t = Tserial.unpack( data )
     game.network:updateClient( id, t.control, t.tick )
 end
@@ -47,11 +46,11 @@ end
 
 function ListenServer:update( dt )
     game.bindsystem:update( dt )
-    game.network:updateClient( 0, control.current, game.network:getTick() )
-    game.entities:update( dt, game.network:getTick() )
+    game.network:updateClient( 0, table.copy( control.current ), game.network:getTick() )
+    -- game.entities:update( dt, game.network:getTick() )
     game.demosystem:update( dt )
-    game.renderer:update( dt )
     game.network:update( dt )
+    game.renderer:update( dt )
     self.server:update( dt )
 end
 

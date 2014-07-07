@@ -13,7 +13,7 @@ function Client:enter()
 end
 
 function Client.onReceive( data )
-    print( "Recieved data " .. type( data ) .. " " .. data )
+    print( data )
     local t = Tserial.unpack( data )
     if t.map then
         game.mapsystem:load( t.map )
@@ -39,9 +39,9 @@ end
 
 function Client:update( dt )
     game.bindsystem:update( dt )
+    game.entities:update( dt )
     self.client:update( dt )
     game.client:update( dt )
-    game.entities:update( dt )
     game.demosystem:update( dt )
     game.renderer:update( dt )
 end

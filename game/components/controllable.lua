@@ -22,21 +22,24 @@ local update = function( e, dt, tick )
         local rotdir = rotr - rotl
 
     -- TODO: Gamepad controls
-        e:setRotVel( e:getRotVel() + rotdir * e:getRotSpeed() * dt )
+        --e:setRotVel( e:getRotVel() + rotdir * e:getRotSpeed() * dt )
 
-        e:setVel( e:getVel() + direction:rotated( e:getRot() ) * e:getSpeed() * dt )
+        --e:setVel( e:getVel() + direction:rotated( e:getRot() ) * e:getSpeed() * dt )
+        e:setRotVel( rotdir * e:getRotSpeed() )
+
+        e:setVel( direction:rotated( e:getRot() ) * e:getSpeed() )
     end
     e:setPos( e:getPos() + e:getVel() * dt )
     e:setRot( e:getRot() + e:getRotVel() * dt )
 
     -- TODO: Ground-specific friction
-    e:setVel( e:getVel() * math.pow( e.friction, dt ) )
-    e:setRotVel( e:getRotVel() * math.pow( e.rotfriction, dt ) )
+    --e:setVel( e:getVel() * math.pow( e.friction, dt ) )
+    --e:setRotVel( e:getRotVel() * math.pow( e.rotfriction, dt ) )
 
     -- FIXME: Need proper friction calculations
-    if e:getVel():len() < 1 then
-        e:setVel( game.vector( 0, 0 ) )
-    end
+    --if e:getVel():len() < 1 then
+        --e:setVel( game.vector( 0, 0 ) )
+    --end
 end
 
 local setSpeed = function( e, speed )
@@ -81,8 +84,8 @@ end
 
 local Controllable = {
     __name = "Controllable",
-    speed = 2048,
-    rotspeed = math.pi*3,
+    speed = 256,
+    rotspeed = math.pi,
     velocity = { x = 0, y = 0 },
     rotvelocity = 0,
     init = init,

@@ -84,13 +84,13 @@ end
 
 local Controllable = {
     __name = "Controllable",
-    speed = 256,
-    rotspeed = math.pi,
+    speed = 512,
+    rotspeed = math.pi*1,
     velocity = { x = 0, y = 0 },
     rotvelocity = 0,
     init = init,
-    friction = 0.01,
-    rotfriction = 0.01,
+    friction = 0.02,
+    rotfriction = 0.02,
     playerid = 0,
     --init = init,
     --deinit = deinit,

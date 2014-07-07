@@ -84,6 +84,10 @@ function Network:update( dt )
             self:resimulate( minplayer.tick )
         end
 
+        if love.mouse.isDown( "l" ) then
+            self:resimulate( self.tick - 10 )
+        end
+
         -- May have to skip a few snapshots to catch up
         while self.currenttime > self.updaterate do
             self.currenttime = self.currenttime - self.updaterate
@@ -108,47 +112,49 @@ function Network:update( dt )
     end
 end
 
-function Network:resimulate( snapshot )
-    -- We won't resimulate anything that's out of our memory range
-    if snapshot <= self.backtick then
-        return
-    end
-    -- Unfortunately we have to completely rebuild the world in order to
-    -- resimulate the past
-    game.entities:removeAll()
-    for i,v in pairs( self.snapshots[ snapshot ].entities ) do
-        game.entity:new( v.__name, v )
-    end
-    local curtick = snapshot
-    local saveshot = table.copy( self.snapshots[ curtick ] )
-    -- Go back forward in time, with the new player inputs.
-    while curtick < self.tick do
+function Network:unsimulate( snapshot )
+    -- Go back backward in time
+    for i = self.tick, snapshot + 1, -1 do
         -- Gets the difference between the two snapshots
         -- if a is nil it returns a full snapshot to be used
         -- to recreate the world.
-        local diffshot = game.demosystem:getDiff( saveshot, self.snapshots[ curtick + 1 ] )
-        -- This is where we delete everything it asks in the timeline
-        for i,v in pairs( diffshot.removed ) do
-            --print( "Removed ent", v )
-            -- Given the unique ID's, we should never
-            -- have problems from directly removing
-            -- entities like this.
-            if game.demosystem.entities[ v ] ~= nil then
-                game.demosystem.entities[ v ]:remove()
-            end
+        local diffshot = game.demosystem:getCheapDiff( self.snapshots[ i ], self.snapshots[ i - 1 ] )
+        game.demosystem:applyDiff( diffshot )
+        local time = self.snapshots[ i - 1 ].time - self.snapshots[i].time
+        while time < 0 do
+            game.entities:update( -self.updaterate/1000, i-1 )
+            time = time + self.updaterate/1000
         end
-        -- This is where we add everything it asks in the timeline
-        for i,v in pairs( diffshot.added ) do
-            local ent = game.entity( v.__name, v )
+    end
+end
+
+function Network:simulate( snapshot )
+    local saveshot = self.snapshots[ snapshot ]
+    for i = snapshot, self.tick - 1, 1 do
+        -- Gets the difference between the two snapshots
+        -- if a is nil it returns a full snapshot to be used
+        -- to recreate the world.
+        local diffshot = game.demosystem:getCheapDiff( saveshot, self.snapshots[ i + 1 ] )
+        game.demosystem:applyDiff( diffshot )
+        local time = self.snapshots[ i + 1 ].time - saveshot.time
+        while time > 0 do
+            game.entities:update( self.updaterate/1000, i )
+            time = time - self.updaterate/1000
         end
-        game.entities:update( self.updaterate/1000, curtick )
         -- After we've updated, re-write the new snapshot over the old one
         -- but keep the old one to remember if we created/removed anything
         -- for the next frame
-        saveshot = table.copy( self.snapshots[ curtick ] )
-        curtick = curtick + 1
-        self.snapshots[ curtick ] = game.demosystem:generateSnapshot( curtick, self.snapshots[ curtick ].time )
+        saveshot = self.snapshots[ i + 1 ]
+        self.snapshots[ i + 1 ] = game.demosystem:generateSnapshot( i + 1, self.snapshots[ i + 1 ].time )
     end
+end
+
+function Network:resimulate( snapshot )
+    if snapshot < self.backtick + 1 then
+        return
+    end
+    self:unsimulate( snapshot )
+    self:simulate( snapshot )
 end
 
 function Network:getControls( id, tick )

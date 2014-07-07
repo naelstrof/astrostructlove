@@ -8,7 +8,7 @@ local Client = {
     prevshot = nil,
     nextshot = nil,
     id = 0,
-    delay = 30/1000,
+    delay = 100/1000,
     client = nil,
     snapshots = {}
 }
@@ -18,8 +18,8 @@ function Client:setID( id )
 end
 
 function Client:start( snapshot, client )
-    -- Just like source multiplayer, we render 30 miliseconds in the past
-    self.time = snapshot.time - self.delay
+    -- Just like source multiplayer, we render 100 miliseconds in the past
+    self.time = snapshot.time
     --self.time = snapshot.time - 1
     self.client = client
     self.tick = snapshot.tick
@@ -147,11 +147,16 @@ function Client.interpolate( prevshot, nextshot, x )
     for i,v in pairs( game.demosystem.entities ) do
         local pent = prevshot.entities[ v.demoIndex ]
         local fent = nextshot.entities[ v.demoIndex ]
-        -- We do NOT extrapolate our player, it's simulated
-        if x > 1 and v.playerid == game.client.id then
-            pent = nil
-            fent = nil
-        end
+        -- We do NOT extrapolate/interpolate our player, it's simulated
+        -- I mean unless we're off by too much
+        --if x > 1 and v.playerid == game.client.id and fent ~= nil and fent.pos ~= nil then
+            --pent = v
+            --local p = game.vector( fent.pos.x, fent.pos.y )
+            --if v:getPos():dist( p ) < 64 then
+                --pent = nil
+                --fent = nil
+            --end
+        --end
         -- Since everything is delta-compressed, only a nil future entity
         -- would indicate that the entity didn't change.
         -- So we're going to have to fill in the past entity snapshot

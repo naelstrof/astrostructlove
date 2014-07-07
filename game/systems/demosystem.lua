@@ -21,6 +21,23 @@ function DemoSystem:compare( a, b )
     end
 end
 
+function DemoSystem:applyDiff( diff )
+    -- This is where we delete everything it asks in the diff
+    for i,v in pairs( diff.removed ) do
+        -- Given the unique ID's, we should never
+        -- have problems from directly removing
+        -- entities like this.
+        if game.demosystem.entities[ v ] ~= nil then
+            game.demosystem.entities[ v ]:remove()
+        end
+    end
+    -- This is where we add everything it asks in the diff
+    for i,v in pairs( diff.added ) do
+        local ent = game.entity( v.__name, v )
+    end
+    -- Entities interpolation and such should be handled elsewhere
+end
+
 function DemoSystem:deltanetcopy( a, b )
     local changed = false
     local netcopy = {}
@@ -183,6 +200,30 @@ function DemoSystem:getDiff( a, b )
             table.insert( diffsnapshot["added"], v )
         else
             diffsnapshot["entities"][ v.demoIndex ] = self:deltanetcopy( a.entities[ i ], v )
+        end
+    end
+    return diffsnapshot
+end
+
+-- Creates a delta snapshot that only detects additions/removals of entities
+function DemoSystem:getCheapDiff( a, b )
+    if a == nil then
+        return self:getFull( b )
+    end
+    local diffsnapshot = {}
+    diffsnapshot["time"] = b.time
+    diffsnapshot["tick"] = b.tick
+    diffsnapshot["removed"] = {}
+    diffsnapshot["added"] = {}
+    diffsnapshot["entities"] = {}
+    for i,v in pairs( a.entities ) do
+        if b.entities[ i ] == nil then
+            table.insert( diffsnapshot["removed"], v.demoIndex )
+        end
+    end
+    for i,v in pairs( b.entities ) do
+        if a.entities[ i ] == nil then
+            table.insert( diffsnapshot["added"], v )
         end
     end
     return diffsnapshot

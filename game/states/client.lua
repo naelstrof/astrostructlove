@@ -43,7 +43,6 @@ function Client:update( dt )
     self.client:update( dt )
     game.client:update( dt )
     game.demosystem:update( dt )
-    game.renderer:update( dt )
 end
 
 function Client:mousepressed( x, y, button )

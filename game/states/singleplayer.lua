@@ -17,7 +17,6 @@ function Singleplayer:update( dt )
     game.bindsystem:update( dt )
     game.entities:update( dt )
     game.demosystem:update( dt )
-    game.renderer:update( dt )
 end
 
 function Singleplayer:mousepressed( x, y, button )

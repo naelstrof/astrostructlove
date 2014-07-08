@@ -66,7 +66,6 @@ function MapEditor:update( dt )
         self.currenttool:update( dt, mousepos.x, mousepos.y )
     end
     game.entities:update( dt )
-    game.renderer:update( dt )
     game.demosystem:update( dt )
     loveframes.update( dt )
 end

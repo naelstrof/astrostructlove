@@ -20,6 +20,7 @@ local updateShadowVolumes = function( e )
 end
 
 local update = function( e, dt )
+    e:updateShadowVolumes()
     if type( e.lightflickermap ) ~= "table" then
         error( "Please use setFlickerMap() to set flicker maps!" )
     end
@@ -125,6 +126,9 @@ local EmitsLight = {
     updateShadowVolumes = updateShadowVolumes,
     update = update,
     init = init,
+    setPos = setPos,
+    setRot = setRot,
+    setRadius = setRadius,
     deinit = deinit
 }
 

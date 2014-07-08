@@ -99,13 +99,6 @@ function Renderer:resize( w, h )
     self.worldcanvas = love.graphics.newCanvas( w, h )
 end
 
-function Renderer:update( dt )
-    for i,v in pairs( self.lights ) do
-        v:updateShadowVolumes()
-        v:update( dt )
-    end
-end
-
 function Renderer:draw( debug )
     debug = debug or false
     -- Draw world to world canvas

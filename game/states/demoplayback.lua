@@ -29,7 +29,6 @@ function Playback:update( dt )
     -- move anything in the demo
     game.entities:update( dt )
     game.demosystem:update( dt )
-    game.renderer:update( dt )
     loveframes.update( dt )
 end
 

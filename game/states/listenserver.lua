@@ -50,7 +50,6 @@ function ListenServer:update( dt )
     -- game.entities:update( dt, game.network:getTick() )
     game.demosystem:update( dt )
     game.network:update( dt )
-    game.renderer:update( dt )
     self.server:update( dt )
 end
 

@@ -42,6 +42,7 @@ local update = function( e, dt )
 end
 
 local init = function( e )
+    e.lightintensity = e.baselightintensity
     e.lightrot = e.lightrot or love.math.random()*math.pi*2
     e.lightoriginoffset = game.vector( e.lightdrawable:getWidth() / 2, e.lightdrawable:getHeight() / 2 )
     -- ONLY SCALE WIDTH, so we can have some light shafts and shit.

@@ -118,6 +118,7 @@ function Network:update( dt )
         while self.currenttime > self.updaterate do
             self.currenttime = self.currenttime - self.updaterate
             self.totaltime = self.totaltime + self.updaterate/1000
+            game.physics:update( self.updaterate/1000 )
             game.entities:update( self.updaterate/1000, self.tick )
         end
         self.tick = self.tick + 1

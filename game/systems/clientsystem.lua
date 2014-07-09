@@ -10,6 +10,7 @@ local Client = {
     id = nil,
     player = nil,
     playerpos = game.vector(0,0),
+    playerrot = 0,
     predictionfixspeed = 8,
     delay = 50/1000,
     client = nil,
@@ -36,7 +37,7 @@ function Client:start( snapshot, client )
     -- Find our player
     for i,v in pairs( game.demosystem.entities ) do
         if v.playerid == self.id then
-            self.player = ent
+            self.player = v
             v:setActive( true )
         elseif v.playerid then
             v:setActive( false )
@@ -62,6 +63,10 @@ function Client:update( dt )
         diff:normalize_inplace()
         local dist = self.player:getPos():dist( self.playerpos )
         self.player:setPos( self.player:getPos() + diff * dist * dt * self.predictionfixspeed )
+    end
+    if self.player ~= nil and self.playerrot ~= nil then
+        local diff = self.playerrot - self.player:getRot()
+        self.player:setRot( self.player:getRot() + diff * dt * self.predictionfixspeed )
     end
     self.time = self.time + dt
     -- We shouldn't do anything as long as we're too far in the
@@ -109,7 +114,7 @@ function Client:update( dt )
         -- Find our player
         for i,v in pairs( game.demosystem.entities ) do
             if v.playerid == self.id then
-                self.player = ent
+                self.player = v
                 v:setActive( true )
             elseif v.playerid then
                 v:setActive( false )
@@ -131,6 +136,9 @@ function Client.interpolate( prevshot, nextshot, x )
         -- prediction errors
         if x > 1 and v.playerid == game.client.id and fent ~= nil and fent.pos ~= nil then
             game.client.playerpos = game.vector( fent.pos.x, fent.pos.y )
+            if fent.rot then
+                game.client.playerrot = fent.rot
+            end
             return
         end
         -- Since everything is delta-compressed, only a nil future entity

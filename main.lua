@@ -58,6 +58,9 @@ compo.blockslight = require( "game/components/blockslight" )
 compo.starfield = require( "game/components/starfield" )
 compo.emitslight = require( "game/components/emitslight" )
 compo.networked = require( "game/components/networked" )
+compo.physical = require( "game/components/physical" )
+compo.intangible = require( "game/components/intangible" )
+compo.floor = require( "game/components/floor" )
 compo.default = require( "game/components/default" )
 --
 
@@ -72,6 +75,7 @@ game.mapsystem = require( "game/systems/mapsystem" )
 game.bindsystem = require( "game/systems/bindsystem" )
 game.network = require( "game/systems/networksystem" )
 game.client = require( "game/systems/clientsystem" )
+game.physics = require( "game/systems/physics" )
 --
 
 -- Current Gamemode
@@ -92,6 +96,7 @@ gamestates.client = require( "game/states/client" )
 function love.load()
     love.math.setRandomSeed( love.timer.getTime() )
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )
+    game.physics:load()
     game.renderer:load()
     game.bindsystem:load()
     game.gamestate.registerEvents()

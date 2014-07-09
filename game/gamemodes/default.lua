@@ -9,13 +9,13 @@ Default.map = "default"
 Default.entities = {
     metalfloor = {
         __name="metalfloor",
-        components={ compo.drawable, compo.networked, compo.default },
+        components={ compo.drawable, compo.floor, compo.networked, compo.default },
         image="data/textures/metalfloor.png",
         attributes={ drawable=love.graphics.newImage( "data/textures/metalfloor.png" ) }
     },
     metalwall = {
         __name="metalwall",
-        components={ compo.drawable, compo.blockslight, compo.networked, compo.default },
+        components={ compo.drawable, compo.blockslight, compo.physical, compo.networked, compo.default },
         image="data/textures/metalwall.png",
         attributes={ drawable=love.graphics.newImage( "data/textures/metalwall.png" ), layer=3 }
     },
@@ -54,7 +54,7 @@ Default.entities = {
     },
     ghost = {
         __name="ghost",
-        components={ compo.camera, compo.controllable, compo.networked, compo.default },
+        components={ compo.camera, compo.intangible, compo.controllable, compo.networked, compo.default },
         image="data/textures/logic.png",
         attributes={}
     },
@@ -66,9 +66,14 @@ Default.entities = {
     },
     player = {
         __name="player",
-        components={ compo.drawable, compo.camera, compo.controllable, compo.networked, compo.default },
+        components={ compo.drawable, compo.camera, compo.physical, compo.controllable, compo.networked, compo.default },
         image="data/textures/human.png",
-        attributes={ drawable=love.graphics.newImage( "data/textures/human.png" ), layer=3 }
+        attributes={
+            drawable=love.graphics.newImage( "data/textures/human.png" ),
+            layer=3,
+            shape=love.physics.newCircleShape( 10 ),
+            static=false
+        }
     }
 }
 
@@ -113,7 +118,7 @@ function Default:spawnPlayer( id )
     if table.getn( ents ) <= 0 then
         player:setPos( game.vector( 0, 0 ) )
     else
-        local rand = 1+( math.floor( 0.5 + love.math.random() * ( table.getn( ents ) ) ) )
+        local rand = 1+( math.floor( love.math.random() * ( table.getn( ents ) ) ) )
         player:setPos( ents[ rand ]:getPos() )
     end
 

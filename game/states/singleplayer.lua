@@ -15,6 +15,7 @@ end
 
 function Singleplayer:update( dt )
     game.bindsystem:update( dt )
+    game.physics:update( dt )
     game.entities:update( dt )
     game.demosystem:update( dt )
 end

@@ -21,27 +21,37 @@ local update = function( e, dt, tick )
         end
         local rotdir = rotr - rotl
 
-    -- TODO: Gamepad controls
-        e:setRotVel( e:getRotVel() + rotdir * e:getRotSpeed() * dt )
+        -- position
+        local force = direction:rotated( e:getRot() ) * e:getSpeed()
+        e.body:applyForce( force.x, force.y )
+        -- rotation
+        e.body:applyForce( rotdir * e:getRotSpeed(), 0, e.pos.x, e.pos.y-32 )
 
-        e:setVel( e:getVel() + direction:rotated( e:getRot() ) * e:getSpeed() * dt )
-        --e:setRotVel( rotdir * e:getRotSpeed() )
-
-        --e:setVel( direction:rotated( e:getRot() ) * e:getSpeed() )
-    end
-    e:setPos( e:getPos() + e:getVel() * dt )
-    e:setRot( e:getRot() + e:getRotVel() * dt )
-
-    -- TODO: Ground-specific friction
-    e:setVel( e:getVel() * math.pow( e.friction, dt ) )
-    e:setRotVel( e:getRotVel() * math.pow( e.rotfriction, dt ) )
-
-    -- FIXME: Need proper friction calculations
-    if e:getVel():len() < 1 then
-        e:setVel( game.vector( 0, 0 ) )
-    end
-    if math.abs( e:getRotVel() ) < 0.001 then
-        e:setRotVel( 0 )
+        -- position friction
+        local moveangle = game.vector( e.body:getLinearVelocity() ):normalized()
+        local normal = e.body:getMass() * game.physics.gravity
+        local ents = game.entities:getNearby( e:getPos(), 24 )
+        local frictioncoefficient
+        -- We want to keep ghosts from flying off into space
+        if e:hasComponent( compo.intangible ) then
+            frictioncoefficient = 0.5
+            -- FIXME: By making compo.intangible be less dumb
+            normal = 90
+        else
+            frictioncoefficient = 0
+        end
+        -- FIXME: Maybe average the friction coefficients?
+        for i,v in pairs( ents ) do
+            if v:hasComponent( compo.floor ) then
+                frictioncoefficient = v.frictioncoefficient
+                break
+            end
+        end
+        local frictionforce = ( -moveangle * normal * frictioncoefficient )
+        e.body:applyForce( frictionforce.x, frictionforce.y )
+        -- rotation friction
+        e.body:applyForce( -e.body:getAngularVelocity() * (normal/32) * frictioncoefficient, 0, e.pos.x, e.pos.y-32 )
+        --e.body:setAngularDamping( 5 )
     end
 end
 
@@ -53,14 +63,6 @@ local getSpeed = function( e )
     return e.speed
 end
 
-local setVel = function( e, velocity )
-    e.velocity = velocity
-end
-
-local getVel = function( e )
-    return e.velocity
-end
-
 local setRotSpeed = function( e, rotspeed )
     e.rotspeed = rotspeed
 end
@@ -69,16 +71,8 @@ local getRotSpeed = function( e )
     return e.rotspeed
 end
 
-local setRotVel = function( e, rotvelocity )
-    e.rotvelocity = rotvelocity
-end
-
 local setActive = function( e, active )
     e.active = active
-end
-
-local getRotVel = function( e )
-    return e.rotvelocity
 end
 
 local init = function( e )
@@ -86,11 +80,16 @@ local init = function( e )
     -- plain table. To fix this we just convert it back to a vector
     -- whenever we initialize.
     e.velocity = game.vector( e.velocity.x, e.velocity.y )
+    -- If we don't have the required components we disable ourselves
+    if not e:hasComponent( compo.physical ) and not e:hasComponent( compo.intangible ) then
+        e.update = nil
+        return
+    end
 end
 
 local Controllable = {
     __name = "Controllable",
-    speed = 1024,
+    speed = 256,
     rotspeed = math.pi*2,
     velocity = game.vector( 0, 0 ),
     rotvelocity = 0,

@@ -2,6 +2,7 @@
 
 local Network = {
     server = nil,
+    port = 27020,
     running = false,
     updaterate = 15,
     currenttime = 0,
@@ -13,23 +14,79 @@ local Network = {
     lastsent = nil,
     maxsize = 100,
     snapshots = {},
+    chat = {},
+    playerschanged = false,
+    playercount = 0,
     players = {}
 }
 
+function Network:startLobby( port )
+    self.port = self.port or port
+    self.server = lube.udpServer()
+    self.server:init()
+    self.server.callbacks = { recv = self.onLobbyReceive, connect = self.onLobbyConnect, disconnect = self.onLobbyDisconnect }
+    self.server.handshake = game.version
+    self.server:listen( self.port )
+    print( "Created Listen Lobby on port " .. self.port )
+end
+
+function Network:startGame()
+    if not self.server then
+        error( "Network needs startLobby() called before startGame()!" )
+    end
+    self.server.callbacks = { recv = self.onGameReceive, connect = self.onGameConnect, disconnect = self.onGameDisconnect }
+    self.running = true
+    self.totaltime = 0
+    self.currenttime = 0
+    self.tick = 0
+    self.backtick = 0
+    -- Hold exactly 2 seconds worth of gamestates in memory
+    self.maxsize = 2000/self.updaterate
+    game.mapsystem:load( game.gamemode.map )
+    -- Tick 0 is always just the plain map
+    self.snapshots[ self.tick ] = game.demosystem:generateSnapshot( self.tick, self.totaltime )
+    for i,v in pairs( self.players ) do
+        v.ent = game.gamemode.spawnPlayer( v.id )
+        if v.id == 0 then
+            v.ent.playerid = 0
+            v.ent:setActive( true )
+        else
+            v.ent.playerid = v.id
+            v.ent:setActive( false )
+        end
+    end
+    -- Tick 1 is after all the players spawned
+    self.tick = self.tick + 1
+    self.snapshots[ self.tick ] = game.demosystem:generateSnapshot( self.tick, self.totaltime )
+    self.lastsent = table.copy( self.snapshots[ self.tick ] )
+    for i,v in pairs( self.players ) do
+        if v.id ~= 0 then
+            local t = game.demosystem:getDiff( self.snapshots[ 0 ], self.snapshots[ self.tick ] )
+            t.map = game.gamemode.map
+            t.clientid = v.id
+            self.server:send( Tserial.pack( t ), v.id )
+        end
+    end
+end
+
 function Network:addPlayer( id, ent )
     local player = {}
+    self.playerschanged = true
     player.id = id
     player.ent = ent
     player.snapshots = {}
     player.newsnapshots = {}
     player.tick = 0
     player.newtick = 0
+    self.playercount = self.playercount + 1
+    print( id )
     self.players[ id ] = player
-    if self.server ~= nil then
-        -- When a player connects, we immediately send over
-        -- the mapname and then a diff snapshot from the beginning of the
-        -- game to now, this is usually cheaper than just sending
-        -- over the whole gamestate
+    -- When a player connects, we immediately send over
+    -- the mapname and then a diff snapshot from the beginning of the
+    -- game to now, this is usually cheaper than just sending
+    -- over the whole gamestate
+    -- but only when we're already mid-game.
+    if self.running then
         if id ~= 0 then
             local t = game.demosystem:getDiff( self.snapshots[ 0 ], self.snapshots[ self.tick ] )
             t.map = game.gamemode.map
@@ -50,20 +107,8 @@ function Network:updateClient( id, controls, tick )
     self.players[ id ].tick = tick
 end
 
-function Network:start( server )
-    self.running = true
-    self.server = server
-    self.totaltime = 0
-    self.currenttime = 0
-    self.tick = 0
-    self.backtick = 0
-    -- Hold exactly 2 seconds worth of gamestates in memory
-    self.maxsize = 2000/self.updaterate
-    self.snapshots[ self.tick ] = game.demosystem:generateSnapshot( self.tick, self.totaltime )
-    self.lastsent = table.copy( self.snapshots[ self.tick ] )
-end
-
 function Network:stop()
+    self.server:stop()
     self.server = nil
     self.running = false
     self.totaltime = 0
@@ -91,8 +136,12 @@ end
 
 -- We send out updates at the current updaterate
 function Network:update( dt )
+    if self.server then
+        self.server:update( dt )
+    end
     self.currenttime = self.currenttime + dt*1000
     if self.currenttime > self.updaterate then
+
         -- We find which player is furthest behind
         local minplayer = nil
         for i,v in pairs( self.players ) do
@@ -127,7 +176,23 @@ function Network:update( dt )
 
         -- Now that we have an updated game world, we send over diff
         -- updates based on our previous save of the game world.
-        self.server:send( Tserial.pack( game.demosystem:getDiff( self.lastsent, self.snapshots[ self.tick ] ) ) )
+        local t = game.demosystem:getDiff( self.lastsent, self.snapshots[ self.tick ] )
+        -- If our connected players changed, send over all their information
+        if self.playerschanged then
+            t.players = {}
+            for i,v in pairs( self.players ) do
+                local p = {}
+                for o,w in pairs( v ) do
+                    -- Copy pretty much everything except these things.
+                    if o ~= "snapshots" and o ~= "ent" and o ~= "snapshots" and o ~= "newsnapshots" and o ~= "tick" and o ~= "newtick" and o ~= "__index" then
+                        p[o] = w
+                    end
+                end
+                table.insert( t.players, p )
+            end
+            self.playerschanged = false
+        end
+        self.server:send( Tserial.pack( t ) )
         self.lastsent = table.copy( self.snapshots[ self.tick ] )
     end
     -- Remove ticks that are too far into the past
@@ -217,6 +282,41 @@ function Network:getControls( id, tick )
         return self.players[ id ].snapshots[ last ]
     end
     return controls
+end
+
+function Network.onLobbyConnect( id )
+    print( "Got a connection from " .. id )
+    game.network:addPlayer( id )
+end
+
+function Network.onLobbyReceive( data, id )
+    local t = Tserial.unpack( data )
+    --game.network:updateClient( id, t.control, t.tick )
+    if t.name then
+        self.players[ id ] = t.name
+    end
+end
+
+function Network.onLobbyDisconnect( id )
+    print( id .. " disconnected..." )
+    game.network:removePlayer( id )
+end
+
+function Network.onGameConnect( id )
+    print( "Got a connection from " .. id )
+    local player = game.gamemode:spawnPlayer( id )
+    game.network:addPlayer( id, player )
+end
+
+function Network.onGameReceive( data, id )
+    local t = Tserial.unpack( data )
+    game.network:updateClient( id, t.control, t.tick )
+end
+
+function Network.onGameDisconnect( id )
+    print( id .. " disconnected..." )
+    self.players[ id ].ent:remove()
+    game.network:removePlayer( id )
 end
 
 function Network:getTick()

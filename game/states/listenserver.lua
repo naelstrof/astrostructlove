@@ -5,18 +5,6 @@ local ListenServer = {
 }
 
 function ListenServer:enter()
-    game.mapsystem:load( game.gamemode.map )
-    -- game.renderer:setFullbright( true )
-    -- Set up the server
-    self.server = lube.udpServer()
-    self.server:init()
-    self.server.callbacks = { recv = self.onReceive, connect = self.onConnect, disconnect = self.onDisconnect }
-    self.server.handshake = game.version
-    self.server:listen( self.port )
-    -- Start the server!
-    game.network:start( self.server )
-    -- Spawn ourselves in
-    game.gamemode:spawnPlayer( 0 )
 end
 
 function ListenServer.onConnect( id )
@@ -50,7 +38,6 @@ function ListenServer:update( dt )
     -- game.entities:update( dt, game.network:getTick() )
     game.demosystem:update( dt )
     game.network:update( dt )
-    self.server:update( dt )
 end
 
 function ListenServer:mousepressed( x, y, button )

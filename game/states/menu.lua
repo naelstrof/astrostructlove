@@ -45,7 +45,7 @@ function Menu:enter()
         self:createJoinBox()
     end
     hostlisten.OnClick = function( object, x, y )
-        game.gamestate.switch( gamestates.listenserver )
+        game.gamestate.switch( gamestates.listenlobby )
     end
     playsingle.OnClick = function( object, x, y )
         self:createPlaySingleplayerBox()
@@ -90,7 +90,7 @@ function Menu:createJoinBox()
         local ip, port = text:match("^(.-):(%d+)$")
         gamestates.client.ip = ip
         gamestates.client.port = tonumber( port )
-        game.gamestate.switch( gamestates.client )
+        game.gamestate.switch( gamestates.clientlobby )
     end
 end
 

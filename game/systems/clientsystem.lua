@@ -3,6 +3,7 @@
 local Client = {
     running = false,
     time = 0,
+    players = nil,
     tick = 0,
     lastshot = nil,
     prevshot = nil,
@@ -21,11 +22,23 @@ function Client:setID( id )
     self.id = id
 end
 
-function Client:start( snapshot, client )
+function Client:setPlayers( players )
+    self.players = players
+end
+
+function Client:startLobby( ip, port )
+    self.client = lube.udpClient()
+    self.client:init()
+    self.client.callbacks = { recv = self.onLobbyReceive }
+    self.client.handshake = game.version
+    self.client:connect( ip, port )
+end
+
+function Client:startGame( snapshot )
+    self.client.callbacks = { recv = self.onGameReceive }
     -- Just like source multiplayer, we render 100 miliseconds in the past
     self.time = snapshot.time
     --self.time = snapshot.time - 1
-    self.client = client
     self.tick = snapshot.tick
     self.snapshots[ snapshot.tick ] = snapshot
     self.lastshot = self.snapshots[ snapshot.tick ]
@@ -36,10 +49,10 @@ function Client:start( snapshot, client )
     game.demosystem:applyDiff( self.prevshot )
     -- Find our player
     for i,v in pairs( game.demosystem.entities ) do
-        if v.playerid == self.id then
+        if v.playerid == self.id and v.setActive then
             self.player = v
             v:setActive( true )
-        elseif v.playerid then
+        elseif v.playerid and v.setActive then
             v:setActive( false )
         end
     end
@@ -54,6 +67,9 @@ function Client:stop()
 end
 
 function Client:update( dt )
+    if self.client then
+        self.client:update( dt )
+    end
     if not self.running then
         return
     end
@@ -113,10 +129,10 @@ function Client:update( dt )
         game.demosystem:applyDiff( self.prevshot )
         -- Find our player
         for i,v in pairs( game.demosystem.entities ) do
-            if v.playerid == self.id then
+            if v.playerid == self.id and v.setActive then
                 self.player = v
                 v:setActive( true )
-            elseif v.playerid then
+            elseif v.playerid and v.setActive then
                 v:setActive( false )
             end
         end
@@ -169,5 +185,40 @@ function Client.interpolate( prevshot, nextshot, x )
         end
     end
 end
+
+function Client.onLobbyReceive( data )
+    print( data )
+    local t = Tserial.unpack( data )
+    if t.map then
+        game.mapsystem:load( t.map )
+        game.client:startGame( t )
+        game.gamestate.switch( gamestates.client )
+    end
+    if t.clientid then
+        game.client:setID( t.clientid )
+    end
+    if t.players then
+        game.client:setPlayers( t.players )
+        gamestates.clientlobby:clearPlayers()
+        for i,v in pairs( t.players ) do
+            gamestates.clientlobby:listPlayer( v )
+        end
+    end
+end
+
+function Client.onGameReceive( data )
+    local t = Tserial.unpack( data )
+    if t.map then
+        game.mapsystem:load( t.map )
+    end
+    if t.clientid then
+        game.client:setID( t.clientid )
+    end
+    if t.players then
+        game.client:setPlayers( t.players )
+    end
+    game.client:addSnapshot( t )
+end
+
 
 return Client

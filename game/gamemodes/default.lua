@@ -126,7 +126,6 @@ function Default:spawnPlayer( id )
     if id == 0 then
         player:setActive( true )
     end
-    game.network:addPlayer( id, player )
     return player
 end
 

@@ -50,7 +50,11 @@ end
 
 function ListenLobby:listPlayer( playerdata )
     local text = loveframes.Create( "text", self.playerlist )
-    text:SetText( playerdata.id )
+    if playerdata.name then
+        text:SetText( playerdata.name )
+    else
+        text:SetText( playerdata.id )
+    end
     self.playerlist:AddItem( text )
 end
 

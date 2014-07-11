@@ -32,6 +32,7 @@ function Client:startLobby( ip, port )
     self.client.callbacks = { recv = self.onLobbyReceive }
     self.client.handshake = game.version
     self.client:connect( ip, port )
+    self.client:send( Tserial.pack( { name=game.options.playername } ) )
 end
 
 function Client:startGame( snapshot )

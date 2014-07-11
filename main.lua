@@ -76,6 +76,7 @@ game.bindsystem = require( "game/systems/bindsystem" )
 game.network = require( "game/systems/networksystem" )
 game.client = require( "game/systems/clientsystem" )
 game.physics = require( "game/systems/physics" )
+game.options = require( "game/systems/options" )
 --
 
 -- Current Gamemode
@@ -97,6 +98,7 @@ gamestates.clientlobby = require( "game/states/clientlobby" )
 
 function love.load()
     love.math.setRandomSeed( love.timer.getTime() )
+    game.options:load()
     love.window.setMode( 800, 600, { resizable=true, vsync=true } )
     game.physics:load()
     game.renderer:load()

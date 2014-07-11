@@ -72,6 +72,9 @@ end
 function Network:addPlayer( id, ent )
     local player = {}
     self.playerschanged = true
+    if id == 0 then
+        player.name = game.options.playername
+    end
     player.id = id
     player.ent = ent
     player.snapshots = {}
@@ -293,7 +296,7 @@ function Network.onLobbyReceive( data, id )
     local t = Tserial.unpack( data )
     --game.network:updateClient( id, t.control, t.tick )
     if t.name then
-        self.players[ id ] = t.name
+        game.network.players[ id ].name = t.name
     end
 end
 

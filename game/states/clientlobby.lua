@@ -25,7 +25,7 @@ function Client:enter()
     self.playerlist:SetHeight( 460 )
     self.playerlist:SetWidth( 256 )
     self.playerlist:SetPadding( 4 )
-    self.playerlist:SetSpacing( 4 )
+    self.playerlist:SetSpacing( 16 )
 end
 
 function Client:clearPlayers()
@@ -33,11 +33,19 @@ function Client:clearPlayers()
 end
 
 function Client:listPlayer( playerdata )
-    local text = loveframes.Create( "text", self.playerlist )
+    local text = loveframes.Create( "imagebutton", self.playerlist )
+    playerdata.ping = playerdata.ping or "Unknown"
     if playerdata.name then
-        text:SetText( playerdata.name )
+        text:SetText( playerdata.name .. " Ping: " .. playerdata.ping )
     else
-        text:SetText( playerdata.id )
+        text:SetText( playerdata.name .. " Ping: " .. playerdata.ping )
+    end
+    if playerdata.avatar then
+        local filename = game.downloader.download( playerdata.avatar )
+        text:SetImage( filename )
+        if text:GetImageWidth() > 128 or text:GetImageHeight() > 128 then
+            text:SetImage( nil )
+        end
     end
     self.playerlist:AddItem( text )
 end

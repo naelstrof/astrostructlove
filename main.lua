@@ -46,6 +46,9 @@ game.gamestate = require( "lib/hump/gamestate" )
 game.vector = require( "lib/hump/vector" )
 game.timer = require( "lib/hump/timer" )
 game.camera = require( "lib/hump/camera" )
+game.md5 = require( "lib/md5" )
+game.http = require( "socket.http" )
+game.downloader = require( "lib/downloader" )
 
 compo = {}
 -- Components

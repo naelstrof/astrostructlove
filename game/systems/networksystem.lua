@@ -74,6 +74,8 @@ function Network:addPlayer( id, ent )
     self.playerschanged = true
     if id == 0 then
         player.name = game.options.playername
+        player.avatar = game.options.playeravatar
+        player.ping = 0
     end
     player.id = id
     player.ent = ent
@@ -82,7 +84,6 @@ function Network:addPlayer( id, ent )
     player.tick = 0
     player.newtick = 0
     self.playercount = self.playercount + 1
-    print( id )
     self.players[ id ] = player
     -- When a player connects, we immediately send over
     -- the mapname and then a diff snapshot from the beginning of the
@@ -145,11 +146,16 @@ function Network:update( dt )
     self.currenttime = self.currenttime + dt*1000
     if self.currenttime > self.updaterate then
 
+        -- Update pings
         -- We find which player is furthest behind
         local minplayer = nil
         for i,v in pairs( self.players ) do
             if minplayer == nil or v.newtick < minplayer.newtick then
                 minplayer = v
+            end
+            -- Oh and update everyone's ping :)
+            if v.id ~= 0 then
+                v.ping = -math.floor(self.server.clients[ v.id ].ping*1000 )
             end
         end
         -- Then we go back in time and resimulate everything from where
@@ -297,6 +303,9 @@ function Network.onLobbyReceive( data, id )
     --game.network:updateClient( id, t.control, t.tick )
     if t.name then
         game.network.players[ id ].name = t.name
+    end
+    if t.avatar then
+        game.network.players[ id ].avatar = t.avatar
     end
 end
 

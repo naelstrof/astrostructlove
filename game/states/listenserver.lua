@@ -34,7 +34,7 @@ end
 
 function ListenServer:update( dt )
     game.bindsystem:update( dt )
-    game.network:updateClient( 0, table.copy( control.current ), game.network:getTick() )
+    game.network:updateClient( 0, game.bindsystem.getControls(), game.network:getTick() )
     -- game.entities:update( dt, game.network:getTick() )
     game.demosystem:update( dt )
     game.network:update( dt )

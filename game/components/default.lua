@@ -20,12 +20,31 @@ local getRot = function( e )
     return e.rot
 end
 
+-- Initialization/deinitialization can remove a entity from the world,
+-- but keep it in play in some way or another
+-- It's used right now for containers, and thus needs to be networked
+local setInitialized = function( e, i )
+    if e.initialized == i then
+        return
+    end
+    if i then
+        e:init()
+    else
+        e:deinit()
+    end
+    -- We don't have to update e.initialized since
+    -- init() and deinit() take care of it
+    -- e.initialized = i
+end
+
 local init = function( e )
     game.entities:addEntity( e )
+    e.initialized = true
 end
 
 local deinit = function( e )
     game.entities:removeEntity( e )
+    e.initialized = false
 end
 
 local Default = {
@@ -36,8 +55,10 @@ local Default = {
     getPos = getPos,
     setRot = setRot,
     getRot = getRot,
-    networkedvars = { "pos", "rot" },
-    networkedfunctions = { "setPos", "setRot" },
+    initialized = false,
+    setInitialized = setInitialized,
+    networkedvars = { "pos", "rot", "initialized" },
+    networkedfunctions = { "setPos", "setRot", "setInitialized" },
     init = init,
     deinit = deinit
 }

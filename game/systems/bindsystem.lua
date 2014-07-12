@@ -9,7 +9,9 @@ function BindSystem:load()
             left    = { primary = { "keyboard", "left" }, secondary = { "keyboard", "a" } },
             right   = { primary = { "keyboard", "right" }, secondary = { "keyboard", "d" } },
             leanl   = { primary = { "keyboard", "q" } },
-            leanr   = { primary = { "keyboard", "e" } }
+            leanr   = { primary = { "keyboard", "e" } },
+            lhand   = { primary = { "mouse button", "l" } },
+            rhand   = { primary = { "mouse button", "r" } }
         },
         default2 = {}
     }
@@ -17,6 +19,17 @@ function BindSystem:load()
     control = cock.new()
     control:setControls( controls )
     control:setDefault( "default_keyboard" )
+end
+
+function BindSystem.getControls()
+    local copy = {}
+    for i,v in pairs( control.current ) do
+        copy[i] = v
+    end
+    local mousepos = game.camerasystem:getWorldMouse()
+    copy.x = mousepos.x
+    copy.y = mousepos.y
+    return copy
 end
 
 function BindSystem:update( dt )

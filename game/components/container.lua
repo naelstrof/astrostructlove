@@ -2,7 +2,7 @@ local getItems = function( e )
     -- we return a copy so it can't be edited
     local copy = {}
     for i,v in pairs( e.items ) do
-        copy[i] = v
+        copy[i] = game.demosystem.entities[ v ]
     end
     return copy
 end
@@ -16,7 +16,7 @@ local canFit = function( e, ent )
 end
 
 local ejectItem = function( e, i )
-    local item = e.items[ i ]
+    local item = game.demosystem.entities[ e.items[ i ] ]
     if not item then
         error( "Tried to eject nil item!" )
     end
@@ -42,13 +42,17 @@ local storeItem = function( e, ent )
     -- Despawn the item
     ent:deinit()
     -- then put it in our list
-    table.insert( e.items, ent )
+    table.insert( e.items, ent.demoIndex )
     e.volumecontained = e.volumecontained + v.volume
     e.masscontained = e.masscontained + v.mass
     if e.containertype == "bag" then
         e.volume = e.basevolume + e.volumecontained
     end
     e.mass = e.basemass + e.mass
+end
+
+local setItems = function( e, items )
+    e.items = items
 end
 
 local init = function( e )
@@ -92,7 +96,10 @@ local Container = {
     basemass = 0.1,
     mass = basemass,
     getItems = getItems,
+    setItems = setItems,
     update = update,
+    networkedvars = { "items" },
+    networkedfunctions = { "setItems" },
     init = init
 }
 

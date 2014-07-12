@@ -120,7 +120,7 @@ function Client:update( dt )
         -- Here we send our current controls to the server
         local t = {}
         t.tick = self.tick
-        t.control = control.current
+        t.control = game.bindsystem.getControls()
         self.client:send( Tserial.pack( t ) )
         self.tick = self.nextshot.tick
         self.lastshot = self.prevshot

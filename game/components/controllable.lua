@@ -34,8 +34,14 @@ local update = function( e, dt, tick )
         local frictioncoefficient
         -- We want to keep ghosts from flying off into space
         if e:hasComponent( compo.intangible ) then
-            frictioncoefficient = 0.5
+            frictioncoefficient = 0.8
             -- FIXME: By making compo.intangible be less dumb
+            -- so we don't have to manually set values to abide by
+            -- my bad physics calculations
+            -- The only reason I override the normal value
+            -- is because applying force at an angle on compo.intangible
+            -- doesn't work the same way as applying force at an angle
+            -- on a compo.physical
             normal = 90
         else
             frictioncoefficient = 0
@@ -50,7 +56,7 @@ local update = function( e, dt, tick )
         local frictionforce = ( -moveangle * normal * frictioncoefficient )
         e.body:applyForce( frictionforce.x, frictionforce.y )
         -- rotation friction
-        e.body:applyForce( -e.body:getAngularVelocity() * (normal/32) * frictioncoefficient, 0, e.pos.x, e.pos.y-32 )
+        e.body:applyForce( -e.body:getAngularVelocity() * (normal/4) * frictioncoefficient, 0, e.pos.x, e.pos.y-32 )
         --e.body:setAngularDamping( 5 )
     end
 end
@@ -90,7 +96,7 @@ end
 local Controllable = {
     __name = "Controllable",
     speed = 256,
-    rotspeed = math.pi*2,
+    rotspeed = math.pi*4,
     velocity = game.vector( 0, 0 ),
     rotvelocity = 0,
     init = init,

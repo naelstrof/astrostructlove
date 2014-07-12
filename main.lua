@@ -65,6 +65,7 @@ compo.physical = require( "game/components/physical" )
 compo.intangible = require( "game/components/intangible" )
 compo.floor = require( "game/components/floor" )
 compo.default = require( "game/components/default" )
+compo.container = require( "game/components/container" )
 --
 
 game.entity = require( "lib/entity" )

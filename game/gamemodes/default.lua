@@ -66,12 +66,13 @@ Default.entities = {
     },
     player = {
         __name="player",
-        components={ compo.drawable, compo.camera, compo.physical, compo.controllable, compo.networked, compo.default },
+        components={ compo.drawable, compo.camera, compo.container, compo.physical, compo.controllable, compo.networked, compo.default },
         image="data/textures/human.png",
         attributes={
             drawable=love.graphics.newImage( "data/textures/human.png" ),
             layer=3,
             shape=love.physics.newCircleShape( 10 ),
+            mass=70,
             static=false
         }
     }

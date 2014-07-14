@@ -102,7 +102,7 @@ function Client:update( dt )
         end
         -- If we couldn't find a snapshot, we need to extrapolate
         if self.nextshot == nil then
-            local x = ( ( self.time - self.prevshot.time + self.delay ) * 1000 / 15 ) + 1
+            local x = ( ( self.time - self.prevshot.time + self.delay ) * 1000 / 30 ) + 1
             -- Interpolate with a x > 1 makes it extrapolate
             self.interpolate( self.lastshot, self.prevshot, x )
             return
@@ -182,13 +182,12 @@ function Client.interpolate( prevshot, nextshot, x )
                 end
             end
         elseif fent ~= nil then
-            error( "AA" )
+            error( "Something is dramatically wrong I think, I don't remember why I have this error here." )
         end
     end
 end
 
 function Client.onLobbyReceive( data )
-    print( data )
     local t = Tserial.unpack( data )
     if t.map then
         game.mapsystem:load( t.map )
@@ -208,6 +207,7 @@ function Client.onLobbyReceive( data )
 end
 
 function Client.onGameReceive( data )
+    print( data )
     local t = Tserial.unpack( data )
     if t.map then
         game.mapsystem:load( t.map )

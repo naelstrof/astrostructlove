@@ -10,8 +10,10 @@ function BindSystem:load()
             right   = { primary = { "keyboard", "right" }, secondary = { "keyboard", "d" } },
             leanl   = { primary = { "keyboard", "q" } },
             leanr   = { primary = { "keyboard", "e" } },
-            lhand   = { primary = { "mouse button", "l" } },
-            rhand   = { primary = { "mouse button", "r" } }
+            throwmodifier   = { primary = { "keyboard", "lshift" } },
+            dropmodifier   = { primary = { "keyboard", "lctrl" } },
+            hand1   = { primary = { "mouse button", "l" } },
+            hand2   = { primary = { "mouse button", "r" } }
         },
         default2 = {}
     }

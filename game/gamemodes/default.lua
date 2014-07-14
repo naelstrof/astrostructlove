@@ -21,11 +21,18 @@ Default.entities = {
     },
     lamp = {
         __name="lamp",
-        components={ compo.drawable, compo.emitslight, compo.networked, compo.default },
+        components={ compo.drawable, compo.isitem, compo.emitslight, compo.networked, compo.default },
         image="data/textures/lamp.png",
         attributes={
             drawable=love.graphics.newImage( "data/textures/lamp.png" ),
             lightdrawable=love.graphics.newImage( "data/textures/lamp_point.png" ),
+            use = function( e, player )
+                if e:getLightIntensity() == 1.35 then
+                    e:setLightIntensity( 0 )
+                else
+                    e:setLightIntensity( 1.35 )
+                end
+            end,
             layer=3
         }
     },
@@ -66,7 +73,7 @@ Default.entities = {
     },
     player = {
         __name="player",
-        components={ compo.drawable, compo.camera, compo.container, compo.physical, compo.controllable, compo.networked, compo.default },
+        components={ compo.drawable, compo.camera, compo.hashands, compo.container, compo.physical, compo.controllable, compo.networked, compo.default },
         image="data/textures/human.png",
         attributes={
             drawable=love.graphics.newImage( "data/textures/human.png" ),

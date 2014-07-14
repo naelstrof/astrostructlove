@@ -118,6 +118,8 @@ local EmitsLight = {
     -- I set the light intensity to overflow due to the flickermap
     -- nearly halving it in all parts of the flicker
     baselightintensity = 1.35,
+    networkedvars = { "baselightintensity" },
+    networkedfunctions = { "setLightIntensity" },
     lightintensity = baselightintensity,
     -- Uses "Flicker B" by default.
     lightflickermap = "nmonqnmomnmomomno",

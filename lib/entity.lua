@@ -61,7 +61,7 @@ function Entity:__init( name, extraattributes )
                 else
                     self[o] = w
                 end
-            elseif type( self[o] ) == "function" and type( w ) == "function" then
+            elseif type( self[o] ) == "function" and type( w ) == "function" and attributes[o] == nil and extraattributes[o] == nil then
                 -- We attempt to chain similar functions
                 self[o] = function( ... )
                     self:startChain( o, { ... } )

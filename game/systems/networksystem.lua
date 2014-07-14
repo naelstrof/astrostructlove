@@ -143,6 +143,9 @@ function Network:update( dt )
     if self.server then
         self.server:update( dt )
     end
+    game.physics:update( dt )
+    game.entities:update( dt, self.tick )
+    self.totaltime = self.totaltime + dt
     self.currenttime = self.currenttime + dt*1000
     if self.currenttime > self.updaterate then
 
@@ -155,7 +158,7 @@ function Network:update( dt )
             end
             -- Oh and update everyone's ping :)
             if v.id ~= 0 then
-                v.ping = -math.floor(self.server.clients[ v.id ].ping*1000 )
+                v.ping = math.floor( ( self.tick - v.newtick ) / 1000 * 15 )
             end
         end
         -- Then we go back in time and resimulate everything from where
@@ -175,9 +178,6 @@ function Network:update( dt )
         -- May have to skip a few snapshots to catch up
         while self.currenttime > self.updaterate do
             self.currenttime = self.currenttime - self.updaterate
-            self.totaltime = self.totaltime + self.updaterate/1000
-            game.physics:update( self.updaterate/1000 )
-            game.entities:update( self.updaterate/1000, self.tick )
         end
         self.tick = self.tick + 1
         -- Generate a new snapshot
@@ -266,7 +266,7 @@ end
 
 function Network:getControls( id, tick )
     if not self.running then
-        return control.current
+        return game.bindsystem:getControls()
     end
     if tick == nil then
         tick = self.tick
@@ -275,7 +275,7 @@ function Network:getControls( id, tick )
         return nil
     end
     if id == 0 and tick == self:getTick() then
-        return control.current
+        return game.bindsystem:getControls()
     end
     local controls = self.players[ id ].snapshots[ tick ]
     if controls == nil then

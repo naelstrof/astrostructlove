@@ -39,7 +39,7 @@ local update = function( e, dt, tick )
     -- controlled by the client.
     -- tick is not nil when we're being ran in a simulation
     local controls = game.network:getControls( e.playerid, tick )
-    if e.active or ( tick ~= nil and controls ~= nil ) then
+    if ( e.active and controls ~= nil ) or ( tick ~= nil and controls ~= nil ) then
         -- We go and see if any hand binds are pressed
         for i=1, 2 do
             if controls[ "hand"..i ] ~= e.handmemory[ "hand"..i ] then
@@ -56,7 +56,7 @@ local updateItems = function( e, dt, tick )
     if controls then
         for i,v in pairs( e.handitems ) do
             local ent = game.demosystem.entities[ v ]
-            ent:setPos( e:getPos() + e.handpositions[ i ] )
+            ent:setPos( e:getPos() + e.handpositions[ i ]:rotated( e:getRot() ) )
             ent:setRot( ( e:getPos() + e.handpositions[ i ] ):angleTo( game.vector( controls.x, controls.y ) ) )
         end
     end
@@ -83,8 +83,8 @@ local HasHands = {
     -- Used for lenient clicks
     handsize = 5,
     handpositions = {
-        game.vector( -16, 0 ),
-        game.vector( 16, 0 )
+        game.vector( -20, 5 ),
+        game.vector( 20, 5 )
     },
     handitems = {},
     handmemory = {},

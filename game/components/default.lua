@@ -3,7 +3,7 @@
 -- so that it can be networked easily
 local setPos = function( e, t )
     if t == nil or t.x == nil or t.y == nil then
-        error( "Failed to set position: Invalid parameters supplied!" )
+        error( "Failed to set position: Invalid parameters supplied! Got " .. t .. " instead." )
     end
     e.pos = game.vector( t.x, t.y )
 end

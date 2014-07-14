@@ -3,7 +3,8 @@ local update = function( e, dt, tick )
     -- Active runs is true when we're the active player being
     -- controlled by the client.
     -- tick is not nil when we're being ran in a simulation
-    if e.active or ( tick ~= nil and game.network:getControls( e.playerid, tick ) ~= nil ) then
+    local controls = game.network:getControls( e.playerid, tick )
+    if ( e.active and controls ~= nil ) or ( tick ~= nil and controls ~= nil ) then
         local direction = 0
         local rotdir = 0
 
@@ -11,8 +12,8 @@ local update = function( e, dt, tick )
         -- entity, otherwise we're just updating ourselves
         local up, down, left, right, rotl, rotr
         -- We use tick to get the correct instance of the controls
-        up, down, left, right = game.network:getControls( e.playerid, tick ).up, game.network:getControls( e.playerid, tick ).down, game.network:getControls( e.playerid, tick ).left, game.network:getControls( e.playerid, tick ).right
-        rotl, rotr = game.network:getControls( e.playerid, tick ).leanl, game.network:getControls( e.playerid, tick ).leanr
+        up, down, left, right = controls.up, controls.down, controls.left, controls.right
+        rotl, rotr = controls.leanl, controls.leanr
 
         if up - down == 0 and right - left == 0 then
             direction = game.vector( 0, 0 )

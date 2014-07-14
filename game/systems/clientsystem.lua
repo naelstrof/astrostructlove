@@ -10,8 +10,6 @@ local Client = {
     nextshot = nil,
     id = nil,
     player = nil,
-    playerpos = game.vector(0,0),
-    playerrot = 0,
     predictionfixspeed = 8,
     delay = 50/1000,
     client = nil,
@@ -74,21 +72,13 @@ function Client:update( dt )
     if not self.running then
         return
     end
-    -- Use a light spring to fix prediction errors
-    if self.player ~= nil and self.playerpos ~= nil then
-        local diff = self.playerpos - self.player:getPos()
-        diff:normalize_inplace()
-        local dist = self.player:getPos():dist( self.playerpos )
-        self.player:setPos( self.player:getPos() + diff * dist * dt * self.predictionfixspeed )
-    end
-    if self.player ~= nil and self.playerrot ~= nil then
-        local diff = self.playerrot - self.player:getRot()
-        self.player:setRot( self.player:getRot() + diff * dt * self.predictionfixspeed )
-    end
+    -- We don't simulate physics due to the server doing it all for us
+    --game.physics:update( dt )
+    game.entities:update( dt, self.tick )
     self.time = self.time + dt
+
     -- We shouldn't do anything as long as we're too far in the
     -- past
-
     if self.time < self.prevshot.time + self.delay then
         return
     end
@@ -111,7 +101,7 @@ function Client:update( dt )
     -- If we're in between the two we interpolate the world
     if self.time > self.prevshot.time + self.delay and self.time < self.nextshot.time + self.delay then
         -- Uses linear progression
-        local x = ( self.time - self.prevshot.time + self.delay ) / ( self.time - self.nextshot.time + self.delay )
+        local x = ( self.time - ( self.prevshot.time + self.delay ) ) / ( ( self.nextshot.time + self.delay ) - ( self.prevshot.time + self.delay ) )
         self.interpolate( self.prevshot, self.nextshot, x )
         return
     end
@@ -147,17 +137,6 @@ function Client.interpolate( prevshot, nextshot, x )
     for i,v in pairs( game.demosystem.entities ) do
         local pent = prevshot.entities[ v.demoIndex ]
         local fent = nextshot.entities[ v.demoIndex ]
-        -- We do NOT extrapolate/interpolate our player
-        -- Since it's so important to have it be responsive
-        -- as well as smooth, we use a light spring instead to fix
-        -- prediction errors
-        if x > 1 and v.playerid == game.client.id and fent ~= nil and fent.pos ~= nil then
-            game.client.playerpos = game.vector( fent.pos.x, fent.pos.y )
-            if fent.rot then
-                game.client.playerrot = fent.rot
-            end
-            return
-        end
         -- Since everything is delta-compressed, only a nil future entity
         -- would indicate that the entity didn't change.
         -- So we're going to have to fill in the past entity snapshot

@@ -4,7 +4,7 @@ local Network = {
     server = nil,
     port = 27020,
     running = false,
-    updaterate = 15,
+    updaterate = 50,
     currenttime = 0,
     totaltime = 0,
     tick = 0,
@@ -265,8 +265,10 @@ function Network:resimulate( snapshot )
 end
 
 function Network:getControls( id, tick )
-    if not self.running then
+    if not self.running and not game.client.running then
         return game.bindsystem:getControls()
+    elseif not self.running and game.client.running then
+        return nil
     end
     if tick == nil then
         tick = self.tick

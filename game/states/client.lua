@@ -16,8 +16,6 @@ end
 
 function Client:update( dt )
     game.bindsystem:update( dt )
-    game.physics:update( dt )
-    game.entities:update( dt )
     game.client:update( dt )
     game.demosystem:update( dt )
 end

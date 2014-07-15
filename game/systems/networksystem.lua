@@ -282,10 +282,8 @@ function Network:resimulate( snapshot )
 end
 
 function Network:getControls( id, tick )
-    if not self.running and not game.client.running then
+    if not self.running then
         return game.bindsystem:getControls()
-    elseif not self.running and game.client.running then
-        return nil
     end
     if tick == nil then
         tick = self.tick

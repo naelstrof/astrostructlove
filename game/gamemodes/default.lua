@@ -47,6 +47,7 @@ Default.entities = {
             drawable=love.graphics.newImage( "data/textures/flashlight.png" ),
             lightdrawable=love.graphics.newImage( "data/textures/flashlight_beam.jpg" ),
             lighttype = "ray",
+            rotatecarry = true,
             use = function( e, player )
                 if e:getLightIntensity() == 1.35 then
                     e:setLightIntensity( 0 )

@@ -34,6 +34,7 @@ function Client:startLobby( ip, port )
 end
 
 function Client:startGame( snapshot )
+    game.mapsystem:load( snapshot.map )
     self.client.callbacks = { recv = self.onGameReceive }
     -- Just like source multiplayer, we render 100 miliseconds in the past
     self.time = snapshot.time
@@ -168,13 +169,13 @@ end
 
 function Client.onLobbyReceive( data )
     local t = Tserial.unpack( data )
-    if t.map then
-        game.mapsystem:load( t.map )
-        game.client:startGame( t )
-        game.gamestate.switch( gamestates.client )
-    end
     if t.clientid then
         game.client:setID( t.clientid )
+    end
+    if t.map then
+        game.gamestate.switch( gamestates.client )
+        -- We have to load everything after, else we may remove GUI elements
+        game.client:startGame( t )
     end
     if t.players then
         game.client:setPlayers( t.players )
@@ -186,13 +187,12 @@ function Client.onLobbyReceive( data )
 end
 
 function Client.onGameReceive( data )
-    print( data )
     local t = Tserial.unpack( data )
-    if t.map then
-        game.mapsystem:load( t.map )
-    end
     if t.clientid then
         game.client:setID( t.clientid )
+    end
+    if t.map then
+        game.mapsystem:load( t.map )
     end
     if t.players then
         game.client:setPlayers( t.players )

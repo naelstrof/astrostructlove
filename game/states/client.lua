@@ -8,9 +8,11 @@ end
 
 function Client:leave()
     game.client:stop()
+    loveframes.util:RemoveAll()
 end
 
 function Client:draw()
+    game.renderer:draw()
     loveframes.draw()
 end
 

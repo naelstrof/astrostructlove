@@ -36,8 +36,8 @@ function ListenLobby:enter()
     button:SetHeight( 64 )
     button:SetText( "Start Game" )
     button.OnClick = function( object )
-        game.network:startGame()
         game.gamestate.switch( gamestates.listenserver )
+        game.network:startGame()
     end
 end
 

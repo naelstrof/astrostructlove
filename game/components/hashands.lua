@@ -52,11 +52,15 @@ end
 
 local updateItems = function( e, dt, tick )
     local controls = game.network:getControls( e.playerid, tick )
-    if controls then
+    if e.active and controls or tick ~= nil and controls then
         for i,v in pairs( e.handitems ) do
             local ent = game.demosystem.entities[ v ]
             ent:setPos( e:getPos() + e.handpositions[ i ]:rotated( e:getRot() ) )
-            ent:setRot( ( e:getPos() + e.handpositions[ i ] ):angleTo( game.vector( controls.x, controls.y ) ) + math.pi )
+            if ent.rotatecarry then
+                ent:setRot( ( e:getPos() + e.handpositions[ i ] ):angleTo( game.vector( controls.x, controls.y ) ) + math.pi )
+            else
+                ent:setRot( e:getRot() )
+            end
             e:updateItemGUI( i, ent )
         end
         for i=1, e.handcount do
@@ -108,6 +112,13 @@ end
 
 local setHandItems = function( e, handitems )
     e.handitems = handitems
+    for i=1, e.handcount do
+        if e.handitems[ i ] then
+            e:updateItemGUI( i, game.demosystem.entities[ e.handitems[ i ] ] )
+        else
+            e:updateItemGUI( i, nil )
+        end
+    end
 end
 
 local init = function( e )

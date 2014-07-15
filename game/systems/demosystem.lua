@@ -73,50 +73,6 @@ function DemoSystem:netcopy( orig )
     return netcopy
 end
 
-function DemoSystem:safecopy( orig )
-    local copy = {}
-    -- Get ALL the vars, besides the ones we don't want
-    for i,v in pairs( orig ) do
-        local t = type( v )
-        -- Don't copy yourself
-        -- or what you're already composed of
-        if i ~= "__index" and i ~= "components" then
-            if t == "table" then
-                copy[i] = self:safecopy( v )
-            -- Only copy simple values
-            elseif t == "string" or t == "boolean" or t == "number" then
-                copy[i] = v
-            else
-                return nil
-            end
-        end
-    end
-    return copy
-end
-
--- Copy returns a shallow copy of an object,
--- Only copies simple values
--- Recurses safely by not recursing into tables that contain unsafe
--- values
-function DemoSystem:copy( orig )
-    local copy = {}
-    -- Get ALL the vars, besides the ones we don't want
-    for i,v in pairs( orig ) do
-        local t = type( v )
-        -- Don't copy yourself
-        -- or what you're already composed of
-        if i ~= "__index" and i ~= "components" then
-            if t == "table" then
-                copy[i] = self:safecopy( v )
-            -- Only copy simple values
-            elseif t == "string" or t == "boolean" or t == "number" then
-                copy[i] = v
-            end
-        end
-    end
-    return copy
-end
-
 function DemoSystem:addEntity( e, uid )
     uid = uid or self.uniqueid
     -- table.insert( self.entities, e )
@@ -263,7 +219,7 @@ function DemoSystem:generateSnapshot( tick, time )
     snapshot["entities"] = {}
     for i,v in pairs( self.entities ) do
         -- We do full copies in snapshots
-        snapshot["entities"][ v.demoIndex ] = self:copy( v )
+        snapshot["entities"][ v.demoIndex ] = self:netcopy( v )
     end
     return snapshot
 end

@@ -94,6 +94,10 @@ local init = function( e )
     end
 end
 
+local setPlayerID = function( e, id )
+    e.playerid = id
+end
+
 local Controllable = {
     __name = "Controllable",
     speed = 256,
@@ -114,8 +118,9 @@ local Controllable = {
     getSpeed = getSpeed,
     setRotVel = setRotVel,
     getRotVel = getRotVel,
-    networkedvars = { "active" },
-    networkedfunctions = { "setActive" },
+    setPlayerID = setPlayerID,
+    networkedvars = { "active", "playerid" },
+    networkedfunctions = { "setActive", "setPlayerID" },
     setRotSpeed = setRotSpeed,
     getRotSpeed = getRotSpeed
 }

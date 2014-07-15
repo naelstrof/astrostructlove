@@ -11,28 +11,34 @@ function Client:leave()
 end
 
 function Client:draw()
-    game.renderer:draw()
+    loveframes.draw()
 end
 
 function Client:update( dt )
     game.bindsystem:update( dt )
     game.client:update( dt )
     game.demosystem:update( dt )
+    loveframes.update( dt )
 end
 
 function Client:mousepressed( x, y, button )
+    loveframes.mousepressed( x, y, button )
 end
 
 function Client:mousereleased( x, y, button )
+    loveframes.mousereleased( x, y, button )
 end
 
 function Client:keypressed( key, unicode )
+    loveframes.keypressed( key, unicode )
 end
 
 function Client:keyreleased( key )
+    loveframes.keyreleased( key )
 end
 
 function Client:textinput( text )
+    loveframes.textinput( text )
 end
 
 function Client:resize( w, h )

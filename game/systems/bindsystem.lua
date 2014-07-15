@@ -1,4 +1,7 @@
-local BindSystem = {}
+local BindSystem = {
+    leftclickmemory = 0,
+    rightclickmemory = 0
+}
 
 function BindSystem:load()
     -- TODO: Load binds from file.
@@ -36,6 +39,22 @@ end
 
 function BindSystem:update( dt )
     cock.updateAll()
+    -- Disallow controls to update click events when we're clicking on
+    -- loveframe elements
+    if control.current.hand1 ~= self.leftclickmemory then
+        if table.getn( loveframes.util.GetCollisions() ) > 1 then
+            control.current.hand1 = self.leftclickmemory
+        else
+            self.leftclickmemory = control.current.hand1
+        end
+    end
+    if control.current.hand2 ~= self.rightclickmemory then
+        if table.getn( loveframes.util.GetCollisions() ) > 1 then
+            control.current.hand2 = self.rightclickmemory
+        else
+            self.rightclickmemory = control.current.hand1
+        end
+    end
 end
 
 return BindSystem

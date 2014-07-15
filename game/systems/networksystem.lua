@@ -20,6 +20,23 @@ local Network = {
     players = {}
 }
 
+function Network:isLocalPlayer( id )
+    if self.running == true then
+        if id == 0 then
+            return true
+        end
+    elseif game.client.running == true then
+        if game.client.id == id then
+            return true
+        end
+    else
+        if id == 0 then
+            return true
+        end
+    end
+    return false
+end
+
 function Network:startLobby( port )
     self.port = self.port or port
     self.server = lube.udpServer()

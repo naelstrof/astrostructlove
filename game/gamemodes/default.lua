@@ -23,9 +23,11 @@ Default.entities = {
         __name="lamp",
         components={ compo.drawable, compo.isitem, compo.emitslight, compo.networked, compo.default },
         image="data/textures/lamp.png",
+        description="A primitive oil lamp. Can be used to turn on/off.",
         attributes={
             drawable=love.graphics.newImage( "data/textures/lamp.png" ),
             lightdrawable=love.graphics.newImage( "data/textures/lamp_point.png" ),
+            lighttype = "point",
             use = function( e, player )
                 if e:getLightIntensity() == 1.35 then
                     e:setLightIntensity( 0 )
@@ -40,6 +42,7 @@ Default.entities = {
         __name="flashlight",
         components={ compo.drawable, compo.isitem, compo.emitslight, compo.networked, compo.default },
         image="data/textures/flashlight.png",
+        description="A battery powered flashlight. Can be used to turn on/off.",
         attributes={
             drawable=love.graphics.newImage( "data/textures/flashlight.png" ),
             lightdrawable=love.graphics.newImage( "data/textures/flashlight_beam.jpg" ),

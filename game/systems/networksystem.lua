@@ -63,7 +63,7 @@ function Network:startGame()
     -- Tick 0 is always just the plain map
     self.snapshots[ self.tick ] = game.demosystem:generateSnapshot( self.tick, self.totaltime )
     for i,v in pairs( self.players ) do
-        v.ent = game.gamemode.spawnPlayer( v.id )
+        v.ent = game.gamemode:spawnPlayer( v.id )
         if v.id == 0 then
             v.ent.playerid = 0
             v.ent:setActive( true )
@@ -283,7 +283,11 @@ end
 
 function Network:getControls( id, tick )
     if not self.running then
-        return game.bindsystem:getControls()
+        if game.client.running and game.client.id ~= id then
+            return nil
+        else
+            return game.bindsystem.getControls()
+        end
     end
     if tick == nil then
         tick = self.tick
@@ -292,7 +296,7 @@ function Network:getControls( id, tick )
         return nil
     end
     if id == 0 and tick == self:getTick() then
-        return game.bindsystem:getControls()
+        return game.bindsystem.getControls()
     end
     local controls = self.players[ id ].snapshots[ tick ]
     if controls == nil then

@@ -52,7 +52,7 @@ end
 
 local updateItems = function( e, dt, tick )
     local controls = game.network:getControls( e.playerid, tick )
-    if e.active and controls or tick ~= nil and controls then
+    if ( e.active and controls ~= nil ) or ( tick ~= nil and controls ~= nil ) then
         for i,v in pairs( e.handitems ) do
             local ent = game.demosystem.entities[ v ]
             ent:setPos( e:getPos() + e.handpositions[ i ]:rotated( e:getRot() ) )
@@ -72,6 +72,9 @@ local updateItems = function( e, dt, tick )
 end
 
 local updateItemGUI = function( e, i, ent )
+    if not game.network:isLocalPlayer( e.playerid ) then
+        return
+    end
     if not e.handgui then
         return
     end
@@ -128,6 +131,9 @@ local init = function( e )
         e.handpositions[ i ] = game.vector( v.x, v.y )
     end
     if game.network:isLocalPlayer( e.playerid ) then
+        if e.handgui then
+            e.handgui:Remove()
+        end
         -- Create some simple GUI for the hands
         e.handgui = loveframes.Create( "panel" )
         local size = game.vector( 64*e.handcount, 64 )

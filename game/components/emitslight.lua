@@ -43,10 +43,16 @@ end
 
 local init = function( e )
     e.lightintensity = e.baselightintensity
-    e.lightrot = e.lightrot or love.math.random()*math.pi*2
-    e.lightoriginoffset = game.vector( e.lightdrawable:getWidth() / 2, e.lightdrawable:getHeight() / 2 )
-    -- ONLY SCALE WIDTH, so we can have some light shafts and shit.
-    e.lightscale = game.vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getWidth() )
+    if e.lighttype == "point" then
+        e.lightrot = e.lightrot or love.math.random()*math.pi*2
+        e.lightoriginoffset = e.lightoriginoffset or game.vector( e.lightdrawable:getWidth() / 2, e.lightdrawable:getHeight() / 2 )
+        e.lightscale = game.vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getHeight() )
+    elseif e.lighttype == "ray" then
+        e.lightrot = e.rot
+        e.lightoriginoffset = game.vector( 0, e.lightdrawable:getHeight() / 2 )
+        -- ONLY SCALE WIDTH for lightshafts
+        e.lightscale = game.vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getWidth() )
+    end
 
     -- Convert the lightflickermap to more efficient values
     e:setFlickerMap( e.lightflickermap )
@@ -106,6 +112,7 @@ local EmitsLight = {
     __name = "EmitsLight",
     shadowmeshdraw = nil,
     changed = true,
+    lighttype = "point",
     radius = 256,
     lightsize = 32,
     lightdrawable = love.graphics.newImage( "data/textures/point.png" ),
@@ -113,7 +120,7 @@ local EmitsLight = {
     lightrot = nil,
     -- The timing in the light flicker is random too, unless otherwise specified
     lighttime = nil,
-    lightoriginoffset = game.vector( 0, 0 ),
+    lightoriginoffset = nil,
     lightscale = game.vector( 1, 1 ),
     -- I set the light intensity to overflow due to the flickermap
     -- nearly halving it in all parts of the flicker

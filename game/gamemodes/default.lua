@@ -36,6 +36,24 @@ Default.entities = {
             layer=3
         }
     },
+    flashlight = {
+        __name="flashlight",
+        components={ compo.drawable, compo.isitem, compo.emitslight, compo.networked, compo.default },
+        image="data/textures/flashlight.png",
+        attributes={
+            drawable=love.graphics.newImage( "data/textures/flashlight.png" ),
+            lightdrawable=love.graphics.newImage( "data/textures/flashlight_beam.jpg" ),
+            lighttype = "ray",
+            use = function( e, player )
+                if e:getLightIntensity() == 1.35 then
+                    e:setLightIntensity( 0 )
+                else
+                    e:setLightIntensity( 1.35 )
+                end
+            end,
+            layer=3
+        }
+    },
     controlpanel = {
         __name="controlpanel",
         components={ compo.drawable, compo.glows, compo.networked, compo.default },

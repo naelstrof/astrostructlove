@@ -57,7 +57,7 @@ local updateItems = function( e, dt, tick )
         for i,v in pairs( e.handitems ) do
             local ent = game.demosystem.entities[ v ]
             ent:setPos( e:getPos() + e.handpositions[ i ]:rotated( e:getRot() ) )
-            ent:setRot( ( e:getPos() + e.handpositions[ i ] ):angleTo( game.vector( controls.x, controls.y ) ) )
+            ent:setRot( ( e:getPos() + e.handpositions[ i ] ):angleTo( game.vector( controls.x, controls.y ) ) + math.pi )
         end
     end
 end

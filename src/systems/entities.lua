@@ -1,10 +1,11 @@
 local Entities = {}
 
-function Entities:load( dir )
+function Entities:load( dir, packlocation )
     local files = love.filesystem.getDirectoryItems( dir )
     for i,v in pairs( files ) do
         local s = string.find( v, "%.lua" )
         local str = string.sub( v, 0, s - 1 )
+        PackLocation = packlocation
         local entity = require( dir .. str )
         if not entity.__name then
             print( "Failed to load entity " .. dir .. v .. " __name not supplied" )

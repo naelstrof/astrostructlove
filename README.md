@@ -22,6 +22,4 @@ Projected Features
 
 How To Run
 ----------
-Due to how love.filesystem.mount() works, you'll have to copy the Downloads folder into your corresponding love.filesystem.getSaveDirectory() folder (In my case it's ~/.local/share/love/lovegame/).
-This is in order to mount the gamemode package, soon I might make it auto-copy or something.
-From there you'll need [Love2D](http://love2d.org/) installed, where you can run the game by dragging and dropping the game folder onto the executable to run it.
+You'll need [Love2D](http://love2d.org/) installed, where you can run the game by dragging and dropping the game folder onto the executable to run it.

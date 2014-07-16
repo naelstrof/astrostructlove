@@ -13,10 +13,19 @@ function Gamemode:setGamemode( name )
     self.spawnPlayer =  xs.spawnPlayer
     local mountdir = "game"
     for i,v in pairs( self.packs ) do
-        love.filesystem.createDirectory( mountdir )
-        assert( love.filesystem.mount( "downloads/" .. v, mountdir ) )
-        Components:load( mountdir .. "/" .. v .. "/components/" )
-        Entities:load( mountdir .. "/" .. v .. "/entities/" )
+        if love.filesystem.isDirectory( "packs/" .. v ) then
+            print( "Loading pack " .. v .. " from packs/" )
+            Components:load( "packs/" .. v .. "/components/", "packs/" .. v .. "/" )
+            Entities:load( "packs/" .. v .. "/entities/", "packs/" .. v .. "/" )
+        elseif love.filesystem.exists( "downloads/" .. v ) then
+            print( "Loading pack " .. v .. " from downloaded zipfile." )
+            love.filesystem.createDirectory( mountdir )
+            assert( love.filesystem.mount( "downloads/" .. v, mountdir ) )
+            Components:load( mountdir .. "/" .. v .. "/components/", mountdir .. "/" .. v .. "/" )
+            Entities:load( mountdir .. "/" .. v .. "/entities/", mountdir .. "/" .. v .. "/"  )
+        else
+            error( "Couldn't locate pack " .. v "!" )
+        end
     end
     return self
 end

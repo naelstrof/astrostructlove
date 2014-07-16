@@ -265,7 +265,7 @@ function Network:unsimulate( snapshot )
         for i,v in pairs( diffshot.entities ) do
             local ent = DemoSystem.entities[ v.demoIndex ]
             if ent then
-                for o,w in pairs( Entities[ ent.__name ].networkinfo ) do
+                for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
                     local val = v[w]
                     -- Call the coorisponding function to set the
                     -- value

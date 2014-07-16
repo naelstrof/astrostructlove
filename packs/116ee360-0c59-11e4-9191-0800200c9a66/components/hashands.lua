@@ -92,7 +92,7 @@ local updateItemGUI = function( e, i, ent )
         panel:SetSize( 62, 62 )
         panel:SetPos( 64*(i-1) + 1, 1 )
         e.handguibuttons[ i ] = loveframes.Create( "imagebutton", panel )
-        local image = Entities[ ent.__name ].image
+        local image = Entities.entities[ ent.__name ].image
         e.handguibuttons[ i ]:SetImage( image )
         e.handguibuttons[ i ].obj = ent
         e.handguibuttons[ i ]:SetSize( 62, 62 )
@@ -100,7 +100,7 @@ local updateItemGUI = function( e, i, ent )
         local tooltip = loveframes.Create( "tooltip", e.handguibuttons[ i ] )
         tooltip:SetObject( e.handguibuttons[ i ] )
         tooltip:SetFollowCursor( true )
-        tooltip:SetText( Entities[ ent.__name ].description )
+        tooltip:SetText( Entities.entities[ ent.__name ].description )
         tooltip:SetOffsetX( -256 )
         tooltip:SetTextMaxWidth( 256 )
     end

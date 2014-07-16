@@ -21,7 +21,7 @@ function CreateTool:init()
     local ents = loveframes.Create( "list" )
     ents:SetPadding( 5 )
     ents:SetSpacing( 5 )
-    for i,v in pairs( Entities ) do
+    for i,v in pairs( Entities.entities ) do
         local temp = loveframes.Create( "imagebutton", ents )
         temp:SetImage( v.image )
         temp:SizeToImage()
@@ -34,7 +34,7 @@ function CreateTool:init()
                 self.highlighter = nil
             end
             self.highlighter = Entity:new( self.selectedentity )
-            if self.highlighter:hasComponent( compo.drawable ) then
+            if self.highlighter:hasComponent( Components.drawable ) then
                 self.highlighter:setColor( { 255, 255, 255, 155 } )
                 self.highlighter:setLayer( 4 )
             end
@@ -108,7 +108,7 @@ function CreateTool:mousereleased( x, y, button )
         -- Respawn the highlighter
         if self.highlighter == nil then
             self.highlighter = Entity:new( self.selectedentity )
-            if self.highlighter:hasComponent( compo.drawable ) then
+            if self.highlighter:hasComponent( Components.drawable ) then
                 self.highlighter:setColor( { 255, 255, 255, 155 } )
                 self.highlighter:setLayer( 4 )
             end

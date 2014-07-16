@@ -1,4 +1,4 @@
-local Entities = {}
+local Entities = { entities = {} }
 
 function Entities:load( dir, packlocation )
     local files = love.filesystem.getDirectoryItems( dir )
@@ -10,17 +10,17 @@ function Entities:load( dir, packlocation )
         if not entity.__name then
             print( "Failed to load entity " .. dir .. v .. " __name not supplied" )
         else
-            if self[ entity.__name ] ~= nil then
+            if self.entities[ entity.__name ] ~= nil then
                 print( "Overriden entity " .. entity.__name .. " with " .. v )
             end
-            self[ entity.__name ] = entity
+            self.entities[ entity.__name ] = entity
         end
     end
     self:generateNetworkInfo()
 end
 
 function Entities:generateNetworkInfo()
-    for i,ent in pairs( self ) do
+    for i,ent in pairs( self.entities ) do
         if type( ent ) == "table" then
             ent.networkinfo = {}
             for o,comp in pairs( ent.components ) do

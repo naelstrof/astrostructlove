@@ -34,10 +34,10 @@ end
 -- World are initialized via their index within the gamemodes.entities
 function Entity:__init( name, extraattributes )
     self.__name = name
-    local attributes = Entities[ name ].attributes or {}
+    local attributes = Entities.entities[ name ].attributes or {}
     extraattributes = extraattributes or {}
     -- All entities should have the default component at LEAST
-    self.components = Entities[ name ].components
+    self.components = Entities.entities[ name ].components
     -- Set up the attributes first as they may affect the components
     for i,v in pairs( attributes ) do
         self[i] = v

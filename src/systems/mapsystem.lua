@@ -15,7 +15,7 @@ function MapSystem:load( filename )
     local snapshot = Tserial.unpack( data )
     for i,v in pairs( snapshot.entities ) do
         local ent = Entity:new( v.__name, { demoIndex=v.demoIndex } )
-        for o,w in pairs( Entities[ ent.__name ].networkinfo ) do
+        for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
             local val = v[ w ]
             -- Call the coorisponding function to set the
             -- value

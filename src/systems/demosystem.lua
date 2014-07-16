@@ -34,7 +34,7 @@ function DemoSystem:applyDiff( diff )
     -- This is where we add everything it asks in the diff
     for i,v in pairs( diff.added ) do
         local ent = Entity( v.__name, v )
-        for o,w in pairs( Entities[ ent.__name ].networkinfo ) do
+        for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
             local val = v[ w ]
             -- Call the coorisponding function to set the
             -- value
@@ -50,7 +50,7 @@ function DemoSystem:deltanetcopy( a, b )
     local changed = false
     local netcopy = {}
     -- Network only networked vars
-    for i,v in pairs( Entities[ b.__name ].networkinfo ) do
+    for i,v in pairs( Entities.entities[ b.__name ].networkinfo ) do
         -- but only network the ones that changed
         if not self:compare( a[v], b[v] ) then
             changed = true
@@ -67,7 +67,7 @@ end
 function DemoSystem:netcopy( orig )
     local netcopy = { __name=orig.__name, demoIndex=orig.demoIndex }
     -- Network all networked vars
-    for i,v in pairs( Entities[ orig.__name ].networkinfo ) do
+    for i,v in pairs( Entities.entities[ orig.__name ].networkinfo ) do
         netcopy[v] = orig[v]
     end
     return netcopy
@@ -131,7 +131,7 @@ function DemoSystem:play( filename )
     self.tick = self.prevframe.tick
     for i,v in pairs( self.prevframe.added ) do
         local ent = Entity:new( v.__name, v )
-        for o,w in pairs( Entities[ ent.__name ].networkinfo ) do
+        for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
             local val = v[ w ]
             -- Call the coorisponding function to set the
             -- value
@@ -297,7 +297,7 @@ function DemoSystem:update( dt )
             -- This is where we add everything it asks
             for i,v in pairs( self.prevframe.added ) do
                 local ent = Entity( v.__name, v )
-                for o,w in pairs( Entities[ ent.__name ].networkinfo ) do
+                for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
                     local val = v[ w ]
                     -- Call the coorisponding function to set the
                     -- value
@@ -321,7 +321,7 @@ function DemoSystem:update( dt )
             local fent = self.nextframe.entities[ v.demoIndex ]
             -- Make sure the entity is changing somehow
             if pent ~= nil and fent ~= nil then
-                for o,w in pairs( Entities[ v.__name ].networkinfo ) do
+                for o,w in pairs( Entities.entities[ v.__name ].networkinfo ) do
                     local pastval = pent[ w ]
                     local futureval = fent[ w ]
                     -- Call the coorisponding function to set the

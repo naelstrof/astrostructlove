@@ -146,7 +146,7 @@ function ClientSystem.interpolate( prevshot, nextshot, x )
         -- with some information if it doesn't exist.
         if pent == nil and fent ~= nil then
             local copy = {}
-            for o,w in pairs( Entities[ v.__name ].networkinfo ) do
+            for o,w in pairs( Entities.entities[ v.__name ].networkinfo ) do
                 copy[w] = v[w]
             end
             prevshot.entities[ v.demoIndex ] = copy
@@ -154,7 +154,7 @@ function ClientSystem.interpolate( prevshot, nextshot, x )
         end
         -- Make sure the entity is changing somehow
         if pent ~= nil and fent ~= nil then
-            for o,w in pairs( Entities[ v.__name ].networkinfo ) do
+            for o,w in pairs( Entities.entities[ v.__name ].networkinfo ) do
                 local pastval = pent[w]
                 local futureval = fent[w]
                 -- Call the coorisponding function to set the

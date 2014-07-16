@@ -8,7 +8,7 @@
 
 -- An entity with "nil" components is literally nothing but a position and rotation.
 
-local Entity = common.class( {
+local Entity = Class( {
     __type = "Entity",
     components = nil,
     -- TODO: Make pos into __pos so that users never have to worry about conflicting names
@@ -31,13 +31,13 @@ function Entity:deepCopy( t )
 end
 
 --function Entity:__init( components, attributes )
--- Entities are initialized via their index within the gamemodes.entities
+-- World are initialized via their index within the gamemodes.entities
 function Entity:__init( name, extraattributes )
     self.__name = name
-    local attributes = game.gamemode.entities[ name ].attributes or {}
+    local attributes = Entities[ name ].attributes or {}
     extraattributes = extraattributes or {}
     -- All entities should have the default component at LEAST
-    self.components = game.gamemode.entities[ name ].components
+    self.components = Entities[ name ].components
     -- Set up the attributes first as they may affect the components
     for i,v in pairs( attributes ) do
         self[i] = v
@@ -71,7 +71,7 @@ function Entity:__init( name, extraattributes )
         end
     end
     -- Purge networked stuff, the gamemode handles tracking these
-    self.networkedvars = nil
+    self.networkinfo = nil
     self.networkedfunctions = nil
     -- After we have inherited all functions and variables,
     -- we initialize each component. Since each component has

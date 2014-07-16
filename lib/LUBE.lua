@@ -27,7 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 local socket = require "socket"
 
 -- We use Class Commons
-assert(common and common.class, "A Class Commons implementation is required")
+assert(Class, "A Class Commons implementation is required")
 
 local client = {}
 -- A generic client class
@@ -441,14 +441,14 @@ end
 -- Create our classes:
 lube = {}
 
-lube.Client = common.class(client)
+lube.Client = Class(client)
 lube.udpClient = lube.Client:extends( udpClient )
 lube.tcpClient = lube.Client:extends( tcpClient )
---lube.udpClient = common.class(udpClient, lube.Client)
---lube.tcpClient = common.class(tcpClient, lube.Client)
+--lube.udpClient = Class(udpClient, lube.Client)
+--lube.tcpClient = Class(tcpClient, lube.Client)
 
-lube.Server = common.class(server)
+lube.Server = Class(server)
 lube.udpServer = lube.Server:extends( udpServer )
 lube.tcpServer = lube.Server:extends( tcpServer )
---lube.udpServer = common.class(udpServer, lube.Server)
---lube.tcpServer = common.class(tcpServer, lube.Server)
+--lube.udpServer = Class(udpServer, lube.Server)
+--lube.tcpServer = Class(tcpServer, lube.Server)

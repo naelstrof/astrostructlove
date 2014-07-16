@@ -13,7 +13,7 @@
     Copyright © 2013 Raidho36, the Pink Square Huge Jerk
 	
 	wiki page: http://www.love2d.org/wiki/Common_Organization_of_Controls_Kit
-	project page: http://raidho36.net/stuff/cock
+	project page: http://raidho36.net/stuff/Cock
 	
 	REMARKS:
 		* this library assumes you provide valid data, it won't handle programmers' errors, and foul code will most likely bluescreen with random error message
@@ -120,14 +120,14 @@
 --== = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ==--
 --==                               SYSTEM                                  ==--
 --== = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ==--
-local cock = { ["_capture"] = { ["object"] = false, ["map"] = false, ["option"] = false, ["mouse"] = false, ["eventlock"] = false, ["updatelock"] = false, ["callback"] = false }, ["_objects"] = { }, ["joysticks"] = { } }
+local Cock = { ["_capture"] = { ["object"] = false, ["map"] = false, ["option"] = false, ["mouse"] = false, ["eventlock"] = false, ["updatelock"] = false, ["callback"] = false }, ["_objects"] = { }, ["joysticks"] = { } }
 
-love.handlers.controlcaptured = function ( id, longarg ) if cock.controlcaptured then return cock.controlcaptured ( id, longarg ) else return cock.bind ( cock.find ( id ), longarg ) end end 
-love.handlers.controlpressed = function ( id, k, v ) if cock.controlpressed then return cock.controlpressed ( id, k, v ) end end
-love.handlers.controlreleased = function ( id, k, v ) if cock.controlreleased then return cock.controlreleased ( id, k, v ) end end
-love.handlers.controlpeaked = function ( id, k, v ) if cock.controlpeaked then return cock.controlpeaked ( id, k, v ) end end
-love.handlers.controlzeroed = function ( id, k, v ) if cock.controlzeroed then return cock.controlzeroed ( id, k, v ) end end
-love.handlers.controlchanged = function ( id, k, v ) if cock.controlchanged then return cock.controlchanged ( id, k, v ) end end
+love.handlers.controlcaptured = function ( id, longarg ) if Cock.controlcaptured then return Cock.controlcaptured ( id, longarg ) else return Cock.bind ( Cock.find ( id ), longarg ) end end 
+love.handlers.controlpressed = function ( id, k, v ) if Cock.controlpressed then return Cock.controlpressed ( id, k, v ) end end
+love.handlers.controlreleased = function ( id, k, v ) if Cock.controlreleased then return Cock.controlreleased ( id, k, v ) end end
+love.handlers.controlpeaked = function ( id, k, v ) if Cock.controlpeaked then return Cock.controlpeaked ( id, k, v ) end end
+love.handlers.controlzeroed = function ( id, k, v ) if Cock.controlzeroed then return Cock.controlzeroed ( id, k, v ) end end
+love.handlers.controlchanged = function ( id, k, v ) if Cock.controlchanged then return Cock.controlchanged ( id, k, v ) end end
 
 local lk_isDown = love.keyboard.isDown
 local lm_getX = love.mouse.getX
@@ -173,55 +173,55 @@ local _lookup_modes = { [-3] = "-=", [-2] = "--", [-1] = "-", [0] = "=", [1] = "
 
 -- controls capture wrappers
 local function wrapper_update ( dt )
-	if not cock._capture.updatelock and l_update then l_update ( dt ) end
-	cock._capture.object:grab ( )
+	if not Cock._capture.updatelock and l_update then l_update ( dt ) end
+	Cock._capture.object:grab ( )
 end
 
 local function wrapper_keypressed ( key, uni )
-	if not cock._capture.eventlock and l_keypressed then l_keypressed ( key, uni ) end
-	cock._capture.object:grab ( nil, nil, 1, key )
+	if not Cock._capture.eventlock and l_keypressed then l_keypressed ( key, uni ) end
+	Cock._capture.object:grab ( nil, nil, 1, key )
 end
 
 local function wrapper_mousepressed ( x, y, key )
-	if not cock._capture.eventlock and l_mousepressed then l_mousepressed ( x, y, key ) end
-	cock._capture.object:grab ( nil, nil, 2, key )
+	if not Cock._capture.eventlock and l_mousepressed then l_mousepressed ( x, y, key ) end
+	Cock._capture.object:grab ( nil, nil, 2, key )
 end
 
 local function wrapper_joystickpressed ( joy, key )
-	if not cock._capture.eventlock and l_joystickpressed then l_joystickpressed ( joy, key ) end
-	cock._capture.object:grab ( nil, nil, 4, key, nil, nil, joy )
+	if not Cock._capture.eventlock and l_joystickpressed then l_joystickpressed ( joy, key ) end
+	Cock._capture.object:grab ( nil, nil, 4, key, nil, nil, joy )
 end
 
 local function wrapper_keyreleased ( key, uni )
-	if not cock._capture.eventlock and l_keyreleased then l_keyreleased ( key, uni ) end
+	if not Cock._capture.eventlock and l_keyreleased then l_keyreleased ( key, uni ) end
 end
 
 local function wrapper_mousereleased ( x, y, key )
-	if not cock._capture.eventlock and l_mousereleased then l_mousereleased ( x, y, key ) end
+	if not Cock._capture.eventlock and l_mousereleased then l_mousereleased ( x, y, key ) end
 end
 
 local function wrapper_joystickreleased ( joy, key )
-	if not cock._capture.eventlock and l_joystickreleased then l_joystickreleased ( joy, key ) end
+	if not Cock._capture.eventlock and l_joystickreleased then l_joystickreleased ( joy, key ) end
 end
 
 local function wrapper_controlpressed ( id, k, v )
-	if not cock._capture.eventlock and l_controlpressed then l_controlpressed ( id, k, v ) end
+	if not Cock._capture.eventlock and l_controlpressed then l_controlpressed ( id, k, v ) end
 end
 
 local function wrapper_controlreleased ( id, k, v )
-	if not cock._capture.eventlock and l_controlreleased then l_controlreleased ( id, k, v ) end
+	if not Cock._capture.eventlock and l_controlreleased then l_controlreleased ( id, k, v ) end
 end
 
 local function wrapper_controlpeaked ( id, k, v )
-	if not cock._capture.eventlock and l_controlpeaked then l_controlpeaked ( id, k, v ) end
+	if not Cock._capture.eventlock and l_controlpeaked then l_controlpeaked ( id, k, v ) end
 end
 
 local function wrapper_controlzeroed ( id, k, v )
-	if not cock._capture.eventlock and l_controlzeroed then l_controlzeroed ( id, k, v ) end
+	if not Cock._capture.eventlock and l_controlzeroed then l_controlzeroed ( id, k, v ) end
 end
 
 local function wrapper_controlchanged ( id, k, v )
-	if not cock._capture.eventlock and l_controlchanged then l_controlchanged ( id, k, v ) end
+	if not Cock._capture.eventlock and l_controlchanged then l_controlchanged ( id, k, v ) end
 end
 
 -- I could've fit that into a loop so it would look prettier, but who gives a shit about code prettines? KISS & DFWNB
@@ -233,11 +233,11 @@ local function wrapperRestore ( )
 	love.mousereleased = l_mousereleased
 	love.joystickpressed = l_joystickpressed
 	love.joystickreleased = l_joystickreleased
-	cock.controlpressed = l_controlpressed
-	cock.controlreleased = l_controlreleased
-	cock.controlpeaked = l_controlpeaked
-	cock.controlzeroed = l_controlzeroed
-	cock.controlchanged = l_controlchanged
+	Cock.controlpressed = l_controlpressed
+	Cock.controlreleased = l_controlreleased
+	Cock.controlpeaked = l_controlpeaked
+	Cock.controlzeroed = l_controlzeroed
+	Cock.controlchanged = l_controlchanged
 end
 
 local function wrapperSetup ( )
@@ -248,11 +248,11 @@ local function wrapperSetup ( )
 	l_mousereleased = love.mousereleased
 	l_joystickpressed = love.joystickpressed
 	l_joystickreleased = love.joystickreleased
-	l_controlpressed = cock.controlpressed
-	l_controlreleased = cock.controlreleased
-	l_controlpeaked = cock.controlpeaked
-	l_controlzeroed = cock.controlzeroed
-	l_controlchanged = cock.controlchanged
+	l_controlpressed = Cock.controlpressed
+	l_controlreleased = Cock.controlreleased
+	l_controlpeaked = Cock.controlpeaked
+	l_controlzeroed = Cock.controlzeroed
+	l_controlchanged = Cock.controlchanged
 	
 	love.update = wrapper_update
 	love.keypressed = wrapper_keypressed
@@ -261,11 +261,11 @@ local function wrapperSetup ( )
 	love.mousereleased = wrapper_mousereleased
 	love.joystickpressed = wrapper_joystickpressed
 	love.joystickreleased = wrapper_joystickreleased
-	cock.controlpressed = wrapper_controlpressed
-	cock.controlreleased = wrapper_controlreleased
-	cock.controlpeaked = wrapper_controlpeaked
-	cock.controlzeroed = wrapper_controlzeroed
-	cock.controlchanged = wrapper_controlchanged
+	Cock.controlpressed = wrapper_controlpressed
+	Cock.controlreleased = wrapper_controlreleased
+	Cock.controlpeaked = wrapper_controlpeaked
+	Cock.controlzeroed = wrapper_controlzeroed
+	Cock.controlchanged = wrapper_controlchanged
 end
 
 --== = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ==--
@@ -274,33 +274,33 @@ end
 
 -- Create new controls table and optionally fill it with defined control map.
 -- NO COLON NOTATION
-function cock.new ( id, data )
-	if not id or cock._objects[ id ] then repeat id = tostring ( mrand ( 100000 ) ) until not cock._objects[ id ] end -- pick new unique ID
+function Cock.new ( id, data )
+	if not id or Cock._objects[ id ] then repeat id = tostring ( mrand ( 100000 ) ) until not Cock._objects[ id ] end -- pick new unique ID
 	local new = {
 		["current"] = { }, ["previous"] = { }, ["layout"] = { }, ["defaults"] = { }, ["joysticks"] = { }, ["defaultOption"] = "default", ["defaultLayout"] = "default", 
 		["etc"] = { ["id"] = id, ["mouse"] = { ["x"] = 0, ["y"] = 0, ["fx"] = 1, ["fy"] = 1, ["_x"] = 0, ["_y"] = 0 }, ["_callbacks"] = { ["any"] = false, ["controlpressed"] = false, ["controlreleased"] = false, ["controlpeaked"] = false, ["controlzeroed"] = false, ["controlchanged"] = false } }
 	}
-	setmetatable ( new, { ["__index"] = cock } )
+	setmetatable ( new, { ["__index"] = Cock } )
 	if data then new:setControls ( data ) end
-	cock._objects[ id ] = new
+	Cock._objects[ id ] = new
 	return new
 end
 
 -- Return object with given ID.
 -- NO COLON NOTATION
-function cock.find ( target )
-	return cock._objects[ target ]
+function Cock.find ( target )
+	return Cock._objects[ target ]
 end
 
 -- Delete (un-track) controls table.
-function cock.delete ( self )
+function Cock.delete ( self )
 	if type ( self ) == "table" then self = self.etc.id end
-	cock._objects[ self ] = nil
+	Cock._objects[ self ] = nil
 end
 
 -- Fill the controls table with control map; will overwrite currently defined map, but will not erase what's not overlapped.
 -- { default1 = { forward = { option1 = { dev, key, inv, dlt }, option2 = { }, etc. }, backwards = { }, etc. }, default2 = { }, etc. }
-function cock.setControls ( self, data )
+function Cock.setControls ( self, data )
 	for defKey, defVal in pairs ( data ) do
 		if not self.defaults[ defKey ] then self.defaults[ defKey ] = { } end
 		for mapKey, mapVal in pairs ( defVal ) do
@@ -332,13 +332,13 @@ function cock.setControls ( self, data )
 end
 
 -- Set controls layout to specified default layout.
-function cock.setDefault ( self, default )
+function Cock.setDefault ( self, default )
 	if not default then default = self.defaultLayout end
 	self.layout = self.defaults[ default ]
 end
 
 -- Set controls layout to XBox360 controller layout.
-function cock.setDefaultXBox360 ( self, override, d )
+function Cock.setDefaultXBox360 ( self, override, d )
 	if love._os ~= "Windows" then return 0 end -- Sorry, no eeks-bawkz for Linux and Mac
 	
 	if not override then override = "XBox360" end
@@ -372,19 +372,19 @@ function cock.setDefaultXBox360 ( self, override, d )
 end
 
 -- Add controls option.
-function cock.addOption ( self, option )
+function Cock.addOption ( self, option )
 	if not option then repeat option = tostring ( mrand ( 100000 ) ) until not self.layout[ option ] end
 	self.layout[ option ] = { map = { }, invmap = { }, dev = { }, key = { }, inv = { }, dlt = { }, _did = { }, _raw = { } }
 	return option
 end
 
 -- Delete controls option (will erase all binds).
-function cock.deleteOption ( self, option )
+function Cock.deleteOption ( self, option )
 	self.layout[ option ] = nil
 end
 
 -- Find next non-occupied option for given map.
-function cock.getEmptyOption ( self, map )
+function Cock.getEmptyOption ( self, map )
 	for k, v in pairs ( self.layout ) do
 		if not v.invmap[ map ] then return k end
 	end
@@ -394,9 +394,9 @@ end
 -- Bind map.
 -- func ( ... ) - bind specified data ( defaults: inv = 2, dlt = 0, val = 1, did = 1 )
 -- func ( longarg ) - bind by data from longarg string
-function cock.bind ( self, map, option, dev, key, inv, dlt, val, did )
+function Cock.bind ( self, map, option, dev, key, inv, dlt, val, did )
 	if not option then 
-		local t1, t2, t3, t4, t5, t6, t7 = cock.explodeCapturedData ( map )
+		local t1, t2, t3, t4, t5, t6, t7 = Cock.explodeCapturedData ( map )
 		if t7 then
 			map = t1
 			option = t2
@@ -437,7 +437,7 @@ function cock.bind ( self, map, option, dev, key, inv, dlt, val, did )
 end
 
 -- Delete input key and device from layout for specified map.
-function cock.unbind ( self, map, option )
+function Cock.unbind ( self, map, option )
 	if not option then option = self.defaultOption end
 	local slo = self.layout[ option ]
 	local invmap = slo.invmap[ map ]
@@ -465,24 +465,24 @@ end
 --== = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ==--
 
 -- Set mouse offset.
-function cock.setMouseOffset ( self, x, y )
+function Cock.setMouseOffset ( self, x, y )
 	self.etc.mouse.x = x or self.etc.mouse.x
 	self.etc.mouse.y = y or self.etc.mouse.y
 end
 
 -- Get mouse offset.
-function cock.getMouseOffset ( self )
+function Cock.getMouseOffset ( self )
 	return self.etc.mouse.x, self.etc.mouse.y
 end
 
 -- Set mouse multiplication factor.
-function cock.setMouseFactor ( self, x, y )
+function Cock.setMouseFactor ( self, x, y )
 	self.etc.mouse.fx = x or self.etc.mouse.fx
 	self.etc.mouse.fy = y or self.etc.mouse.fy 
 end
 
 -- Get mouse multiplication factor.
-function cock.getMouseFactor ( self )
+function Cock.getMouseFactor ( self )
 	return self.etc.mouse.fx, self.etc.mouse.fy
 end
 
@@ -490,7 +490,7 @@ end
 --==                               JOYSTICK                                ==--
 --== = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ==--
 
-function cock.addJoystick ( self, number )
+function Cock.addJoystick ( self, number )
 	if not number then number = 1 end
 	local isdummy = lj_getNumJoysticks ( ) < number and true or false
 	local joyname = isdummy and "None" or ( lj_getName ( number ) .. " (" .. number .. ")" )
@@ -515,7 +515,7 @@ end
 -- Delete joystick.
 -- func ( self, number ) : delete by self's joystick number
 -- func ( self, string ) : delete by name
-function cock.deleteJoystick ( self, number )
+function Cock.deleteJoystick ( self, number )
 	local name
 	if type ( number ) == "string" then
 		name = number
@@ -529,7 +529,7 @@ function cock.deleteJoystick ( self, number )
 end
 
 -- Set joystick hat mode by either number or literal value.
-function cock.setJoystickHatMode ( self, joystick, hat, hatmode )
+function Cock.setJoystickHatMode ( self, joystick, hat, hatmode )
 	if not joystick then joystick = 1 elseif type ( joystick ) == "string" then joystick = self.joysticks[ joystick ] end
 	if self.joysticks[ joystick ].dummy then return end -- do not service dummies
 	if not hat then hat = 1 elseif type ( hat ) == "string" then local d = _lookup_devices[ hat ]; if not d then d = tonumber ( hat:sub ( 14 ) ); _lookup_devices[ d + 5 ] = hat; _lookup_devices[ hat ] = d + 5 end hat = d end
@@ -539,7 +539,7 @@ function cock.setJoystickHatMode ( self, joystick, hat, hatmode )
 end
 
 -- Get literal joystick hat mode.
-function cock.getJoystickHatMode ( self, joystick, hat )
+function Cock.getJoystickHatMode ( self, joystick, hat )
 	if not joystick then joystick = 1 elseif type ( joystick ) == "string" then joystick = self.joysticks[ joystick ] end
 	if self.joysticks[ joystick ].dummy then return 1 end -- do not service dummies
 	if not hat then hat = 1 elseif type ( hat ) == "string" then local d = _lookup_devices[ hat ]; if not d then d = tonumber ( hat:sub ( 14 ) ); _lookup_devices[ d + 5 ] = hat; _lookup_devices[ hat ] = d + 5 end hat = d end
@@ -549,7 +549,7 @@ end
 
 -- Set joystick deadzone.
 -- func ( self, joy, true, thr ) : sets deadzone to all axis
-function cock.setJoystickDeadzone ( self, joystick, axis, threshold )
+function Cock.setJoystickDeadzone ( self, joystick, axis, threshold )
 	if not joystick then joystick = 1 elseif type ( joystick ) == "string" then joystick = self.joysticks[ joystick ] end
 	if self.joysticks[ joystick ].dummy then return end -- do not service dummies
 	
@@ -569,7 +569,7 @@ function cock.setJoystickDeadzone ( self, joystick, axis, threshold )
 end
 
 -- Get joystick deadzone.
-function cock.getJoystickDeadzone ( self, joystick, axis )
+function Cock.getJoystickDeadzone ( self, joystick, axis )
 	if not joystick then joystick = 1 elseif type ( joystick ) == "string" then joystick = self.joysticks[ joystick ] end
 	if self.joysticks[ joystick ].dummy then return 0.0 end -- do not service dummies
 	if not axis then axis = 1 elseif type ( axis ) == "string" then local a = _lookup_axis [ key ]; if not a then a = tonumber ( key ); _lookup_axis[ key ] = a; _lookup_axis[ a ] = key end key = a end
@@ -578,7 +578,7 @@ function cock.getJoystickDeadzone ( self, joystick, axis )
 end
 
 -- Map (exactly) 4 joystick buttons to act like joystick hat. 
-function cock.remapJoystickHat ( self, joystick, hat, u, d, l, r )
+function Cock.remapJoystickHat ( self, joystick, hat, u, d, l, r )
 	if not joystick then joystick = 1 elseif type ( joystick ) == "string" then joystick = self.joysticks[ joystick ] end
 	if self.joysticks[ joystick ].dummy then return end -- do not service dummies
 	if not hat then hat = 1 elseif type ( hat ) == "string" then local d = _lookup_devices[ hat ]; if not d then d = tonumber ( hat:sub ( 14 ) ); _lookup_devices[ d + 5 ] = hat; _lookup_devices[ hat ] = d + 5 end hat = d end
@@ -604,7 +604,7 @@ function cock.remapJoystickHat ( self, joystick, hat, u, d, l, r )
 end
 
 -- Resolve joystick un- and re-plugging.
-function cock.reloadJoysticks ( self ) 
+function Cock.reloadJoysticks ( self ) 
 	local taken = { }
 	-- love.joystick.reload ( ) since 0.9.0
 	for i = 1, #self.joysticks do
@@ -643,7 +643,7 @@ end
 --== = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ==--
 
 -- Set callbacks field.
-function cock.setCallbacks ( self, pressed, released, peaked, zeroed, changed )
+function Cock.setCallbacks ( self, pressed, released, peaked, zeroed, changed )
 	self = self.etc._callbacks
 	if type ( pressed ) == "string" and type ( released ) == "boolean" then
 		self[ pressed ] = released
@@ -660,49 +660,49 @@ function cock.setCallbacks ( self, pressed, released, peaked, zeroed, changed )
 end
 
 -- Enable "input capture" mode.
-function cock.setCapture ( self, map, option, eventlock, updatelock, nomouse, callback )
+function Cock.setCapture ( self, map, option, eventlock, updatelock, nomouse, callback )
 	wrapperSetup ( )
 	if nomouse then
-		cock._capture.mouse = false
+		Cock._capture.mouse = false
 	else
-		cock._capture.mouse = true
+		Cock._capture.mouse = true
 		self.etc.mouse._x = lm_getX ( )
 		self.etc.mouse._y = lm_getY ( )
 		lm_setPosition ( lg_getWidth ( ) / 2, lg_getHeight ( ) / 2 ) 
 		le_pump ( ) -- kludge for odd behavior with failed mouse repositioning 
 	end
-	cock._capture.object = self
-	cock._capture.map = map
-	cock._capture.option = option or self.defaultOption
-	cock._capture.eventlock = eventlock and true or false
-	cock._capture.updatelock = updatelock and true or false
-	cock._capture.callback = ( callback == nil ) and true or callback
+	Cock._capture.object = self
+	Cock._capture.map = map
+	Cock._capture.option = option or self.defaultOption
+	Cock._capture.eventlock = eventlock and true or false
+	Cock._capture.updatelock = updatelock and true or false
+	Cock._capture.callback = ( callback == nil ) and true or callback
 end
 
--- Return capture state.
+-- Return capture State..
 -- No COLON NOTATION
-function cock.getCapture ( )
-	return cock._capture.object
+function Cock.getCapture ( )
+	return Cock._capture.object
 end
 
 -- Cancel the capture mode and restore all temporary values back.
 -- NO COLON NOTATION
-function cock.cancelCapture ( )
+function Cock.cancelCapture ( )
 	wrapperRestore ( )
-	if cock._capture.mouse then lm_setPosition ( cock._capture.object.etc.mouse._x, cock._capture.object.etc.mouse._y ) end
-	cock._capture.object = false
+	if Cock._capture.mouse then lm_setPosition ( Cock._capture.object.etc.mouse._x, Cock._capture.object.etc.mouse._y ) end
+	Cock._capture.object = false
 end
 
 -- Update all registered control objects.
 -- NO COLON NOTATION
-function cock.updateAll ( )
-	for k, v in pairs ( cock._objects ) do
+function Cock.updateAll ( )
+	for k, v in pairs ( Cock._objects ) do
 		v:update ( )
 	end
 end
 
--- Update all control states. 
-function cock.update ( self )
+-- Update all control State.s. 
+function Cock.update ( self )
 	local curr, prev, etc, vcurr = self.current, self.previous, self.etc, 0
 	
 	for i = 1, #self.joysticks do -- update hats positions
@@ -828,9 +828,9 @@ function cock.update ( self )
 end
 
 -- Grab the input device and key. Returns false if nothing was grabbed.
-function cock.grab ( self, map, option, dev, key, inv, val, did )
-	if not map then map = cock._capture.map end
-	if not option then option = cock._capture.option end
+function Cock.grab ( self, map, option, dev, key, inv, val, did )
+	if not map then map = Cock._capture.map end
+	if not option then option = Cock._capture.option end
 	
 	if type ( dev ) == "string" then local d = _lookup_devices[ dev ]; if not d then d = tonumber ( dev:sub ( 14 ) ) + 5; _lookup_devices[ dev ] = d; _lookup_devices[ d ] = dev else dev = d end end
 	if ( dev == 3 or dev == 5 ) and type ( key ) == "string" then local a = _lookup_axis [ key ]; if not a then a = tonumber ( key ); _lookup_axis[ key ] = a; _lookup_axis[ a ] = key end end
@@ -852,7 +852,7 @@ function cock.grab ( self, map, option, dev, key, inv, val, did )
 	end
 	
 	if not key then
-		if cock._capture.mouse and ( not dev or dev == 3 ) then -- capture mouse
+		if Cock._capture.mouse and ( not dev or dev == 3 ) then -- capture mouse
 			local mdx, mdy = lm_getX ( ) - lg_getWidth ( ) / 2, lm_getY ( ) - lg_getHeight ( ) / 2
 			if mabs ( mdx ) > 50 and mabs ( mdx ) > mabs ( mdy ) then
 				if not dev then dev = 3 end
@@ -957,7 +957,7 @@ function cock.grab ( self, map, option, dev, key, inv, val, did )
 	end
 	
 	self:cancelCapture ( )
-	if cock._capture.callback then
+	if Cock._capture.callback then
 		le_push ( "controlcaptured", self.etc.id, map .. " " .. option .. " " .. dev ..  " " .. ( key == " " and "space" or key ) .. " " .. inv .. " " .. val .. " " .. did )
 	else
 		self:bind ( map, option, dev, key, inv, nil, val )
@@ -970,7 +970,7 @@ end
 
 -- Get literal name of assigned device.
 -- func ( self, map, true ) : return all bingings for map
-function cock.getBinded ( self, map, option )
+function Cock.getBinded ( self, map, option )
 	if not option then option = self.defaultOption
 	elseif option == true then
 		local l = { option = { }, device = { }, key = { }, inverse = { }, delta = { }, joystick = { } }
@@ -995,7 +995,7 @@ end
 
 -- Helper function for controlcaptured callback.
 -- NO COLON NOTATION
-function cock.explodeCapturedData ( data )
+function Cock.explodeCapturedData ( data )
 	local d = { }
 	for w in string.gmatch ( data, "%S+" ) do table_insert ( d, w ) end
 	return d[ 1 ], d[ 2 ], tonumber ( d[ 3 ] ), ( tonumber ( d[ 3 ] ) == 3 or tonumber ( d[ 3 ] ) > 5 ) and tonumber ( d[ 4 ] ) or ( d[ 4 ] == "space" and " " or d[ 4 ] ), tonumber ( d[ 5 ] ), tonumber ( d[ 6 ] ), tonumber ( d[ 7 ] )
@@ -1003,7 +1003,7 @@ end
 
 -- Find all joysticks and returns list of their names under indices corresponding to joystick number.
 -- NO COLON NOTATION
-function cock.getJoysticksList ( )
+function Cock.getJoysticksList ( )
 	local list = { }
 	-- love.joystick.getJoystickCount since 0.9.0
 	for i = 1, lj_getNumJoysticks ( ) do
@@ -1015,7 +1015,7 @@ end
 
 -- Convert literal to digital value of a device.
 -- NO COLON NOTATION
-function cock.convertDevice ( device, literal )
+function Cock.convertDevice ( device, literal )
 	if literal == nil or ( ( literal == true ) ~= ( type ( device ) == "string" ) ) then
 		local d = _lookup_devices[ device ]
 		if not d then
@@ -1030,7 +1030,7 @@ end
 
 -- Convert literal to digital value of a key
 -- NO COLON NOTATION
-function cock.convertKey ( device, key, literal )
+function Cock.convertKey ( device, key, literal )
 	if not device then device = 3 
 	elseif type ( device ) == "string" then device = _lookup_devices[ device ] end	
 	if ( device == 3 or device == 5 ) and ( literal == nil or ( ( literal == true ) ~= ( type ( key ) == "string" ) ) ) then
@@ -1047,7 +1047,7 @@ end
 	
 -- Convert literal to digital value of an axis.
 -- NO COLON NOTATION
-function cock.convertdAxis ( axis, literal )
+function Cock.convertdAxis ( axis, literal )
 	if literal == nil or ( ( literal == true ) ~= ( type ( axis ) == "string" ) ) then
 		local a = _lookup_axis[ axis ]
 		if not a then 
@@ -1062,7 +1062,7 @@ end
 
 -- Convert literal to digital value of inverse.
 -- NO COLON NOTATION
-function cock.convertInverse ( inverse, literal )
+function Cock.convertInverse ( inverse, literal )
 	if literal == nil or ( ( literal == true ) ~= ( type ( inverse ) == "string" ) ) then
 		return _lookup_modes[ inverse ]
 	end
@@ -1071,7 +1071,7 @@ end
 
 -- Convert literal to digital value of delta (exactly the same as previous, that's right). 
 -- NO COLON NOTATION
-function cock.convertDelta ( delta, literal )
+function Cock.convertDelta ( delta, literal )
 	if literal == nil or ( ( literal == true ) ~= ( type ( delta ) == "string" ) ) then
 		return _lookup_modes[ delta ]
 	end
@@ -1080,7 +1080,7 @@ end
 
 -- Convert literal to digital value of joystick hat mode.
 -- NO COLON NOTATION
-function cock.convertJoystickHatMode ( hatmode, literal )
+function Cock.convertJoystickHatMode ( hatmode, literal )
 	if literal == nil or ( ( literal == true ) ~= ( type ( hatmode ) == "string" ) ) then
 		return _lookup_hatmodes[ hatmode ]
 	end
@@ -1089,7 +1089,7 @@ end
 
 -- Convert literal to digital value of joystick hat number.
 -- NO COLON NOTATION
-function cock.convertJoystickHat ( hat, literal )
+function Cock.convertJoystickHat ( hat, literal )
 	if literal == nil or ( ( literal == true ) ~= ( type ( hat ) == "string" ) ) then
 		if type ( hat ) == "string" then
 			local d = _lookup_devices[ hat ]
@@ -1114,7 +1114,7 @@ end
 
 -- Convert literal to digital value of joystick id.
 -- func ( self, joystick, literal ) : convert self's joysticks
-function cock.convertJoystick ( self, joystick, literal )
+function Cock.convertJoystick ( self, joystick, literal )
 	if literal == nil or ( ( literal == true ) ~= ( type ( joystick ) == "string" ) ) then
 		if type ( joystick ) == "string" then return self.joysticks[ joystick ].number else return self.joysticks[ joystick ] end
 	end
@@ -1122,19 +1122,19 @@ function cock.convertJoystick ( self, joystick, literal )
 end
 
 -- And this is just to mock faggots who use getters and setters for every single little thing, especially if it's used often. It might get inlined in C and pals, but Lua will always introduce function call overhead. If you really that much of a faggot, delete fail line and uncomment the following one.
-function cock.getCurrent ( self, map )
+function Cock.getCurrent ( self, map )
 	error ( "use the 'yourcontroltable.current.yourkeyvalue' instead, you moron" )
 	--return self.current[ map ]
 	-- but seriously, use the "yourcontroltable.current.yourkeyvalue" instead
 end
 
-function cock.getPrevious ( self, map )
+function Cock.getPrevious ( self, map )
 	error ( "use the 'yourcontroltable.previous.yourkeyvalue' instead, you moron" )
 	--return self.previous[ map ]
 	-- but seriously, use the "yourcontroltable.previous.yourkeyvalue" instead
 end
 
-return cock
+return Cock
 
 --== = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ==--
 --==                            END OF LIBRARY                             ==--

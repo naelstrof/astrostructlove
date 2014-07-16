@@ -38,6 +38,11 @@ local init = function( e )
     if not e.fixture then
         e.fixture = love.physics.newFixture( e.body, e.shape )
     end
+    if e.friction then
+        local t = love.physics.newFrictionJoint( game.physics.surface, e.body, e.pos.x, e.pos.y, false )
+        t:setMaxForce( e.body:getMass() * e.maxforce )
+        t:setMaxTorque( e.body:getInertia() * e.maxtorque )
+    end
 end
 
 local deinit = function( e )
@@ -46,7 +51,10 @@ end
 local Physical = {
     __name = "Physical",
     body = nil,
+    maxforce = 256,
+    maxtorque = 5,
     static = true,
+    friction = true,
     shape = nil,
     fixture = nil,
     mass = 70,

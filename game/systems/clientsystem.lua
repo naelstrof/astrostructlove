@@ -8,10 +8,11 @@ local Client = {
     lastshot = nil,
     prevshot = nil,
     nextshot = nil,
+    newesttick = 0,
     id = nil,
     player = nil,
     predictionfixspeed = 8,
-    delay = 50/1000,
+    delay = 100/1000,
     client = nil,
     snapshots = {}
 }
@@ -60,6 +61,7 @@ end
 
 function Client:addSnapshot( snapshot )
     self.snapshots[ snapshot.tick ] = snapshot
+    self.newesttick = snapshot.tick
 end
 
 function Client:stop()
@@ -110,7 +112,7 @@ function Client:update( dt )
     if self.time > self.nextshot.time + self.delay then
         -- Here we send our current controls to the server
         local t = {}
-        t.tick = self.tick
+        t.tick = self.newesttick
         t.control = game.bindsystem.getControls()
         self.client:send( Tserial.pack( t ) )
         self.tick = self.nextshot.tick

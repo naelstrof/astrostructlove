@@ -122,10 +122,10 @@ function Network:removePlayer( id )
 end
 
 function Network:updateClient( id, controls, tick )
-    --self.players[ id ].newsnapshots[ tick ] = controls
-    --self.players[ id ].newtick = tick
-    self.players[ id ].snapshots[ tick ] = controls
-    self.players[ id ].tick = tick
+    self.players[ id ].newsnapshots[ tick ] = controls
+    self.players[ id ].newtick = tick
+    --self.players[ id ].snapshots[ tick ] = controls
+    --self.players[ id ].tick = tick
 end
 
 function Network:stop()
@@ -160,10 +160,10 @@ function Network:update( dt )
     if self.server then
         self.server:update( dt )
     end
-    game.physics:update( dt )
-    game.entities:update( dt, self.tick )
     self.totaltime = self.totaltime + dt
     self.currenttime = self.currenttime + dt*1000
+    game.physics:update( dt )
+    game.entities:update( dt, self.tick )
     if self.currenttime > self.updaterate then
 
         -- Update pings
@@ -175,22 +175,28 @@ function Network:update( dt )
             end
             -- Oh and update everyone's ping :)
             if v.id ~= 0 then
-                v.ping = math.floor( ( self.tick - v.newtick ) / 1000 * 15 )
+                v.ping = math.floor( ( self.tick - v.newtick ) * 15 )
             end
         end
         -- Then we go back in time and resimulate everything from where
         -- we last recieved an input from that player
-        --if minplayer.newtick ~= self.tick and minplayer.newtick ~= nil then
+        if minplayer.newtick ~= self.tick and minplayer.newtick ~= nil then
             --self:unsimulate( minplayer.newtick )
             -- Merging the controls simply updates the player controls
             -- with what we recieved.
             -- We have to do that here so that we can accurately go back
             -- in time is all.
-            --self:mergeControls()
+            self:mergeControls()
             --self:simulate( minplayer.newtick )
-        --else
-            --self:mergeControls()
-        --end
+        else
+            --if love.mouse.isDown( "l" ) then
+                --self:unsimulate( self.tick - 5 )
+                --self:mergeControls()
+                --self:simulate( self.tick - 5 )
+            --else
+                self:mergeControls()
+            --end
+        end
 
         -- May have to skip a few snapshots to catch up
         while self.currenttime > self.updaterate do
@@ -235,16 +241,39 @@ function Network:unsimulate( snapshot )
         snapshot = self.backtick + 1
     end
     -- Go back backward in time
-    for i = self.tick, snapshot + 1, -1 do
+    --for i = self.tick, snapshot + 1, -1 do
         -- Gets the difference between the two snapshots
         -- if a is nil it returns a full snapshot to be used
         -- to recreate the world.
-        local diffshot = game.demosystem:getCheapDiff( self.snapshots[ i ], self.snapshots[ i - 1 ] )
+        --local diffshot = game.demosystem:getCheapDiff( self.snapshots[ i ], self.snapshots[ i - 1 ] )
+        --game.demosystem:applyDiff( diffshot )
+        --local time = self.snapshots[ i - 1 ].time - self.snapshots[i].time
+        --game.entities:update( -time, i-1 )
+        --game.physics:update( -time )
+        --while time < 0 do
+            --game.entities:update( -self.updaterate/1000, i-1 )
+            --time = time + self.updaterate/1000
+        --end
+    --end
+    -- Now that we're back in time enough, we make sure the world is
+    -- in the right position by just setting everything to the snapshot
+    if self.snapshots[ snapshot ] then
+        local time = self.snapshots[ self.tick ].time - self.snapshots[ snapshot ].time
+        game.entities:update( -time )
+        local diffshot = game.demosystem:getDiff( self.snapshots[ self.tick ], self.snapshots[ snapshot ] )
         game.demosystem:applyDiff( diffshot )
-        local time = self.snapshots[ i - 1 ].time - self.snapshots[i].time
-        while time < 0 do
-            game.entities:update( -self.updaterate/1000, i-1 )
-            time = time + self.updaterate/1000
+        for i,v in pairs( diffshot.entities ) do
+            local ent = game.demosystem.entities[ v.demoIndex ]
+            if ent then
+                for o,w in pairs( game.gamemode.entities[ ent.__name ].networkedvars ) do
+                    local val = v[w]
+                    -- Call the coorisponding function to set the
+                    -- value
+                    if val ~= nil then
+                        ent[ game.gamemode.entities[ ent.__name ].networkedfunctions[ o ] ]( ent, val )
+                    end
+                end
+            end
         end
     end
 end
@@ -253,23 +282,20 @@ function Network:simulate( snapshot )
     if snapshot < self.backtick + 1 then
         snapshot = self.backtick + 1
     end
-    local saveshot = self.snapshots[ snapshot ]
     for i = snapshot, self.tick - 1, 1 do
         -- Gets the difference between the two snapshots
         -- if a is nil it returns a full snapshot to be used
         -- to recreate the world.
-        local diffshot = game.demosystem:getCheapDiff( saveshot, self.snapshots[ i + 1 ] )
+        local diffshot = game.demosystem:getCheapDiff( self.snapshots[ i ], self.snapshots[ i + 1 ] )
         game.demosystem:applyDiff( diffshot )
-        local time = self.snapshots[ i + 1 ].time - saveshot.time
-        while time > 0 do
-            game.entities:update( self.updaterate/1000, i )
-            time = time - self.updaterate/1000
-        end
+        local time = self.snapshots[ i + 1 ].time - self.snapshots[ i ].time
+        --print( time )
+        --game.physics:update( time )
+        --game.entities:update( time, i )
+        game.physics:update( time )
+        game.entities:update( time, i )
         -- After we've updated, re-write the new snapshot over the old one
-        -- but keep the old one to remember if we created/removed anything
-        -- for the next frame
-        saveshot = self.snapshots[ i + 1 ]
-        self.snapshots[ i + 1 ] = game.demosystem:generateSnapshot( i + 1, self.snapshots[ i + 1 ].time )
+        self.snapshots[ i ] = game.demosystem:generateSnapshot( i, self.snapshots[ i ].time )
     end
 end
 
@@ -328,6 +354,9 @@ function Network.onLobbyReceive( data, id )
     if t.avatar then
         game.network.players[ id ].avatar = t.avatar
     end
+    if t.control and t.tick then
+        game.network:updateClient( id, t.control, t.tick )
+    end
 end
 
 function Network.onLobbyDisconnect( id )
@@ -343,7 +372,9 @@ end
 
 function Network.onGameReceive( data, id )
     local t = Tserial.unpack( data )
-    game.network:updateClient( id, t.control, t.tick )
+    if t.control and t.tick then
+        game.network:updateClient( id, t.control, t.tick )
+    end
 end
 
 function Network.onGameDisconnect( id )

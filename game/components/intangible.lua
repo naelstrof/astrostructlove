@@ -8,9 +8,17 @@ local update = function( e, dt )
     e.rotv = e.rotv + e.rota
     e.rota = 0
     e:setRot( e:getRot() + e.rotv * dt )
+    e.rotv = e.rotv * 0.99
     e.velocity = e.velocity + e.accel
+    e.velocity = e.velocity * 0.99
     e.accel = game.vector( 0, 0 )
     e:setPos( e:getPos() + e.velocity * dt )
+end
+
+local setLinearVelocity = function( e, t )
+end
+
+local setFixedRotation = function( e, b )
 end
 
 local getMass = function( body )
@@ -40,6 +48,8 @@ end
 local body = {
     getAngularVelocity = getAngularVelocity,
     getLinearVelocity = getLinearVelocity,
+    setLinearVelocity = setLinearVelocity,
+    setFixedRotation = setFixedRotation,
     getMass = getMass,
     applyForce = applyForce
 }

@@ -27,39 +27,16 @@ local update = function( e, dt, tick )
         e.body:applyForce( force.x, force.y )
         -- rotation
         e.body:applyForce( rotdir * e:getRotSpeed(), 0, e.pos.x, e.pos.y-32 )
-
-        -- position friction
-        local moveangle = game.vector( e.body:getLinearVelocity() ):normalized()
-        local normal = e.body:getMass() * game.physics.gravity
-        local ents = game.entities:getNearby( e:getPos(), 24 )
-        local frictioncoefficient
-        -- We want to keep ghosts from flying off into space
-        if e:hasComponent( compo.intangible ) then
-            frictioncoefficient = 0.8
-            -- FIXME: By making compo.intangible be less dumb
-            -- so we don't have to manually set values to abide by
-            -- my bad physics calculations
-            -- The only reason I override the normal value
-            -- is because applying force at an angle on compo.intangible
-            -- doesn't work the same way as applying force at an angle
-            -- on a compo.physical
-            normal = 90
-        else
-            frictioncoefficient = 0
-        end
-        -- FIXME: Maybe average the friction coefficients?
-        for i,v in pairs( ents ) do
-            if v:hasComponent( compo.floor ) then
-                frictioncoefficient = v.frictioncoefficient
-                break
-            end
-        end
-        local frictionforce = ( -moveangle * normal * frictioncoefficient )
-        e.body:applyForce( frictionforce.x, frictionforce.y )
-        -- rotation friction
-        e.body:applyForce( -e.body:getAngularVelocity() * (normal/4) * frictioncoefficient, 0, e.pos.x, e.pos.y-32 )
-        --e.body:setAngularDamping( 5 )
     end
+    e.velocity = game.vector( e.body:getLinearVelocity() )
+end
+
+local setVelocity = function( e, t )
+    if not t.x or not t.y then
+        error( "Cannot set velocity! Invalid arguments supplied." )
+    end
+    e.velocity = game.vector( t.x, t.y )
+    e.body:setLinearVelocity( t.x, t.y )
 end
 
 local setSpeed = function( e, speed )
@@ -92,6 +69,7 @@ local init = function( e )
         e.update = nil
         return
     end
+    --e.body:setFixedRotation( true )
 end
 
 local setPlayerID = function( e, id )
@@ -101,26 +79,23 @@ end
 local Controllable = {
     __name = "Controllable",
     speed = 256,
-    rotspeed = math.pi*4,
+    rotspeed = math.pi*8,
     velocity = game.vector( 0, 0 ),
     rotvelocity = 0,
     init = init,
     friction = 0.02,
     rotfriction = 0.02,
     playerid = 0,
-    --init = init,
-    --deinit = deinit,
     update = update,
     setActive = setActive,
-    setVel = setVel,
-    getVel = getVel,
+    setVelocity = setVelocity,
     setSpeed = setSpeed,
     getSpeed = getSpeed,
     setRotVel = setRotVel,
     getRotVel = getRotVel,
     setPlayerID = setPlayerID,
-    networkedvars = { "active", "playerid" },
-    networkedfunctions = { "setActive", "setPlayerID" },
+    networkedvars = { "active", "playerid", "velocity" },
+    networkedfunctions = { "setActive", "setPlayerID", "setVelocity" },
     setRotSpeed = setRotSpeed,
     getRotSpeed = getRotSpeed
 }

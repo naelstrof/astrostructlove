@@ -90,8 +90,8 @@ function Network:addPlayer( id, ent )
     local player = {}
     self.playerschanged = true
     if id == 0 then
-        player.name = Options.playername
-        player.avatar = Options.playeravatar
+        player.name = SystemOptions.playername
+        player.avatar = SystemOptions.playeravatar
         player.ping = 0
     end
     player.id = id

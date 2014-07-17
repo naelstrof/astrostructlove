@@ -2,13 +2,33 @@ local Options = {}
 
 function Options:enter()
     frame = loveframes.Create( "frame" ):SetName( "Options" ):Center():ShowCloseButton( false )
-    fullscreen = loveframes.Create( "checkbox", frame ):Center():SetText( "Fullscreen" )
+    
+    fullscreen = loveframes.Create( "checkbox", frame ):SetText( "Fullscreen" ):SetPos(200, 37)
+    setName = loveframes.Create( "textinput", frame ):SetPlaceholderText( "Enter Name" ):SetPos(10, 75)
+    setAvatar = loveframes.Create( "textinput", frame ):SetPlaceholderText( "Enter Avatar URL" ):SetPos(10, 105)
+    setNameButton = loveframes.Create( "button", frame ):SetText( "Set Name" ):SetPos(215, 75)
+    setAvatarButton = loveframes.Create( "button", frame ):SetText( "Set Avatar" ):SetPos(215, 105)
+    
     local width, height, flags = love.window.getMode()
     fullscreen:SetChecked( flags.fullscreen )
+    
     back = loveframes.Create( "button", frame ):SetText( "Back" ):SetPos( 10, 35 )
-    back.OnClick = function( object, x, y )
-        StateMachine.switch( State.menu )
+    back.OnClick = function()
+      StateMachine.switch( State.menu )
     end
+    
+    setNameButton.OnClick = function()
+      SystemOptions.options.playername = setName:GetText()
+     --print("Name: " .. SystemOptions["playername"])
+
+      SystemOptions:save()
+    end
+    
+    setAvatarButton.OnClick = function()
+      SystemOptions.options.playeravatar = setAvatar:GetText()
+      SystemOptions:save()
+    end
+      
 end
 
 function Options:leave()

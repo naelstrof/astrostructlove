@@ -25,4 +25,4 @@ local flashlight = {
     }
 }
 
-return flashlight
+return { flashlight }

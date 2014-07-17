@@ -9,4 +9,4 @@ local playerspawn = {
     attributes = { }
 }
 
-return playerspawn
+return { playerspawn }

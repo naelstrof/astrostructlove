@@ -13,4 +13,4 @@ floorlight = {
     }
 }
 
-return floorlight
+return { floorlight }

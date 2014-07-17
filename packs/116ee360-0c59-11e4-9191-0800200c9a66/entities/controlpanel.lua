@@ -15,4 +15,4 @@ local controlpanel = {
     }
 }
 
-return controlpanel
+return { controlpanel }

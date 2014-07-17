@@ -24,4 +24,4 @@ local lamp = {
     }
 }
 
-return lamp
+return { lamp }

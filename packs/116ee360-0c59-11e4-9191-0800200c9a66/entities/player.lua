@@ -20,4 +20,4 @@ local player = {
     }
 }
 
-return player
+return { player }

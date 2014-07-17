@@ -14,4 +14,4 @@ local metalwall = {
     }
 }
 
-return metalwall
+return { metalwall }

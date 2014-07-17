@@ -11,4 +11,4 @@ local ghost = {
     attributes = {}
 }
 
-return ghost
+return { ghost }

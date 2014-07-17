@@ -11,4 +11,4 @@ local star= {
     }
 }
 
-return star
+return { star }

@@ -10,4 +10,4 @@ local starfield = {
     attributes = {}
 }
 
-return starfield
+return { starfield }

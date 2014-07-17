@@ -12,4 +12,4 @@ metalfloor = {
     }
 }
 
-return metalfloor
+return { metalfloor }

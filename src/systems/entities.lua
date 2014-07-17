@@ -6,14 +6,16 @@ function Entities:load( dir, packlocation )
         local s = string.find( v, "%.lua" )
         local str = string.sub( v, 0, s - 1 )
         PackLocation = packlocation
-        local entity = require( dir .. str )
-        if not entity.__name then
-            print( "Failed to load entity " .. dir .. v .. " __name not supplied" )
-        else
-            if self.entities[ entity.__name ] ~= nil then
-                print( "Overriden entity " .. entity.__name .. " with " .. v )
+        local ents = require( dir .. str )
+        for o,ent in pairs( ents ) do
+            if not ent.__name then
+                print( "Failed to load entity " .. dir .. v .. " __name not supplied" )
+            else
+                if self.entities[ ent.__name ] ~= nil then
+                    print( "Overriden entity " .. ent.__name .. " with " .. v )
+                end
+                self.entities[ ent.__name ] = ent
             end
-            self.entities[ entity.__name ] = entity
         end
     end
     self:generateNetworkInfo()

@@ -16,7 +16,6 @@ end
 
 function Singleplayer:update( dt )
     BindSystem:update( dt )
-    Physics:update( dt )
     World:update( dt )
     DemoSystem:update( dt )
     loveframes.update( dt )

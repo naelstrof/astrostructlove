@@ -1,69 +1,88 @@
-local init = function( e, dt )
-    e.body.ent = e
-    e.velocity = Vector( e.velocity.x, e.velocity.y )
-    e.accel = Vector( e.accel.x, e.accel.y )
-end
-
 local update = function( e, dt )
-    e.rotv = e.rotv + e.rota
-    e.rota = 0
-    e:setRot( e:getRot() + e.rotv * dt )
-    e.rotv = e.rotv * 0.99
-    e.velocity = e.velocity + e.accel
-    e.velocity = e.velocity * 0.99
-    e.accel = Vector( 0, 0 )
-    e:setPos( e:getPos() + e.velocity * dt )
-end
-
-local setLinearVelocity = function( e, t )
-end
-
-local setFixedRotation = function( e, b )
-end
-
-local getMass = function( body )
-    return body.ent.mass
-end
-
-local getLinearVelocity = function( body )
-    return body.ent.velocity.x, body.ent.velocity.y
-end
-
-local getAngularVelocity = function( body )
-    return body.ent.rotv
-end
-
-local applyForce = function( body, fx, fy, x, y )
-    -- FIXME: I'm just trying to copy the love.physics.body api
-    -- but I was too lazy to do it "right"
-    -- If a y is supplied it just rotates everything based on fx
-    if x or y then
-        body.ent.rota = body.ent.rota + ( fx / body.ent.mass )
+    if e.sleeping then
         return
     end
-    body.ent.accel = body.ent.accel + ( Vector( fx, fy ) / body.ent.mass )
+    -- Gravity force
+    local gravity = e.mass * e.gravity
+    -- Normal and Friction force
+    local normal
+    local friction
+    if e.height <= 0 then
+        normal = -gravity
+        -- Try to find some floors
+        -- Default friction coefficient is 8 for intangibles
+        local frictioncoefficient = 8
+        local ents = World:getNearby( e:getPos(), 24 )
+        for i,v in pairs( ents ) do
+            if v:hasComponent( Components.floor ) then
+                frictioncoefficient = v.frictioncoefficient
+                -- If we found a floor, make sure we didn't fall through it
+                e.height = 0
+                break
+            end
+        end
+        -- Friction = μ*Normal force
+        friction = normal * frictioncoefficient
+    else
+        normal = 0
+        friction = 0
+    end
+    -- Friction applied in opposite movement direction
+    e:applyForce( e.velocity:normalized() * friction )
+    -- a = F/m
+    e.accel = e.forces / e.mass
+    e.haccel = e.hforces + ( gravity + normal ) / e.mass
+
+    e.velocity = e.velocity + e.accel * dt
+    e.hvelocity = e.hvelocity + e.haccel * dt
+
+    -- Enforce max velocity
+    if e.velocity:len() > e.maxvelocity then
+        e.velocity = e.velocity:normalized() * e.maxvelocity
+    end
+
+    e:setPos( e:getPos() + e.velocity * dt )
+    e.height = e.height + e.hvelocity * dt
+    -- Reset any forces already applied
+    e.forces = Vector( 0, 0 )
 end
 
--- Simulate physical's attributes
-local body = {
-    getAngularVelocity = getAngularVelocity,
-    getLinearVelocity = getLinearVelocity,
-    setLinearVelocity = setLinearVelocity,
-    setFixedRotation = setFixedRotation,
-    getMass = getMass,
-    applyForce = applyForce
-}
+local applyForce = function( e, f, h )
+    e.sleeping = false
+    e.forces = e.forces + f
+    h = h or 0
+    e.hforces = e.hforces + h
+end
+
+local setVelocity = function( e, v )
+    if not v.x and not v.y then
+        error( "Wrong parameter supplied!" )
+    end
+    e.velocity = v
+end
 
 local Intangible = {
     __name = "Intangible",
-    rota = 0,
-    rotv = 0,
+    -- Units per second
+    maxvelocity = 356,
+    static = true,
+    shape = nil,
     mass = 70,
-    accel = Vector( 0, 0 ),
+    height = 0,
+    hforces = 0,
+    haccel = 0,
     velocity = Vector( 0, 0 ),
-    init = init,
-    body = body,
-    update = update
+    hvelocity = 0,
+    accel = Vector( 0, 0 ),
+    gravity = 9.81,
+    forces = Vector( 0, 0 ),
+    sleeping = true,
+    update = update,
+    setVelocity = setVelocity,
+    applyForce = applyForce,
+    networkinfo = {
+        setVelocity = "velocity"
+    }
 }
 
 return Intangible

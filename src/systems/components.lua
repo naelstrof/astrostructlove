@@ -7,8 +7,10 @@ function Components:load( dir, packlocation )
         local str = string.sub( v, 0, s - 1 )
         PackLocation = packlocation
         local component = require( dir .. str )
-        if not component.__name then
-            print( "Failed to load component " .. dir .. v .. " __name not supplied" )
+        if type( component ) == "boolean" then
+            error( "Failed to load component " .. dir .. v .. " nothing was returned!" )
+        elseif not component.__name then
+            error( "Failed to load component " .. dir .. v .. " __name not supplied" )
         else
             if self[ str ] ~= nil then
                 print( "Overriden component " .. component.__name .. " with " .. v )

@@ -74,7 +74,7 @@ end
 
 local update = function( e, dt )
     -- Eject items that we can't hold!
-    while e.mass * Physics.gravity > e.maxweight and e.items[ 1 ] ~= nil do
+    while e.mass * e.gravity > e.maxweight and e.items[ 1 ] ~= nil do
         e:ejectItem( 1 )
     end
 end
@@ -95,6 +95,7 @@ local Container = {
     maxweight = 30,
     masscontained = 0,
     basemass = 0.1,
+    gravity = 9.81,
     mass = basemass,
     getItems = getItems,
     setItems = setItems,

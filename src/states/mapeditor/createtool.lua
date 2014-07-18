@@ -95,8 +95,7 @@ function CreateTool:mousepressed( x, y, button )
             self.highlighter:remove()
             self.highlighter = nil
         end
-        self.placer = Entity:new( self.selectedentity )
-        self.placer:setPos( Vector( x, y ) )
+        self.placer = Entity:new( self.selectedentity, { pos=Vector( x, y ) } )
     end
 end
 

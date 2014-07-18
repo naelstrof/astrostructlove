@@ -1,68 +1,88 @@
-local setPos = function( e, t, byme )
-    -- We need to know if we called the set position
-    -- Given that setPos is chained through all the other components
-    -- Knowing if the user set the position will move the physical object
-    -- Otherwise if we're calling it, we're just trying to move the
-    -- entire entity instead
-    if not byme then
-        e.body:setPosition( t.x, t.y )
-    end
-end
-
-local setRot = function( e, rot, byme )
-    if not byme then
-        e.body:setAngle( rot )
-    end
-end
-
 local update = function( e, dt )
-    local x, y = e.body:getPosition()
-    e:setPos( { x=x, y=y }, true )
-    e:setRot( e.body:getAngle(), true )
-end
-
-local init = function( e )
-    if not e.body then
-        if e.static then
-            e.body = love.physics.newBody( Physics.world, e.pos.x, e.pos.y )
-        else
-            e.body = love.physics.newBody( Physics.world, e.pos.x, e.pos.y, "dynamic" )
+    if e.sleeping then
+        return
+    end
+    -- Gravity force
+    local gravity = e.mass * e.gravity
+    -- Normal and Friction force
+    local normal
+    local friction
+    if e.height <= 0 then
+        normal = -gravity
+        -- Try to find some floors
+        -- Default friction coefficient is 0
+        local frictioncoefficient = 0
+        local ents = World:getNearby( e:getPos(), 24 )
+        for i,v in pairs( ents ) do
+            if v:hasComponent( Components.floor ) then
+                frictioncoefficient = v.frictioncoefficient
+                -- If we found a floor, make sure we didn't fall through it
+                e.height = 0
+                break
+            end
         end
-        e.body:setMass( e.mass )
+        -- Friction = μ*Normal force
+        friction = normal * frictioncoefficient
+    else
+        normal = 0
+        friction = 0
     end
-    if not e.shape and e:hasComponent( Components.drawable ) then
-        e.shape = love.physics.newRectangleShape( e.drawable:getWidth(), e.drawable:getHeight() )
-    elseif not e.shape then
-        e.shape = love.physics.newRectangleShape( 64, 64 )
+    -- Friction applied in opposite movement direction
+    e:applyForce( e.velocity:normalized() * friction )
+    -- a = F/m
+    e.accel = e.forces / e.mass
+    e.haccel = e.hforces + ( gravity + normal ) / e.mass
+
+    e.velocity = e.velocity + e.accel * dt
+    e.hvelocity = e.hvelocity + e.haccel * dt
+
+    -- Enforce max velocity
+    if e.velocity:len() > e.maxvelocity then
+        e.velocity = e.velocity:normalized() * e.maxvelocity
     end
-    if not e.fixture then
-        e.fixture = love.physics.newFixture( e.body, e.shape )
-    end
-    if e.friction then
-        local t = love.physics.newFrictionJoint( Physics.surface, e.body, e.pos.x, e.pos.y, false )
-        t:setMaxForce( e.body:getMass() * e.maxforce )
-        t:setMaxTorque( e.body:getInertia() * e.maxtorque )
-    end
+
+    e:setPos( e:getPos() + e.velocity * dt )
+    e.height = e.height + e.hvelocity * dt
+    -- Reset any forces already applied
+    e.forces = Vector( 0, 0 )
 end
 
-local deinit = function( e )
+local applyForce = function( e, f, h )
+    e.sleeping = false
+    e.forces = e.forces + f
+    h = h or 0
+    e.hforces = e.hforces + h
+end
+
+local setVelocity = function( e, v )
+    if not v.x and not v.y then
+        error( "Wrong parameter supplied!" )
+    end
+    e.velocity = v
 end
 
 local Physical = {
     __name = "Physical",
-    body = nil,
-    maxforce = 256,
-    maxtorque = 5,
+    -- Units per second
+    maxvelocity = 356,
     static = true,
-    friction = true,
     shape = nil,
-    fixture = nil,
     mass = 70,
+    height = 0,
+    hforces = 0,
+    haccel = 0,
+    velocity = Vector( 0, 0 ),
+    hvelocity = 0,
+    accel = Vector( 0, 0 ),
+    gravity = 9.81,
+    forces = Vector( 0, 0 ),
+    sleeping = true,
     update = update,
-    init = init,
-    deinit = deinit,
-    setPos = setPos,
-    setRot = setRot,
+    setVelocity = setVelocity,
+    applyForce = applyForce,
+    networkinfo = {
+        setVelocity = "velocity"
+    }
 }
 
 return Physical

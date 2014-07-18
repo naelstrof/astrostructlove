@@ -5,19 +5,14 @@ local getShadowVolume = function( e, lightpos, lightradius )
     local volumeverticies = {}
     local max = table.maxn( e.shadowmesh )
     -- Get a list of backfaces
-    for i=1, max, 1 do
-        local v1 = e:getPos() + e.shadowmesh[i]:rotated( e:getRot() )
-        -- Shadow meshes are closed loops, so the modulus is nesessary
-        local t = i+1
-        if t > max then
-            t = 1
-        end
-        local v2 = e:getPos() + e.shadowmesh[t]:rotated( e:getRot() )
+    for i,v in pairs( e.shadowmesh ) do
+        local v1 = e:getPos() + v[1]:rotated( e:getRot() )
+        local v2 = e:getPos() + v[2]:rotated( e:getRot() )
 
         -- The dot product of the face's normal with the vector
         -- from the face to the light distiguishes if the face is
         -- facing the light.
-        local facenormal = v1:angleTo( v2 ) - math.pi/2
+        local facenormal = v2:angleTo( v1 ) - math.pi/2
         local facecenter = ( v1 + v2 ) / 2
         local facetolight = lightpos - facecenter
 
@@ -48,6 +43,7 @@ local setRot = function( e, rot )
     Renderer:updateLights()
 end
 
+-- UNUSED
 local setDrawable = function( e, obj )
     local w = obj:getWidth() / 2
     local h = obj:getHeight() / 2
@@ -64,10 +60,10 @@ local init = function( e )
         local w = e.drawable:getWidth() / 2
         local h = e.drawable:getHeight() / 2
         e.shadowmesh = {
-            Vector( -w, -h ),
-            Vector( -w, h ),
-            Vector( w, h ),
-            Vector( w, -h )
+            { Vector( -w, -h ), Vector( w, -h ) },
+            { Vector( w, -h ), Vector( w, h ) },
+            { Vector( w, h ), Vector( -w, h ) },
+            { Vector( -w, h ), Vector( -w, -h ) }
         }
     end
     Renderer:updateLights()
@@ -88,7 +84,7 @@ local BlocksLight = {
     --},
     init = init,
     deinit = deinit,
-    setDrawable = setDrawable,
+    --setDrawable = setDrawable,
     setPos = setPos,
     setRot = setRot,
     getShadowVolume = getShadowVolume

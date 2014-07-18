@@ -7,6 +7,9 @@ function Entities:load( dir, packlocation )
         local str = string.sub( v, 0, s - 1 )
         PackLocation = packlocation
         local ents = require( dir .. str )
+        if type( ents ) == "boolean" then
+            error( "Failed to load entities " .. dir .. v .. " nothing was returned!" )
+        end
         for o,ent in pairs( ents ) do
             if not ent.__name then
                 print( "Failed to load entity " .. dir .. v .. " __name not supplied" )

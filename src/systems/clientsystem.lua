@@ -11,7 +11,8 @@ local ClientSystem = {
     newesttick = 0,
     id = nil,
     player = nil,
-    predictionfixspeed = 8,
+    playerpos = Vector( 0, 0 ),
+    predictionfixspeed = 2,
     delay = 50/1000,
     client = nil,
     snapshots = {}
@@ -75,6 +76,13 @@ function ClientSystem:update( dt )
     if not self.running then
         return
     end
+    -- Use a light spring to fix prediction errors
+    if self.player ~= nil and self.playerpos ~= nil then
+        local diff = self.playerpos - self.player:getPos()
+        diff:normalize_inplace()
+        local dist = self.player:getPos():dist( self.playerpos )
+        self.player:setPos( self.player:getPos() + diff * dist * dt * self.predictionfixspeed )
+    end
     World:update( dt, self.tick )
     self.time = self.time + dt
 
@@ -93,7 +101,7 @@ function ClientSystem:update( dt )
         end
         -- If we couldn't find a snapshot, we need to extrapolate
         if self.nextshot == nil then
-            local x = ( ( self.time - self.prevshot.time + self.delay ) * 1000 / 30 ) + 1
+            local x = ( ( self.time - self.prevshot.time + self.delay ) * 1000 / 50 ) + 1
             -- Interpolate with a x > 1 makes it extrapolate
             self.interpolate( self.lastshot, self.prevshot, x )
             return
@@ -110,7 +118,7 @@ function ClientSystem:update( dt )
     if self.time > self.nextshot.time + self.delay then
         -- Here we send our current controls to the server
         local t = {}
-        t.tick = self.newesttick
+        t.tick = self.newesttick - 1
         t.control = BindSystem.getControls()
         self.client:send( Tserial.pack( t ) )
         self.tick = self.nextshot.tick
@@ -138,6 +146,14 @@ function ClientSystem.interpolate( prevshot, nextshot, x )
     for i,v in pairs( DemoSystem.entities ) do
         local pent = prevshot.entities[ v.demoIndex ]
         local fent = nextshot.entities[ v.demoIndex ]
+        -- We do NOT extrapolate/interpolate our player
+        -- Since it's so important to have it be responsive
+        -- as well as smooth, we use a light spring instead to fix
+        -- prediction errors
+        if v.playerid == ClientSystem.id and fent ~= nil and fent.pos ~= nil then
+            ClientSystem.playerpos = Vector( fent.pos.x, fent.pos.y )
+            return
+        end
         -- Since everything is delta-compressed, only a nil future entity
         -- would indicate that the entity didn't change.
         -- So we're going to have to fill in the past entity snapshot

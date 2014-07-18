@@ -4,15 +4,14 @@ local CreateTool = {
     selectedentity=nil,
     highlighter=nil,
     placer=nil,
-    paintmode=false,
     oldpos=nil,
-    painting=false,
     posmem = nil,
     -- Max distance between the placer and the mouse before it starts rotating.
     maxdist=15
 }
 
 function CreateTool:init()
+    self.selectedentity = nil
     self.frame = loveframes.Create( "frame" )
     if not self.widthmem and not self.heightmem then
         self.frame:SetWidth( 312 )

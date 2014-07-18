@@ -1,18 +1,16 @@
 local PaintTool = {
     __name = "Paint",
-    __desc = "Left click to create selected entity, left click and drag to create and rotate.",
+    __desc = "Left click and hold to \"Paint\" an entity. Best when used with the grid enabled.",
     selectedentity=nil,
     highlighter=nil,
     placer=nil,
-    oldpos=nil,
     painting=false,
     posmem = nil,
-    lastpos = nil,
-    -- Max distance between the placer and the mouse before it starts rotating.
-    maxdist=15
+    lastpos = nil
 }
 
 function PaintTool:init()
+    self.selectedentity = nil
     self.frame = loveframes.Create( "frame" )
     if not self.widthmem and not self.heightmem then
         self.frame:SetWidth( 312 )

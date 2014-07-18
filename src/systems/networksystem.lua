@@ -99,7 +99,7 @@ function Network:addPlayer( id, ent )
     player.snapshots = {}
     player.newsnapshots = {}
     player.tick = 0
-    player.newtick = 0
+    player.newtick = nil
     self.playercount = self.playercount + 1
     self.players[ id ] = player
     -- When a player connects, we immediately send over
@@ -122,8 +122,10 @@ function Network:removePlayer( id )
 end
 
 function Network:updateClient( id, controls, tick )
-    self.players[ id ].newsnapshots[ tick + 1 ] = controls
-    self.players[ id ].newtick = tick + 1
+    self.players[ id ].newsnapshots[ tick ] = controls
+    if not self.players[ id ].newtick or self.players[ id ].newtick > tick + 1 then
+        self.players[ id ].newtick = tick
+    end
     --self.players[ id ].snapshots[ tick ] = controls
     --self.players[ id ].tick = tick
 end
@@ -142,7 +144,6 @@ function Network:mergeControls()
         for o,w in pairs( v.newsnapshots ) do
             v.snapshots[ o ] = w
         end
-        v.tick = v.newtick
         v.newsnapshots = {}
     end
     -- Here we also purge unneeded snapshots
@@ -173,26 +174,27 @@ function Network:update( dt )
 
         -- Update pings
         -- We find which player is furthest behind
-        local minplayer = nil
+        local mintick = nil
         for i,v in pairs( self.players ) do
-            if minplayer == nil or v.newtick < minplayer.newtick then
-                minplayer = v
+            if mintick == nil or ( v.newtick ~= nil and mintick > v.newtick ) then
+                mintick = v.newtick
             end
             -- Oh and update everyone's ping :)
-            if v.id ~= 0 then
+            if v.id ~= 0 and v.newtick then
                 v.ping = math.floor( ( self.tick - v.newtick ) * 15 )
             end
+            v.newtick = nil
         end
         -- Then we go back in time and resimulate everything from where
         -- we last recieved an input from that player
-        if minplayer.newtick ~= self.tick and minplayer.newtick ~= nil then
-            self:unsimulate( minplayer.newtick )
+        if mintick ~= self.tick and mintick ~= nil then
+            self:unsimulate( mintick )
             -- Merging the controls simply updates the player controls
             -- with what we recieved.
             -- We have to do that here so that we can accurately go back
             -- in time is all.
             self:mergeControls()
-            self:simulate( minplayer.newtick )
+            self:simulate( mintick )
         else
             --if love.mouse.isDown( "m" ) then
                 --self:unsimulate( self.tick - 10 )

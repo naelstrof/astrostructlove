@@ -36,7 +36,7 @@ end
 
 function ListenServer:update( dt )
     BindSystem:update( dt )
-    Network:updateClient( 0, BindSystem.getControls(), Network:getTick() )
+    Network:updateClient( 0, BindSystem.getControls(), Network:getTick() + 1 )
     -- World:update( dt, Network:getTick() )
     DemoSystem:update( dt )
     Network:update( dt )

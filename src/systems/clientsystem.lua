@@ -12,7 +12,7 @@ local ClientSystem = {
     id = nil,
     player = nil,
     predictionfixspeed = 8,
-    delay = 100/1000,
+    delay = 50/1000,
     client = nil,
     snapshots = {}
 }

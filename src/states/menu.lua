@@ -88,6 +88,8 @@ function Menu:createJoinBox()
     button.OnClick = function( object, x, y )
         local text = object.txt:GetText()
         local ip, port = text:match("^(.-):(%d+)$")
+        State.clientlobby.ip = ip
+        State.clientlobby.port = tonumber( port )
         State.client.ip = ip
         State.client.port = tonumber( port )
         StateMachine.switch( State.clientlobby )

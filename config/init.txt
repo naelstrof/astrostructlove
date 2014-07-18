@@ -1,4 +1,5 @@
 {
+    fullscreen = false,
     playeravatar = "http://bestuff.com/images/images_of_stuff/64x64crop/big-brother-is-watching-you-76977.jpg?1183727854",
     playername = "Winston Smith"
 }

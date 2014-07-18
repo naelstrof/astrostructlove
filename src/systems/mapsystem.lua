@@ -20,6 +20,9 @@ function MapSystem:load( filename )
             -- Call the coorisponding function to set the
             -- value
             if val ~= nil then
+                if ent[ o ] == nil then
+                    error( "Malformed networkinfo on entity " .. ent.__name .. "! Function " .. o .. " does not exist" )
+                end
                 ent[ o ]( ent, val )
             end
         end

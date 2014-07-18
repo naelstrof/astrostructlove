@@ -1,6 +1,6 @@
-local SystemOptions = { options = {} }
+local OptionSystem = { options = {} }
 
-function SystemOptions:load()
+function OptionSystem:load()
     -- TODO: error checking
     local data = love.filesystem.read( "config/init.txt" )
     if not data then
@@ -13,9 +13,33 @@ function SystemOptions:load()
     for i,v in pairs( t ) do
         self.options[i] = v
     end
+    for i,v in pairs( self.options ) do
+        self:interpret( i, v )
+    end
 end
 
-function SystemOptions:save()
+-- To the best of our abilities, interpret the options given.
+function OptionSystem:interpret( i, v )
+    -- Fullscreen option
+    if i == "fullscreen" then
+        if type( v ) ~= "boolean" then
+            error( "Fullscreen option must be a boolean!" )
+        end
+        local width, height, flags = love.window.getMode()
+        if flags.fullscreen ~= v then
+            flags.fullscreen = v
+            flags.fullscreentype = "desktop"
+            love.window.setMode( width, height, flags )
+        end
+    end
+end
+
+function OptionSystem:setOption( i, v )
+    self.options[ i ] = v
+    self:interpret( i, v )
+end
+
+function OptionSystem:save()
     love.filesystem.createDirectory( "config" )
     -- We have to avoid copying __index
     local copy = {}
@@ -31,4 +55,4 @@ function SystemOptions:save()
     love.filesystem.write( "config/init.txt" , Tserial.pack( copy, nil, true ) )
 end
 
-return SystemOptions
+return OptionSystem

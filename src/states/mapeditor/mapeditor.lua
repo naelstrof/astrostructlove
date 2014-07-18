@@ -8,6 +8,7 @@ MapEditor.currenttool = nil
 MapEditor.tools = {
     require( "src/states/mapeditor/nonetool" ),
     require( "src/states/mapeditor/createtool" ),
+    require( "src/states/mapeditor/painttool" ),
     require( "src/states/mapeditor/deletetool" )
 }
 
@@ -73,7 +74,7 @@ end
 function MapEditor:mousepressed( x, y, button )
     local mousepos = self.grid:getMouse()
     -- Only use tools when we're not clicking on loveframe elements
-    if table.getn( loveframes.util.GetCollisions() ) <= 1 then
+    if #loveframes.util.GetCollisions() <= 1 then
         if self.currenttool ~= nil then
             self.currenttool:mousepressed( mousepos.x, mousepos.y, button )
         end
@@ -97,6 +98,9 @@ end
 function MapEditor:keypressed( key, unicode )
     if key == "f" then
         Renderer:toggleFullbright()
+    end
+    if key == "escape" then
+        self:setTool( self.tools[ 1 ] )
     end
     loveframes.keypressed( key, unicode )
 end

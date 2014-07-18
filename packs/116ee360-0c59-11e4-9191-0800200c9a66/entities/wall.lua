@@ -6,12 +6,16 @@ local wall = {
 		Components.physical,
 		Components.networked,
 		Components.default,
+        -- wall HAS to come after default, since default spawns the wall
+        -- into the world. Which lets nearby walls update their textures
+        -- and shadowmeshs.
         Components.wall
 	},
 	image = PackLocation .. "textures/walltileLRUD.png",
 	attributes = {
 		drawable = love.graphics.newImage( PackLocation .. "textures/walltileLRUD.png" ),
         drawablelookup = {
+            None = love.graphics.newImage( PackLocation .. "textures/walltileLRUD.png" ),
             L = love.graphics.newImage( PackLocation .. "textures/walltileLR.png" ),
             LD = love.graphics.newImage( PackLocation .. "textures/walltileLD.png" ),
             R = love.graphics.newImage( PackLocation .. "textures/walltileLR.png" ),

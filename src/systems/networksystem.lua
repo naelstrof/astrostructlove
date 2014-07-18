@@ -90,8 +90,8 @@ function Network:addPlayer( id, ent )
     local player = {}
     self.playerschanged = true
     if id == 0 then
-        player.name = SystemOptions.playername
-        player.avatar = SystemOptions.playeravatar
+        player.name = OptionSystem.options.playername
+        player.avatar = OptionSystem.options.playeravatar
         player.ping = 0
     end
     player.id = id
@@ -162,7 +162,6 @@ function Network:update( dt )
     end
     self.totaltime = self.totaltime + dt
     self.currenttime = self.currenttime + dt*1000
-    Physics:update( dt )
     World:update( dt, self.tick )
     if self.currenttime > self.updaterate then
 
@@ -249,7 +248,6 @@ function Network:unsimulate( snapshot )
         --DemoSystem:applyDiff( diffshot )
         --local time = self.snapshots[ i - 1 ].time - self.snapshots[i].time
         --World:update( -time, i-1 )
-        --Physics:update( -time )
         --while time < 0 do
             --World:update( -self.updaterate/1000, i-1 )
             --time = time + self.updaterate/1000
@@ -290,9 +288,7 @@ function Network:simulate( snapshot )
         DemoSystem:applyDiff( diffshot )
         local time = self.snapshots[ i + 1 ].time - self.snapshots[ i ].time
         --print( time )
-        --Physics:update( time )
         --World:update( time, i )
-        Physics:update( time )
         World:update( time, i )
         -- After we've updated, re-write the new snapshot over the old one
         self.snapshots[ i ] = DemoSystem:generateSnapshot( i, self.snapshots[ i ].time )

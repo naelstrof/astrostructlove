@@ -1,40 +1,86 @@
 local Options = {}
 
 function Options:enter()
-    frame = loveframes.Create( "frame" ):SetName( "Options" ):Center():ShowCloseButton( false )
-    
-    fullscreen = loveframes.Create( "checkbox", frame ):SetText( "Fullscreen" ):SetPos(200, 37)
-    setName = loveframes.Create( "textinput", frame ):SetPlaceholderText( "Enter Name" ):SetPos(10, 75)
-    setAvatar = loveframes.Create( "textinput", frame ):SetPlaceholderText( "Enter Avatar URL" ):SetPos(10, 105)
-    setNameButton = loveframes.Create( "button", frame ):SetText( "Set Name" ):SetPos(215, 75)
-    setAvatarButton = loveframes.Create( "button", frame ):SetText( "Set Avatar" ):SetPos(215, 105)
-    
-    local width, height, flags = love.window.getMode()
-    fullscreen:SetChecked( flags.fullscreen )
-    
-    back = loveframes.Create( "button", frame ):SetText( "Back" ):SetPos( 10, 35 )
-    back.OnClick = function()
-      StateMachine.switch( State.menu )
-    end
-    
-    setNameButton.OnClick = function()
-      SystemOptions.options.playername = setName:GetText()
-     --print("Name: " .. SystemOptions["playername"])
+    self.frame = loveframes.Create( "frame" )
+    self.frame:SetName( "Options" )
+    self.frame:SetWidth( 512 )
+    self.frame:SetHeight( 512 )
+    self.frame:Center()
+    self.frame:ShowCloseButton( false )
 
-      SystemOptions:save()
+    local column1 = loveframes.Create( "text", self.frame )
+    column1:SetText( "Option Name" )
+    column1:SetPos( 15, 40 )
+
+    local column2 = loveframes.Create( "text", self.frame )
+    column2:SetText( "Option Value" )
+    column2:SetPos( 512-column2:GetWidth()-15, 40 )
+
+    local middle = loveframes.Create( "text", self.frame )
+    middle:SetText( "Edit options to your liking" )
+    middle:SetPos( 256-middle:GetWidth()/2, 40 )
+
+    local list = loveframes.Create( "list", self.frame )
+    list:SetSize( 512-10, 512-103 )
+    list:SetPos( 5, 68 )
+    list:SetPadding( 5 )
+    list:SetSpacing( 5 )
+
+    for i,v in pairs( OptionSystem.options ) do
+        local t = type( v )
+        local panel = loveframes.Create( "panel", list )
+        panel:SetSize( 512-10-5, 40 )
+        local text = loveframes.Create( "text", panel )
+        text:SetPos( 5, 13 )
+        text:SetText( tostring( i ) )
+        if t == "string" then
+            local edit = loveframes.Create( "textinput", panel )
+            edit:SetWidth( 356 )
+            edit:SetPos( 512-10-10-edit:GetWidth()-5, 7 )
+            edit:SetText( v )
+            edit.index = i
+            edit.OnEnter = function( object, text )
+                OptionSystem:setOption( object.index, object:GetText() )
+            end
+            edit.OnFocusLost = function( object )
+                OptionSystem:setOption( object.index, object:GetText() )
+            end
+            edit.OnFocusGained = function( object )
+                object:SelectAll()
+            end
+        elseif t == "boolean" then
+            local edit = loveframes.Create( "checkbox", panel )
+            edit:SetChecked( v )
+            edit:SetPos( 512-40-edit:GetWidth()-5, 10 )
+            edit.index = i
+            edit.OnChanged = function( object, checked )
+                OptionSystem:setOption( object.index, checked )
+            end
+        end
+        list:AddItem( panel )
     end
-    
-    setAvatarButton.OnClick = function()
-      SystemOptions.options.playeravatar = setAvatar:GetText()
-      SystemOptions:save()
+
+    local cancel = loveframes.Create( "button", self.frame )
+    cancel:SetText( "Cancel" )
+    cancel:SetPos( 5, 512 - 30 )
+    cancel.OnClick = function( object, x, y )
+        --We have to reset everything if we canceled
+        OptionSystem:load()
+        StateMachine.switch( State.menu )
     end
-      
+
+    local save = loveframes.Create( "button", self.frame )
+    save:SetText( "Save and Exit" )
+    save:SetPos( 512 - save:GetWidth() - 5, 512 - 30 )
+    save.OnClick = function( object, x, y )
+        OptionSystem:save()
+        StateMachine.switch( State.menu )
+    end
+
 end
 
 function Options:leave()
-    frame:Remove()
-    fullscreen:Remove()
-    back:Remove()
+    loveframes.util:RemoveAll()
 end
 
 function Options:draw()
@@ -43,13 +89,6 @@ end
 
 function Options:update( dt )
     loveframes.update( dt )
-    local checked = fullscreen:GetChecked()
-    local width, height, flags = love.window.getMode()
-    if flags.fullscreen ~= checked then
-        flags.fullscreen = checked
-        flags.fullscreentype = "desktop"
-        love.window.setMode( width, height, flags )
-    end
 end
 
 function Options:mousepressed( x, y, button )
@@ -73,7 +112,7 @@ function Options:textinput( text )
 end
 
 function Options:resize( w, h )
-    frame:Center()
+    self.frame:Center()
 end
 
 return Options

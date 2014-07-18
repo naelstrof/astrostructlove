@@ -41,7 +41,7 @@ local updateWallConfig = function( e, safe )
         end
     end
     if e.wallconfig == "" then
-        e.wallconfig = "LRUD"
+        e.wallconfig = "None"
     end
     e.drawable = e.drawablelookup[ e.wallconfig ]
     e.shadowmesh = e.shadowmeshlookup[ e.wallconfig ]
@@ -49,11 +49,21 @@ end
 
 local setWallConfig = function( e, conf )
     e.wallconfig = conf
+    e.drawable = e.drawablelookup[ e.wallconfig ]
+    e.shadowmesh = e.shadowmeshlookup[ e.wallconfig ]
 end
 
 local init = function( e )
     if not e:hasComponent( Components.drawable ) or not e:hasComponent( Components.blockslight ) then
         error( "An entity containing the wall component MUST contain the drawable and blockslight component as well!" )
+    end
+    for i,v in pairs( e.components ) do
+        if v == Components.default then
+            break
+        end
+        if v == Components.wall then
+            error( "The wall component must be included after the default component! This is so that the wall can exist within the world before it updates other nearby walls." )
+        end
     end
     if e.wallconfig == "" then
         e:updateWallConfig()
@@ -66,10 +76,12 @@ local Wall = {
     -- We network over the wall configuration, but just so that
     -- loading the map isn't as processor intensive
     -- Since it hardly ever changes it should hardly ever be networked
+    setWallConfig = setWallConfig,
     networkinfo = {
         setWallConfig = "wallconfig"
     },
     drawablelookup = {
+        None = love.graphics.newImage( PackLocation .. "textures/null.png" ),
         L = love.graphics.newImage( PackLocation .. "textures/null.png" ),
         LD = love.graphics.newImage( PackLocation .. "textures/null.png" ),
         R = love.graphics.newImage( PackLocation .. "textures/null.png" ),
@@ -92,6 +104,20 @@ local Wall = {
     -- and indicates where walls would touch if they're touching so
     -- that specific faces can be removed.
     shadowmeshlookup = {
+        None = {
+            { Vector( -32, -8 ), Vector( -8, -8 ) },
+            { Vector( -8, -8 ), Vector( -8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( 8, -32 ), Vector( 8, -8 ) },
+            { Vector( 8, -8 ), Vector( 32, -8 ) },
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, 8 ), Vector( 8, 8 ) },
+            { Vector( 8, 8 ), Vector( 8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( -8, 32 ), Vector( -8, 8 ) },
+            { Vector( -8, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
+        },
         L = {
             { Vector( -32, -8 ), Vector( 32, -8 ) },
             { Vector( 32, -8 ), Vector( 32, 8 ) },

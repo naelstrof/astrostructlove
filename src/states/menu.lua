@@ -1,43 +1,43 @@
 local Menu = {}
 
 function Menu:enter()
-    frame = loveframes.Create( "frame" )
-    frame:SetName( "Main Menu" )
-    frame:ShowCloseButton( false )
-    frame:SetHeight( 250 )
-    frame:Center()
+    self.frame = loveframes.Create( "frame" )
+    self.frame:SetName( "Main Menu" )
+    self.frame:ShowCloseButton( false )
+    self.frame:SetHeight( 250 )
+    self.frame:Center()
 
-    list = loveframes.Create( "list", frame )
+    local list = loveframes.Create( "list", self.frame )
     list:SetPos( 0, 26 )
     list:SetHeight( 224 )
     list:SetPadding( 4 )
     list:SetSpacing( 4 )
 
-    join = loveframes.Create( "button", frame )
+    local join = loveframes.Create( "button", self.frame )
     join:SetText( "Join Server" )
     list:AddItem( join )
 
-    hostlisten = loveframes.Create( "button", frame )
+    local hostlisten = loveframes.Create( "button", self.frame )
     hostlisten:SetText( "Host Listen Server" )
     list:AddItem( hostlisten )
 
-    playsingle = loveframes.Create( "button", frame )
+    local playsingle = loveframes.Create( "button", self.frame )
     playsingle:SetText( "Play Singleplayer" )
     list:AddItem( playsingle )
 
-    playdemo = loveframes.Create( "button", frame )
+    local playdemo = loveframes.Create( "button", self.frame )
     playdemo:SetText( "Play Demo" )
     list:AddItem( playdemo )
 
-    mapeditor = loveframes.Create( "button", frame )
+    local mapeditor = loveframes.Create( "button", self.frame )
     mapeditor:SetText( "Map Editor" )
     list:AddItem( mapeditor )
 
-    options = loveframes.Create( "button", frame )
+    local options = loveframes.Create( "button", self.frame )
     options:SetText( "Options" )
     list:AddItem( options )
 
-    quit = loveframes.Create( "button", frame )
+    local quit = loveframes.Create( "button", self.frame )
     quit:SetText( "Quit" )
     list:AddItem( quit )
 
@@ -200,7 +200,7 @@ function Menu:textinput( text )
 end
 
 function Menu:resize( w, h )
-    frame:Center()
+    self.frame:Center()
 end
 
 return Menu

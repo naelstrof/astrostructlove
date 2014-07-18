@@ -5,10 +5,10 @@ local updateShadowVolumes = function( e )
     end
     e.changed = false
     local allverticies = {}
-    local ents = World:getNearby( e:getPos(), e.radius )
+    local ents = World:getNearby( e:getPos(), e.lightradius )
     for i,v in pairs( ents ) do
         if v:hasComponent( Components.blockslight ) then
-            local verts = v:getShadowVolume( e:getPos(), e.radius )
+            local verts = v:getShadowVolume( e:getPos(), e.lightradius )
             for j,w in pairs( verts ) do
                 table.insert( allverticies, w )
             end
@@ -46,12 +46,12 @@ local init = function( e )
     if e.lighttype == "point" then
         e.lightrot = e.lightrot or love.math.random()*math.pi*2
         e.lightoriginoffset = e.lightoriginoffset or Vector( e.lightdrawable:getWidth() / 2, e.lightdrawable:getHeight() / 2 )
-        e.lightscale = Vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getHeight() )
+        e.lightscale = Vector( e.lightradius*2/e.lightdrawable:getWidth(), e.lightradius*2/e.lightdrawable:getHeight() )
     elseif e.lighttype == "ray" then
         e.lightrot = e.rot
         e.lightoriginoffset = Vector( 0, e.lightdrawable:getHeight() / 2 )
-        -- ONLY SCALE WIDTH for lightshafts
-        e.lightscale = Vector( e.radius*2/e.lightdrawable:getWidth(), e.radius*2/e.lightdrawable:getWidth() )
+        -- We use lightgirth on rays for height calculations
+        e.lightscale = Vector( e.lightradius/e.lightdrawable:getWidth(), e.lightgirth/e.lightdrawable:getHeight() )
     end
 
     -- Convert the lightflickermap to more efficient values
@@ -91,7 +91,7 @@ local setRot = function( e, r )
 end
 
 local setRadius = function( e, r )
-    e.radius = r
+    e.lightradius = r
     e.changed = true
 end
 
@@ -113,7 +113,8 @@ local EmitsLight = {
     shadowmeshdraw = nil,
     changed = true,
     lighttype = "point",
-    radius = 256,
+    lightradius = 256,
+    lightgirth = 256,
     lightsize = 32,
     lightdrawable = love.graphics.newImage( PackLocation .. "textures/point.png" ),
     -- light rotations will be random unless otherwise specified
@@ -124,7 +125,7 @@ local EmitsLight = {
     lightscale = Vector( 1, 1 ),
     -- I set the light intensity to overflow due to the flickermap
     -- nearly halving it in all parts of the flicker
-    baselightintensity = 1.35,
+    baselightintensity = 1.55,
     networkinfo = {
         setLightIntensity = "baselightintensity"
     },

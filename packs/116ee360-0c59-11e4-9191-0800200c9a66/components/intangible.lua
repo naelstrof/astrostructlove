@@ -58,7 +58,7 @@ local setVelocity = function( e, v )
     if not v.x and not v.y then
         error( "Wrong parameter supplied!" )
     end
-    e.velocity = v
+    e.velocity = Vector( v.x, v.y )
 end
 
 local Intangible = {

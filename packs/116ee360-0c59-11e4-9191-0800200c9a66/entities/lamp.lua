@@ -13,6 +13,7 @@ local lamp = {
         drawable = love.graphics.newImage( PackLocation .. "textures/lamp.png" ),
         lightdrawable = love.graphics.newImage( PackLocation .. "textures/lamp_point.png" ),
         lighttype = "point",
+        lightradius = 356,
         use = function( e, player )
             if e:getLightIntensity() == 1.35 then
                 e:setLightIntensity( 0 )

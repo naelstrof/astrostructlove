@@ -1,18 +1,18 @@
-local CreateTool = {
-    __name = "Create",
+local PaintTool = {
+    __name = "Paint",
     __desc = "Left click to create selected entity, left click and drag to create and rotate.",
     selectedentity=nil,
     highlighter=nil,
     placer=nil,
-    paintmode=false,
     oldpos=nil,
     painting=false,
     posmem = nil,
+    lastpos = nil,
     -- Max distance between the placer and the mouse before it starts rotating.
     maxdist=15
 }
 
-function CreateTool:init()
+function PaintTool:init()
     self.frame = loveframes.Create( "frame" )
     if not self.widthmem and not self.heightmem then
         self.frame:SetWidth( 312 )
@@ -26,7 +26,7 @@ function CreateTool:init()
     else
         self.frame:SetPos( self.posmem.x, self.posmem.y )
     end
-    self.frame:SetName( "Create Tool" )
+    self.frame:SetName( "Paint Tool" )
     self.tabs = loveframes.Create( "tabs", self.frame )
     self.tabs:SetPos( 3, 27 )
     self.tabs:SetWidth( self.frame:GetWidth()-5 )
@@ -72,7 +72,7 @@ function CreateTool:init()
     self.frame:SetMaxHeight( 2000 )
 end
 
-function CreateTool:deinit()
+function PaintTool:deinit()
     self.tabs:Remove()
     self.frame:Remove()
     if self.highlighter ~= nil then
@@ -81,54 +81,43 @@ function CreateTool:deinit()
     end
 end
 
-function CreateTool:update( dt, x, y )
+function PaintTool:update( dt, x, y )
     self.posmem = Vector( self.frame:GetPos() )
     local mousepos = Vector( x, y )
     if self.highlighter ~= nil then
         self.highlighter:setPos( mousepos )
     end
-    if self.placer ~= nil and self.placer:getPos():dist( mousepos ) > self.maxdist then
-        self.placer:setRot( self.placer:getPos():angleTo( mousepos ) )
-    elseif self.placer ~= nil then
-        self.placer:setRot( 0 )
+    if self.painting and self.lastpos ~= Vector( x, y ) then
+        self.lastpos = Vector( x, y )
+        -- Here we check to make sure there's no nearby similar entites
+        -- so we don't accidentally duplicate them
+        local ents = World:getNearby( Vector( x, y ), 1 )
+        for i,v in pairs( ents ) do
+            if v.__name == self.selectedentity then
+                return
+            end
+        end
+        Entity:new( self.selectedentity, { pos=Vector( x, y ) } )
     end
 end
 
-function CreateTool:draw( x, y )
-    -- Draw some extra angle information
-    local mousepos = Vector( x, y )
-    if self.placer ~= nil and self.placer:getPos():dist( mousepos ) > self.maxdist then
-        local startpos = self.placer:getPos()
-        love.graphics.setColor( { 255, 0, 0, 155 } )
-        -- Draw an x at the startpos
-        love.graphics.line( startpos.x-5, startpos.y-5, startpos.x+5, startpos.y+5 )
-        love.graphics.line( startpos.x+5, startpos.y-5, startpos.x-5, startpos.y+5 )
-        -- Draw some text indicating the angle in degrees
-        love.graphics.print( tostring( self.placer:getRot() / math.pi * 180 ), startpos.x + 10, startpos.y + 10 )
-        love.graphics.setColor( { 0, 255, 0, 155 } )
-        love.graphics.line( startpos.x, startpos.y, mousepos.x, mousepos.y )
-        love.graphics.setColor( { 0, 0, 255, 155 } )
-        -- Draw an x at the mousepos
-        love.graphics.line( mousepos.x-5, mousepos.y-5, mousepos.x+5, mousepos.y+5 )
-        love.graphics.line( mousepos.x+5, mousepos.y-5, mousepos.x-5, mousepos.y+5 )
-        love.graphics.setColor( { 255, 255, 255, 255 } )
-    end
+function PaintTool:draw( x, y )
 end
 
-function CreateTool:mousepressed( x, y, button )
+function PaintTool:mousepressed( x, y, button )
     if self.selectedentity == nil then
         return
     end
     if button == 'l' then
+        self.painting = true
         if self.highlighter then
             self.highlighter:remove()
             self.highlighter = nil
         end
-        self.placer = Entity:new( self.selectedentity, { pos=Vector( x, y ) } )
     end
 end
 
-function CreateTool:mousereleased( x, y, button )
+function PaintTool:mousereleased( x, y, button )
     if self.selectedentity == nil then
         return
     end
@@ -141,9 +130,9 @@ function CreateTool:mousereleased( x, y, button )
                 self.highlighter:setLayer( 4 )
             end
         end
-        -- Unreference the placer so that we don't continue rotating it
-        self.placer = nil
+        self.lastpos = nil
+        self.painting = false
     end
 end
 
-return CreateTool
+return PaintTool

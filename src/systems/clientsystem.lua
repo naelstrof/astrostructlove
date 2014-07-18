@@ -31,7 +31,7 @@ function ClientSystem:startLobby( ip, port )
     self.client.callbacks = { recv = self.onLobbyReceive }
     self.client.handshake = Game.version
     self.client:connect( ip, port )
-    self.client:send( Tserial.pack( { name=Options.playername, avatar=Options.playeravatar } ) )
+    self.client:send( Tserial.pack( { name=OptionSystem.options.playername, avatar=OptionSystem.options.playeravatar } ) )
 end
 
 function ClientSystem:startGame( snapshot )
@@ -75,8 +75,6 @@ function ClientSystem:update( dt )
     if not self.running then
         return
     end
-    -- We don't simulate physics due to the server doing it all for us
-    --Physics:update( dt )
     World:update( dt, self.tick )
     self.time = self.time + dt
 

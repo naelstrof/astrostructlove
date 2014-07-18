@@ -345,6 +345,9 @@ end
 function Network.onLobbyReceive( data, id )
     local t = Tserial.unpack( data )
     --Network:updateClientSystem( id, t.control, t.tick )
+    if not Network.players[ id ] then
+        Network:addPlayer( id )
+    end
     if t.name then
         Network.players[ id ].name = t.name
     end

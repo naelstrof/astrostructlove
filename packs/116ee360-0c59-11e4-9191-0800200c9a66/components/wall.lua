@@ -47,6 +47,10 @@ local updateWallConfig = function( e, safe )
     e.shadowmesh = e.shadowmeshlookup[ e.wallconfig ]
 end
 
+local setWallConfig = function( e, conf )
+    e.wallconfig = conf
+end
+
 local init = function( e )
     if not e:hasComponent( Components.drawable ) or not e:hasComponent( Components.blockslight ) then
         error( "An entity containing the wall component MUST contain the drawable and blockslight component as well!" )
@@ -59,9 +63,12 @@ end
 local Wall = {
     __name = "Wall",
     wallconfig = "",
-    -- This ugly thing describes possible configuration of shadow mesh,
-    -- and indicates where walls would touch if they're touching so
-    -- that specific faces can be removed.
+    -- We network over the wall configuration, but just so that
+    -- loading the map isn't as processor intensive
+    -- Since it hardly ever changes it should hardly ever be networked
+    networkinfo = {
+        setWallConfig = "wallconfig"
+    },
     drawablelookup = {
         L = love.graphics.newImage( PackLocation .. "textures/null.png" ),
         LD = love.graphics.newImage( PackLocation .. "textures/null.png" ),
@@ -81,6 +88,9 @@ local Wall = {
     },
     init = init,
     updateWallConfig = updateWallConfig,
+    -- This ugly thing describes possible configuration of shadow mesh,
+    -- and indicates where walls would touch if they're touching so
+    -- that specific faces can be removed.
     shadowmeshlookup = {
         L = {
             { Vector( -32, -8 ), Vector( 32, -8 ) },

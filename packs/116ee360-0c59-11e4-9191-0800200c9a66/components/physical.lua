@@ -41,6 +41,10 @@ local update = function( e, dt )
         e.velocity = e.velocity:normalized() * e.maxvelocity
     end
 
+    if e.velocity:len() < 1 then
+        e.velocity = Vector( 0, 0 )
+    end
+
     e:setPos( e:getPos() + e.velocity * dt )
     e.height = e.height + e.hvelocity * dt
     -- Reset any forces already applied
@@ -54,17 +58,24 @@ local applyForce = function( e, f, h )
     e.hforces = e.hforces + h
 end
 
+local setForces = function( e, v )
+    if not v.x and not v.y then
+        error( "Wrong parameter supplied!" )
+    end
+    e.forces = Vector( v.x, v.y )
+end
+
 local setVelocity = function( e, v )
     if not v.x and not v.y then
         error( "Wrong parameter supplied!" )
     end
-    e.velocity = v
+    e.velocity = Vector( v.x, v.y )
 end
 
 local Physical = {
     __name = "Physical",
     -- Units per second
-    maxvelocity = 356,
+    maxvelocity = 300,
     static = true,
     shape = nil,
     mass = 70,
@@ -79,9 +90,11 @@ local Physical = {
     sleeping = true,
     update = update,
     setVelocity = setVelocity,
+    setForces = setForces,
     applyForce = applyForce,
     networkinfo = {
-        setVelocity = "velocity"
+        setVelocity = "velocity",
+        setForces = "forces"
     }
 }
 

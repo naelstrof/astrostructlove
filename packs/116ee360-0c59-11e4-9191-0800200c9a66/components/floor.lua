@@ -5,7 +5,7 @@ end
 local Floor = {
     __name = "Floor",
     -- Coefficient of metal
-    frictioncoefficient = 11,
+    frictioncoefficient = 20,
     setFrictionCoefficient = setFrictionCoefficient,
     networkinfo = {
         setFrictionCoefficient = "frictioncoefficient"

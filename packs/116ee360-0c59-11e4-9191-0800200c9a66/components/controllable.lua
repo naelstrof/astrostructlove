@@ -60,7 +60,7 @@ end
 
 local Controllable = {
     __name = "Controllable",
-    speed = 412,
+    speed = 600,
     rotvelocity = 0,
     init = init,
     playerid = 0,

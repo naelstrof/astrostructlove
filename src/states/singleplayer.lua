@@ -1,9 +1,12 @@
-local Singleplayer = {}
+local Singleplayer = {
+    tick = 0,
+    player = nil
+}
 
 function Singleplayer:enter()
     MapSystem:load( Gamemode.map )
     -- Spawn ourselves in
-    Gamemode:spawnPlayer( 0 )
+    self.player = Gamemode:spawnPlayer( { playerid = 0, localplayer = true } )
 end
 
 function Singleplayer:leave()
@@ -16,9 +19,13 @@ end
 
 function Singleplayer:update( dt )
     BindSystem:update( dt )
-    World:update( dt )
+    -- Despite being in single player, we still rely on knowing our
+    -- past... So we must keep track of a tick rate.
+    self.player:addControlSnapshot( BindSystem.getControls(), self.tick )
+    World:update( dt, self.tick )
     DemoSystem:update( dt )
     loveframes.update( dt )
+    self.tick = self.tick + 1
 end
 
 function Singleplayer:mousepressed( x, y, button )

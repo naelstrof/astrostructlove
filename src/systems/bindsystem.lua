@@ -37,6 +37,16 @@ function BindSystem.getControls()
     return copy
 end
 
+function BindSystem.getEmpty()
+    local copy = {}
+    for i,v in pairs( control.current ) do
+        copy[i] = 0
+    end
+    copy.x = 0
+    copy.y = 0
+    return copy
+end
+
 function BindSystem:update( dt )
     Cock.updateAll()
     -- Disallow controls to update click events when we're clicking on

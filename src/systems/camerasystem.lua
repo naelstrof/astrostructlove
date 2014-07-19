@@ -11,24 +11,27 @@ function CameraSystem:getActive()
 end
 
 function CameraSystem:getWorldMouse()
+    if not self.activecamera then
+        return Vector( 0, 0 )
+    end
     return self.activecamera:toWorld( Vector( love.mouse.getX(), love.mouse.getY() ) )
 end
 
 function CameraSystem:getPos()
-    if self.activecamera == nil then
+    if not self.activecamera then
         return Vector( 0, 0 )
     end
     return self.activecamera:getPos()
 end
 
 function CameraSystem:attach()
-    if self.activecamera ~= nil then
+    if self.activecamera then
         self.activecamera.camera:attach()
     end
 end
 
 function CameraSystem:detach()
-    if self.activecamera ~= nil then
+    if self.activecamera then
         self.activecamera.camera:detach()
     end
 end

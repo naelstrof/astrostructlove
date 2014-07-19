@@ -41,7 +41,7 @@ local update = function( e, dt )
         e.velocity = e.velocity:normalized() * e.maxvelocity
     end
 
-    if e.velocity:len() < 1 then
+    if e.velocity:len() < 5 then
         e.velocity = Vector( 0, 0 )
     end
 

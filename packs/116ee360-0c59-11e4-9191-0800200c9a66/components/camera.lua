@@ -22,9 +22,8 @@ local getZoom = function( e )
     return e.zoom
 end
 
-local setActive = function( e, active )
-    e.active = active
-    if active then
+local setLocalPlayer = function( e, bool )
+    if bool then
         CameraSystem:setActive( e )
     end
 end
@@ -39,8 +38,10 @@ local init = function( e )
     e.camera:lookAt( e:getPos().x, e:getPos().y )
     e.camera:zoomTo( e.zoom )
     e.camera:rotateTo( -e.rot )
-    if e.active then
-        CameraSystem:setActive( e )
+    if e:hasComponent( Components.controllable ) then
+        if e:isLocalPlayer() then
+            CameraSystem:setActive( e )
+        end
     end
 end
 
@@ -55,13 +56,13 @@ local Camera = {
     active = false,
     deinit = deinit,
     setPos = setPos,
+    setLocalPlayer = setLocalPlayer,
     setRot = setRot,
     setZoom = setZoom,
     setActive = setActive,
     getZoom = getZoom,
     networkinfo = {
-        setZoom = "zoom",
-        setActive = "active"
+        setZoom = "zoom"
     },
     Zoom = Zoom,
     toWorld = toWorld

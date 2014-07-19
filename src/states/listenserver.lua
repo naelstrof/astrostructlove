@@ -7,22 +7,6 @@ local ListenServer = {
 function ListenServer:enter()
 end
 
-function ListenServer.onConnect( id )
-    print( "Got a connection from " .. id )
-    local player = Gamemode:spawnPlayer( id )
-    State.listenserver.playercount = State.listenserver.playercount + 1
-end
-
-function ListenServer.onReceive( data, id )
-    local t = Tserial.unpack( data )
-    Network:updateListenServer( id, t.control, t.tick )
-end
-
-function ListenServer.onDisconnect( id )
-    print( id .. " disconnected..." )
-    Network:removePlayer( id )
-end
-
 function ListenServer:leave()
     self.network:stop()
     self.server:disconnect()
@@ -36,7 +20,7 @@ end
 
 function ListenServer:update( dt )
     BindSystem:update( dt )
-    Network:updateClient( 0, BindSystem.getControls(), Network:getTick() + 1 )
+    Network:updateClient( 0, BindSystem.getControls(), Network:getTick() )
     -- World:update( dt, Network:getTick() )
     DemoSystem:update( dt )
     Network:update( dt )

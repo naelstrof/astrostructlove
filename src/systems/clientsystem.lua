@@ -13,13 +13,20 @@ local ClientSystem = {
     player = nil,
     playerpos = Vector( 0, 0 ),
     predictionfixspeed = 2,
-    delay = 50/1000,
+    delay = 30/1000,
     client = nil,
     snapshots = {}
 }
 
 function ClientSystem:setID( id )
     self.id = id
+    -- Find our player
+    for i,v in pairs( DemoSystem.entities ) do
+        if v.playerid == self.id then
+            self.player = v
+            self.player:setLocalPlayer( true )
+        end
+    end
 end
 
 function ClientSystem:setPlayers( players )
@@ -51,11 +58,9 @@ function ClientSystem:startGame( snapshot )
     DemoSystem:applyDiff( self.prevshot )
     -- Find our player
     for i,v in pairs( DemoSystem.entities ) do
-        if v.playerid == self.id and v.setActive then
+        if v.playerid == self.id then
             self.player = v
-            v:setActive( true )
-        elseif v.playerid and v.setActive then
-            v:setActive( false )
+            self.player:setLocalPlayer( true )
         end
     end
 end
@@ -83,6 +88,9 @@ function ClientSystem:update( dt )
         local dist = self.player:getPos():dist( self.playerpos )
         self.player:setPos( self.player:getPos() + diff * dist * dt * self.predictionfixspeed )
     end
+    if self.player then
+        self.player:addControlSnapshot( BindSystem.getControls(), self.tick )
+    end
     World:update( dt, self.tick )
     self.time = self.time + dt
 
@@ -101,7 +109,7 @@ function ClientSystem:update( dt )
         end
         -- If we couldn't find a snapshot, we need to extrapolate
         if self.nextshot == nil then
-            local x = ( ( self.time - self.prevshot.time + self.delay ) * 1000 / 50 ) + 1
+            local x = ( ( self.time - self.prevshot.time + self.delay ) * 1000 / 30 ) + 1
             -- Interpolate with a x > 1 makes it extrapolate
             self.interpolate( self.lastshot, self.prevshot, x )
             return
@@ -116,24 +124,39 @@ function ClientSystem:update( dt )
     end
     -- If we're past the next frame, we up our tick and re-run ourselves.
     if self.time > self.nextshot.time + self.delay then
+        -- First we really need to make sure our interpolation finished completely
+        for i,v in pairs( self.nextshot.entities ) do
+            local ent = DemoSystem.entities[ i ]
+            if ent then
+                for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
+                    local val = v[ w ]
+                    -- Call the coorisponding function to set the value
+                    if not ent[ o ] then
+                        error( "Entity " .. ent.__name .. " is missing function " .. o .. "!" )
+                    end
+                    if val then
+                        ent[ o ]( ent, val )
+                    end
+                end
+            end
+        end
         -- Here we send our current controls to the server
         local t = {}
-        t.tick = self.newesttick - 1
+        --t.tick = self.newesttick - 1
+        t.tick = self.tick - 1
         t.control = BindSystem.getControls()
         self.client:send( Tserial.pack( t ) )
         self.tick = self.nextshot.tick
         self.lastshot = self.prevshot
         self.prevshot = self.nextshot
         self.nextshot = nil
-        -- This is where we delete everything it asks
+        -- This is where we delete/add everything it asks
         DemoSystem:applyDiff( self.prevshot )
         -- Find our player
         for i,v in pairs( DemoSystem.entities ) do
-            if v.playerid == self.id and v.setActive then
+            if v.playerid == self.id then
                 self.player = v
-                v:setActive( true )
-            elseif v.playerid and v.setActive then
-                v:setActive( false )
+                self.player:setLocalPlayer( true )
             end
         end
         -- This is where we interpolate forward a bit
@@ -171,6 +194,19 @@ function ClientSystem.interpolate( prevshot, nextshot, x )
             for o,w in pairs( Entities.entities[ v.__name ].networkinfo ) do
                 local pastval = pent[w]
                 local futureval = fent[w]
+                -- ANGLE, needs special care
+                if w == "rot" then
+                    if pastval and futureval then
+                        if math.abs( pastval - futureval ) > math.pi then
+                            if pastval < futureval then
+                                pastval = pastval + math.pi * 2
+                            else
+                                futureval = futureval + math.pi * 2
+                            end
+                        end
+                    end
+                end
+
                 -- Call the coorisponding function to set the
                 -- interpolated value (which can be a table)
                 if pastval ~= nil then

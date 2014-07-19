@@ -8,6 +8,7 @@ metalfloor = {
     },
     image = PackLocation .. "textures/metalfloor.png",
     attributes = {
+        frictioncoefficient = 32,
         drawable=love.graphics.newImage( PackLocation .. "textures/metalfloor.png" )
     }
 }

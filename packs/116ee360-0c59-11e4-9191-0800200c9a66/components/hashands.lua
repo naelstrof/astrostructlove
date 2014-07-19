@@ -1,7 +1,4 @@
 local processHand = function( e, hand, controls )
-    if controls[ "hand"..hand ] ~= 1 then
-        return
-    end
     -- If nothing is in the hand
     -- we try to pick something up. (Even if we have modifiers pressed)
     if not e.handitems[ hand ] then
@@ -34,63 +31,49 @@ local processHand = function( e, hand, controls )
 end
 
 local update = function( e, dt, tick )
-    -- Active runs is true when we're the active player being
-    -- controlled by the client.
-    -- tick is not nil when we're being ran in a simulation
-    local controls = Network:getControls( e.playerid, tick )
-    if ( e.active and controls ~= nil ) or ( tick ~= nil and controls ~= nil ) then
-        -- We go and see if any hand binds are pressed
-        for i=1, e.handcount do
-            if controls[ "hand"..i ] ~= e.handmemory[ "hand"..i ] then
-                e:processHand( i, controls )
-                e.handmemory[ "hand"..i ] = controls[ "hand"..i ]
-            end
+    if dt < 0 then
+        return
+    end
+    -- We go and see if any hand binds were freshly pressed
+    for i=1, e.handcount do
+        if e:getControlClicked( "hand" .. i, tick ) then
+            e:processHand( i, e:getControls( tick ) )
         end
     end
     e.updateItems( e, dt, tick )
 end
 
 local updateItems = function( e, dt, tick )
-    local controls = Network:getControls( e.playerid, tick )
-    if ( e.active and controls ~= nil ) or ( tick ~= nil and controls ~= nil ) then
-        for i,v in pairs( e.handitems ) do
-            local ent = DemoSystem.entities[ v ]
-            ent:setPos( e:getPos() + e.handpositions[ i ]:rotated( e:getRot() ) )
-            if ent.rotatecarry then
-                ent:setRot( ( e:getPos() + e.handpositions[ i ] ):angleTo( Vector( controls.x, controls.y ) ) + math.pi )
-            else
-                ent:setRot( e:getRot() )
-            end
-            e:updateItemGUI( i, ent )
+    local controls = e:getControls( tick )
+    for i,v in pairs( e.handitems ) do
+        local ent = DemoSystem.entities[ v ]
+        ent:setPos( e:getPos() + e.handpositions[ i ]:rotated( e:getRot() ) )
+        if ent.rotatecarry then
+            ent:setRot( ( e:getPos() + e.handpositions[ i ] ):angleTo( Vector( controls.x, controls.y ) ) + math.pi )
+        else
+            ent:setRot( e:getRot() )
         end
+    end
+    if e:isLocalPlayer() then
         for i=1, e.handcount do
-            if not e.handitems[ i ] then
-                e:updateItemGUI( i, nil )
-            end
+            e:updateItemGUI( i, e.handitems[ i ] )
         end
     end
 end
 
 local updateItemGUI = function( e, i, ent )
-    if not Network:isLocalPlayer( e.playerid ) then
-        return
-    end
     if not e.handgui then
         return
     end
-    if not e.handguibuttons[ i ] or e.handguibuttons[ i ].obj ~= ent then
+    ent = DemoSystem.entities[ ent ] or nil
+    if ( not e.handguibuttons[ i ] and ent ) or ( e.handguibuttons[ i ] and e.handguibuttons[ i ].ent ~= ent and ent ) then
         if e.handguibuttons[ i ] then
             e.handguibuttons[ i ]:Remove()
-        end
-        if not ent then
-            if e.handguibuttons[ i ] then
-                e.handguibuttons[ i ].obj = nil
-            end
-            return
         end
         e.handguibuttons[ i ] = loveframes.Create( "panel", e.handgui )
         e.handguibuttons[ i ]:SetSize( 62, 62 )
         e.handguibuttons[ i ]:SetPos( 64*(i-1) + 1, 1 )
+        e.handguibuttons[ i ].ent = ent
         local image = loveframes.Create( "imagebutton", e.handguibuttons[ i ] )
         image:SetImage( Entities.entities[ ent.__name ].image )
         image:SetSize( 62, 62 )
@@ -101,7 +84,11 @@ local updateItemGUI = function( e, i, ent )
         tooltip:SetText( Entities.entities[ ent.__name ].description )
         tooltip:SetOffsetX( -256 )
         tooltip:SetTextMaxWidth( 256 )
-        e.handguibuttons[ i ].obj = ent
+    elseif not ent then
+        if e.handguibuttons[ i ] then
+            e.handguibuttons[ i ]:Remove()
+            e.handguibuttons[ i ].ent = nil
+        end
     end
 end
 
@@ -114,22 +101,36 @@ end
 
 local setHandItems = function( e, handitems )
     e.handitems = handitems
-    for i=1, e.handcount do
-        if e.handitems[ i ] then
-            e:updateItemGUI( i, DemoSystem.entities[ e.handitems[ i ] ] )
-        else
-            e:updateItemGUI( i, nil )
+    if e:isLocalPlayer() then
+        for i=1, e.handcount do
+            e:updateItemGUI( i, e.handitems[ i ] )
+        end
+    end
+end
+
+local setLocalPlayer = function( e, bool )
+    if bool then
+        if e.handgui then
+            e.handgui:Remove()
+        end
+        -- Create some simple GUI for the hands
+        e.handgui = loveframes.Create( "panel" )
+        local size = Vector( 64*e.handcount, 64 )
+        e.handgui:SetSize( size.x, size.y )
+        e.handgui:SetPos( love.graphics.getWidth()-size.x, love.graphics.getHeight()-size.y )
+        e.handguibuttons = {}
+        for i=1,e.handcount do
+            local text = loveframes.Create( "text", e.handgui )
+            text:SetDefaultColor( 100, 100, 100, 100 )
+            text:SetShadowColor( 0, 0, 0, 0 )
+            text:SetText( "Hand " .. i )
+            text:SetPos( (i-1)*64+10, 16 )
         end
     end
 end
 
 local init = function( e )
-    -- Since complex types are lost when networked, we need to make sure
-    -- handpositions contains actual vectors
-    for i,v in pairs( e.handpositions ) do
-        e.handpositions[ i ] = Vector( v.x, v.y )
-    end
-    if Network:isLocalPlayer( e.playerid ) then
+    if e:isLocalPlayer() then
         if e.handgui then
             e.handgui:Remove()
         end
@@ -162,10 +163,10 @@ local HasHands = {
         Vector( 20, 5 )
     },
     handitems = {},
-    handmemory = {},
     update = update,
     resize = resize,
     setHandItems = setHandItems,
+    setLocalPlayer = setLocalPlayer,
     networkinfo = {
         setHandItems = "handitems"
     },

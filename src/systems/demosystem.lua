@@ -38,9 +38,10 @@ function DemoSystem:applyDiff( diff )
             local val = v[ w ]
             -- Call the coorisponding function to set the
             -- value
-            if val ~= nil then
-                ent[ o ]( ent, val )
+            if ent[ o ] == nil then
+                error( "Function " .. o .. " does not exist for entity " .. v.__name )
             end
+            ent[ o ]( ent, val )
         end
     end
     -- World interpolation and such should be handled elsewhere

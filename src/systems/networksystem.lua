@@ -24,6 +24,7 @@ function Network:startLobby( port )
     self.port = self.port or port
     self.server = lube.udpServer()
     self.server:init()
+    self.server:setPing( true, 10, "p" )
     self.server.callbacks = { recv = self.onLobbyReceive, connect = self.onLobbyConnect, disconnect = self.onLobbyDisconnect }
     self.server.handshake = Game.version
     self.server:listen( self.port )
@@ -97,6 +98,9 @@ function Network:addPlayer( id, ent )
 end
 
 function Network:removePlayer( id )
+    if self.players[ id ].ent then
+        self.players[ id ].ent:remove()
+    end
     self.players[ id ] = nil
 end
 
@@ -110,7 +114,9 @@ function Network:updateClient( id, controls, tick )
 end
 
 function Network:stop()
-    self.server:stop()
+    if self.server then
+        self.server:disconnect()
+    end
     self.server = nil
     self.running = false
     self.totaltime = 0
@@ -316,7 +322,6 @@ end
 
 function Network.onGameDisconnect( id )
     print( id .. " disconnected..." )
-    self.players[ id ].ent:remove()
     Network:removePlayer( id )
 end
 

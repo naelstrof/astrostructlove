@@ -5,15 +5,20 @@ local ClientSystem = {
     time = 0,
     players = nil,
     tick = 0,
+    lastrecievetime = 0,
     lastshot = nil,
     prevshot = nil,
+    timeout = 10,
     nextshot = nil,
     newesttick = 0,
     id = nil,
     player = nil,
     playerpos = Vector( 0, 0 ),
     predictionfixspeed = 2,
-    delay = 30/1000,
+    -- I wanted to be like source multiplayer and make a render
+    -- delay so we can always be interpolating, but all it caused
+    -- was instability and weirdness
+    delay = 0/1000,
     client = nil,
     snapshots = {}
 }
@@ -36,7 +41,8 @@ end
 function ClientSystem:startLobby( ip, port )
     self.client = lube.udpClient()
     self.client:init()
-    self.client.callbacks = { recv = self.onLobbyReceive }
+    self.client:setPing( true, 10, "p" )
+    self.client.callbacks = { recv = self.onLobbyReceive, disconnect = self.onDisconnect }
     self.client.handshake = Game.version
     self.client:connect( ip, port )
     self.client:send( Tserial.pack( { name=OptionSystem.options.playername, avatar=OptionSystem.options.playeravatar } ) )
@@ -44,8 +50,7 @@ end
 
 function ClientSystem:startGame( snapshot )
     MapSystem:load( snapshot.map )
-    self.client.callbacks = { recv = self.onGameReceive }
-    -- Just like source multiplayer, we render 100 miliseconds in the past
+    self.client.callbacks = { recv = self.onGameReceive, disconnect = self.onDisconnect }
     self.time = snapshot.time
     --self.time = snapshot.time - 1
     self.tick = snapshot.tick
@@ -67,10 +72,27 @@ end
 
 function ClientSystem:addSnapshot( snapshot )
     self.snapshots[ snapshot.tick ] = snapshot
-    self.newesttick = snapshot.tick
+    if self.newesttick < snapshot.tick then
+        self.newesttick = snapshot.tick
+    end
 end
 
 function ClientSystem:stop()
+    self.time = 0
+    self.lastrecievetime = 0
+    self.players = nil
+    self.tick = 0
+    self.lastshot = nil
+    self.prevshot = nil
+    self.nextshot = nil
+    self.newesttick = 0
+    self.id = nil
+    self.player = nil
+    self.playerpos = Vector( 0, 0 )
+    if self.client then
+        self.client:disconnect()
+    end
+    self.client = nil
     self.running = false
 end
 
@@ -78,6 +100,21 @@ function ClientSystem:update( dt )
     if self.client then
         self.client:update( dt )
     end
+    if self.lastrecievetime and self.time - self.lastrecievetime > 2 then
+        if not self.warntext then
+            self.warntext = loveframes.Create( "text" )
+            self.warntext:SetDefaultColor( 255, 0, 0, 255 )
+            self.warntext:SetPos( 0, 0 )
+        end
+        self.warntext:SetText( "Connection Error: " .. math.floor( self.time - self.lastrecievetime ) .. " / " .. self.timeout )
+    elseif self.warntext then
+        self.warntext:Remove()
+    end
+    if self.lastrecievetime and self.time - self.lastrecievetime > self.timeout then
+        self:stop()
+        StateMachine.switch( State.menu )
+    end
+    self.time = self.time + dt
     if not self.running then
         return
     end
@@ -92,7 +129,6 @@ function ClientSystem:update( dt )
         self.player:addControlSnapshot( BindSystem.getControls(), self.tick )
     end
     World:update( dt, self.tick )
-    self.time = self.time + dt
 
     -- We shouldn't do anything as long as we're too far in the
     -- past
@@ -127,7 +163,9 @@ function ClientSystem:update( dt )
         -- First we really need to make sure our interpolation finished completely
         for i,v in pairs( self.nextshot.entities ) do
             local ent = DemoSystem.entities[ i ]
-            if ent then
+            if ent and ent.playerid == ClientSystem.id and v.pos ~= nil then
+                ClientSystem.playerpos = Vector( v.pos.x, v.pos.y )
+            elseif ent then
                 for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
                     local val = v[ w ]
                     -- Call the coorisponding function to set the value
@@ -143,7 +181,7 @@ function ClientSystem:update( dt )
         -- Here we send our current controls to the server
         local t = {}
         --t.tick = self.newesttick - 1
-        t.tick = self.tick - 1
+        t.tick = self.tick
         t.control = BindSystem.getControls()
         self.client:send( Tserial.pack( t ) )
         self.tick = self.nextshot.tick
@@ -236,6 +274,12 @@ function ClientSystem.onLobbyReceive( data )
             State.clientlobby:listPlayer( v )
         end
     end
+    ClientSystem.lastrecievetime = ClientSystem.time
+end
+
+function ClientSystem.onDisconnect( data )
+    ClientSystem:stop()
+    StateMachine.switch( State.menu )
 end
 
 function ClientSystem.onGameReceive( data )
@@ -250,6 +294,7 @@ function ClientSystem.onGameReceive( data )
         ClientSystem:setPlayers( t.players )
     end
     ClientSystem:addSnapshot( t )
+    ClientSystem.lastrecievetime = ClientSystem.time
 end
 
 

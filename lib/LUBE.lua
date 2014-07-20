@@ -199,6 +199,16 @@ function server:listen(port)
 	self:_listen()
 end
 
+function server:disconnect()
+    self:send( "shutdown" )
+    for i,v in pairs( self.clients ) do
+        if self.callbacks.disconnect then
+            self.callbacks.disconnect( i )
+        end
+        self.clients[ i ] = nil
+    end
+end
+
 function server:update(dt)
 	assert(dt, "Update needs a dt!")
 	-- Accept all waiting clients.
@@ -280,6 +290,13 @@ end
 function udpClient:_receive()
 	local data, ip, port = self.socket:receivefrom()
 	if ip == self.host and port == self.port then
+        if data == "shutdown" then
+            self:disconnect()
+            if self.callbacks.disconnect then
+                self.callbacks.disconnect()
+            end
+            return "{}"
+        end
 		return data
 	end
 	return false, "Unknown remote sent data."

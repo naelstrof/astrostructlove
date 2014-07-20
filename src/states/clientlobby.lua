@@ -26,6 +26,16 @@ function ClientLobby:enter()
     self.playerlist:SetWidth( 256 )
     self.playerlist:SetPadding( 4 )
     self.playerlist:SetSpacing( 16 )
+
+    local quit = loveframes.Create( "button", self.frame )
+    quit:SetPos( 5, 512-69 )
+    quit:SetWidth( 247 )
+    quit:SetHeight( 64 )
+    quit:SetText( "Quit" )
+    quit.OnClick = function( object )
+        ClientSystem:stop()
+        StateMachine.switch( State.menu )
+    end
 end
 
 function ClientLobby:clearPlayers()

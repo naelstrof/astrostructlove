@@ -7,7 +7,7 @@ function Client:enter()
 end
 
 function Client:leave()
-    ClientSystem:stop()
+    -- ClientSystem:stop()
     loveframes.util:RemoveAll()
 end
 

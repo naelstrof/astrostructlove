@@ -19,32 +19,42 @@ function ListenLobby:enter()
     local container = loveframes.Create( "frame", self.frame )
     container:SetName( "Connected Players" )
     container:ShowCloseButton( false )
-    container:SetPos( 256, 26 )
-    container:SetHeight( 486 - 4 )
+    container:SetPos( 256, 29 )
+    container:SetHeight( 486 - 8 )
     container:SetWidth( 256 - 4 )
     container:SetDraggable( false )
     self.playerlist = loveframes.Create( "list", container )
     self.playerlist:SetPos( 0, 26 )
-    self.playerlist:SetHeight( 460 - 4 )
+    self.playerlist:SetHeight( 460 - 8 )
     self.playerlist:SetWidth( 256 - 4 )
     self.playerlist:SetPadding( 4 )
     self.playerlist:SetSpacing( 16 )
 
     local button = loveframes.Create( "button", self.frame )
-    button:SetPos( 64, 512-68 )
-    button:SetWidth( 128 )
+    button:SetPos( 131, 512-69 )
+    button:SetWidth( 121 )
     button:SetHeight( 64 )
     button:SetText( "Start Game" )
     button.OnClick = function( object )
         StateMachine.switch( State.listenserver )
         Network:startGame()
     end
+
+    local quit = loveframes.Create( "button", self.frame )
+    quit:SetPos( 5, 512-69 )
+    quit:SetWidth( 121 )
+    quit:SetHeight( 64 )
+    quit:SetText( "Quit" )
+    quit.OnClick = function( object )
+        Network:stop()
+        StateMachine.switch( State.menu )
+    end
 end
 
 function ListenLobby:leave()
     loveframes.util:RemoveAll()
     -- We shouldn't stop the server if we're moving to the gamestate
-    -- self.network:stop()
+    -- Network:stop()
 end
 
 function ListenLobby:draw()

@@ -27,8 +27,14 @@ end
 
 -- Merges table b into table a
 function table.merge( a, b )
-    if b == nil then
+    if not a and b then
         return a
+    end
+    if a and not b then
+        return a
+    end
+    if not a and not b then
+        return nil
     end
     for i,v in pairs( b ) do
         if type( a[ i ] ) == "table" and type( v ) == "table" then

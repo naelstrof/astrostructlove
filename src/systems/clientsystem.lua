@@ -71,6 +71,9 @@ function ClientSystem:startGame( snapshot )
 end
 
 function ClientSystem:addSnapshot( snapshot )
+    if not snapshot.tick then
+        return
+    end
     self.snapshots[ snapshot.tick ] = snapshot
     if self.newesttick < snapshot.tick then
         self.newesttick = snapshot.tick

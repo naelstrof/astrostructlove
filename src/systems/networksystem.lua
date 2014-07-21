@@ -14,11 +14,24 @@ local Network = {
     lastsent = nil,
     maxsize = 10,
     snapshots = {},
+    events = {},
     chat = {},
     playerschanged = false,
     playercount = 0,
     players = {}
 }
+
+function Network:addEvent( event )
+    if not self.events[ event.tick ] then
+        self.events[ event.tick ] = event
+    else
+        table.merge( self.events[ event.tick ], event )
+    end
+end
+
+function Network:getEvent( tick )
+    return self.events[ tick ]
+end
 
 function Network:startLobby( port )
     self.port = self.port or port
@@ -48,9 +61,9 @@ function Network:startGame()
     self.snapshots[ self.tick ] = DemoSystem:generateSnapshot( self.tick, self.totaltime )
     for i,v in pairs( self.players ) do
         if v.id == 0 then
-            v.ent = Gamemode:spawnPlayer( { playerid = v.id, localplayer = true } )
+            v.ent = Gamemode:spawnPlayer( { playerid = v.id, localplayer = true } ).demoIndex
         else
-            v.ent = Gamemode:spawnPlayer( { playerid = v.id } )
+            v.ent = Gamemode:spawnPlayer( { playerid = v.id } ).demoIndex
         end
     end
     -- Tick 1 is after all the players spawned
@@ -67,7 +80,7 @@ function Network:startGame()
     end
 end
 
-function Network:addPlayer( id, ent )
+function Network:addPlayer( id, entDemoIndex )
     local player = {}
     self.playerschanged = true
     if id == 0 then
@@ -76,7 +89,7 @@ function Network:addPlayer( id, ent )
         player.ping = 0
     end
     player.id = id
-    player.ent = ent
+    player.ent = entDemoIndex
     player.snapshots = {}
     player.tick = 0
     player.newtick = nil
@@ -98,8 +111,15 @@ function Network:addPlayer( id, ent )
 end
 
 function Network:removePlayer( id )
-    if self.players[ id ].ent then
-        self.players[ id ].ent:remove()
+    local playerent = DemoSystem.entities[ self.players[ id ].ent ]
+    if playerent then
+        -- We add a network event saying something got removed
+        local event = {}
+        event.removed = { self.players[ id ].demoIndex }
+        event.tick = self.tick
+        event.added = {}
+        Network:addEvent( event )
+        playerent:remove()
     end
     self.players[ id ] = nil
 end
@@ -126,8 +146,11 @@ end
 
 function Network:mergeControls()
     for i,v in pairs( self.players ) do
-        for o,w in pairs( v.snapshots ) do
-            v.ent:addControlSnapshot( w, o )
+        local ent = DemoSystem.entities[ v.ent ]
+        if ent then
+            for o,w in pairs( v.snapshots ) do
+                ent:addControlSnapshot( w, o )
+            end
         end
         v.snapshots = {}
     end
@@ -263,6 +286,10 @@ function Network:simulate( snapshot )
         -- if a is nil it returns a full snapshot to be used
         -- to recreate the world.
         --local diffshot = DemoSystem:getCheapDiff( self.snapshots[ i ], self.snapshots[ i + 1 ] )
+        local diffshot = self:getEvent( i )
+        if diffshot then
+            DemoSystem:applyDiff( diffshot )
+        end
         --DemoSystem:applyDiff( diffshot )
         local time = self.snapshots[ i + 1 ].time - self.snapshots[ i ].time
         --print( time )
@@ -310,7 +337,15 @@ end
 
 function Network.onGameConnect( id )
     print( "Got a connection from " .. id )
-    Network:addPlayer( id, Gamemode:spawnPlayer( { id = id } ) )
+    local player = Gamemode:spawnPlayer( { playerid = id } )
+    Network:addPlayer( id, player.demoIndex )
+    -- We add a network event saying something got added
+    local event = {}
+    event.added = {}
+    event.added[ player.demoIndex ] = DemoSystem.netcopy( player )
+    event.tick = Network:getTick()
+    event.removed = {}
+    Network:addEvent( event )
 end
 
 function Network.onGameReceive( data, id )

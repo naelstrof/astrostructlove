@@ -8,8 +8,6 @@ function ListenServer:enter()
 end
 
 function ListenServer:leave()
-    self.network:stop()
-    self.server:disconnect()
     loveframes.util:RemoveAll()
 end
 
@@ -36,6 +34,32 @@ function ListenServer:mousereleased( x, y, button )
 end
 
 function ListenServer:keypressed( key, unicode )
+    if key == "escape" then
+        if self.gamemenu then
+            self.gamemenu:Remove()
+            self.gamemenu = nil
+        else
+            self.gamemenu = loveframes.Create( "frame" )
+            self.gamemenu:SetWidth( 256 )
+            self.gamemenu:SetHeight( 256 )
+            self.gamemenu:SetName( "Game Menu" )
+            self.gamemenu:Center()
+            local resumebutton = loveframes.Create( "button", self.gamemenu )
+            resumebutton:SetText( "Resume" )
+            resumebutton:SetPos( 128 - resumebutton:GetWidth()/2, 128 - resumebutton:GetHeight()/2 )
+            resumebutton.OnClick = function( object, x, y )
+                State.listenserver.gamemenu:Remove()
+                State.listenserver.gamemenu = nil
+            end
+            local quitbutton = loveframes.Create( "button", self.gamemenu )
+            quitbutton:SetText( "Quit" )
+            quitbutton:SetPos( 128 - quitbutton:GetWidth()/2, 128 + quitbutton:GetHeight()/2 )
+            quitbutton.OnClick = function( object, x, y )
+                Network:stop()
+                StateMachine.switch( State.menu )
+            end
+        end
+    end
     loveframes.keypressed( key, unicode )
 end
 

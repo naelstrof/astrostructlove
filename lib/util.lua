@@ -31,7 +31,11 @@ function table.merge( a, b )
         return a
     end
     for i,v in pairs( b ) do
-        a[ i ] = v
+        if type( a[ i ] ) == "table" and type( v ) == "table" then
+            table.merge( a[ i ], v )
+        else
+            a[ i ] = v
+        end
     end
     return a
 end

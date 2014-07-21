@@ -65,7 +65,7 @@ function DemoSystem:deltanetcopy( a, b )
     end
 end
 
-function DemoSystem:netcopy( orig )
+function DemoSystem.netcopy( orig )
     local netcopy = { __name=orig.__name, demoIndex=orig.demoIndex }
     -- Network all networked vars
     for i,v in pairs( Entities.entities[ orig.__name ].networkinfo ) do
@@ -220,7 +220,7 @@ function DemoSystem:generateSnapshot( tick, time )
     snapshot["entities"] = {}
     for i,v in pairs( self.entities ) do
         -- We do full copies in snapshots
-        snapshot["entities"][ v.demoIndex ] = self:netcopy( v )
+        snapshot["entities"][ v.demoIndex ] = self.netcopy( v )
     end
     return snapshot
 end

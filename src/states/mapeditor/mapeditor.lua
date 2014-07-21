@@ -1,4 +1,6 @@
-local MapEditor = {}
+local MapEditor = {
+    tick = 0
+}
 
 MapEditor.titlebar = require( "src/states/mapeditor/titlebar" )
 MapEditor.toolbox = require( "src/states/mapeditor/toolbox" )
@@ -21,8 +23,8 @@ function MapEditor:setTool( tool )
 end
 
 function MapEditor:enter()
-    self.camera = Entity:new( "ghost" )
-    self.camera:setActive( true )
+    self.tick = 0
+    self.camera = Entity:new( "ghost", { localplayer = true } )
     Renderer:setFullbright( true )
 
     self.toolbox:init( MapEditor.tools )
@@ -66,9 +68,11 @@ function MapEditor:update( dt )
     if self.currenttool ~= nil then
         self.currenttool:update( dt, mousepos.x, mousepos.y )
     end
-    World:update( dt )
+    self.camera:addControlSnapshot( BindSystem.getControls(), self.tick )
+    World:update( dt, self.tick )
     DemoSystem:update( dt )
     loveframes.update( dt )
+    self.tick = self.tick + 1
 end
 
 function MapEditor:mousepressed( x, y, button )

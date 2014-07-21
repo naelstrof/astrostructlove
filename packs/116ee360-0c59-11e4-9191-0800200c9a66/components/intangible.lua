@@ -11,7 +11,7 @@ local update = function( e, dt )
         normal = -gravity
         -- Try to find some floors
         -- Default friction coefficient is 8 for intangibles
-        local frictioncoefficient = 8
+        local frictioncoefficient = 20
         local ents = World:getNearby( e:getPos(), 24 )
         for i,v in pairs( ents ) do
             if v:hasComponent( Components.floor ) then
@@ -64,7 +64,7 @@ end
 local Intangible = {
     __name = "Intangible",
     -- Units per second
-    maxvelocity = 356,
+    maxvelocity = 300,
     static = true,
     shape = nil,
     mass = 70,

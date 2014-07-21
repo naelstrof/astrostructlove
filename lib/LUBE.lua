@@ -291,7 +291,10 @@ function udpClient:_receive()
 	local data, ip, port = self.socket:receivefrom()
 	if ip == self.host and port == self.port then
         if data == "shutdown" then
-            self:disconnect()
+            -- self:disconnect()
+            self.connected = false
+            self.host = nil
+            self.port = nil
             if self.callbacks.disconnect then
                 self.callbacks.disconnect()
             end

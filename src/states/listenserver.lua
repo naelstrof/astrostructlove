@@ -1,10 +1,31 @@
 local ListenServer = {
+    time = 0,
+    textremovaltime = 8,
+    text = {},
     playercount = 1,
     port = 27020,
     server = nil
 }
 
 function ListenServer:enter()
+    Network.onTextReceive = function( textarray )
+        if #State.listenserver.text == 0 then
+            State.listenserver.time = 0
+        end
+        for i,v in pairs( textarray ) do
+            for o,w in pairs( State.listenserver.text ) do
+                local x, y = w:GetPos()
+                w:SetPos( x, y - w:GetHeight() )
+            end
+            local text = loveframes.Create( "text" )
+            text:SetShadowColor( 155, 155, 155, 255 )
+            text:SetShadow( true )
+            text:SetDefaultColor( 20, 20, 20, 255 )
+            text:SetText( v )
+            text:SetPos( 0, love.graphics.getHeight() - text:GetHeight()*4 )
+            table.insert( State.listenserver.text, text )
+        end
+    end
 end
 
 function ListenServer:leave()
@@ -17,8 +38,16 @@ function ListenServer:draw()
 end
 
 function ListenServer:update( dt )
+    self.time = self.time + dt
+    if self.time > self.textremovaltime then
+        if #self.text > 0 then
+            self.text[ 1 ]:Remove()
+            table.remove( self.text, 1 )
+        end
+        self.time = 0
+    end
     BindSystem:update( dt )
-    Network:updateClient( 0, BindSystem.getControls(), Network:getTick() )
+    Network:updateClient( 0, BindSystem:getControls(), Network:getTick() )
     -- World:update( dt, Network:getTick() )
     DemoSystem:update( dt )
     Network:update( dt )
@@ -43,6 +72,7 @@ function ListenServer:mousereleased( x, y, button )
 end
 
 function ListenServer:keypressed( key, unicode )
+    loveframes.keypressed( key, unicode )
     if key == "escape" then
         if self.gamemenu then
             self.gamemenu:Remove()
@@ -99,8 +129,26 @@ function ListenServer:keypressed( key, unicode )
                 list:AddItem( text )
             end
         end
+    elseif key == "return" then
+        if not self.chatinput and not self.chatting then
+            self.chatting = true
+            BindSystem:toggleInput()
+            self.chatinput = loveframes.Create( "textinput" )
+            self.chatinput:SetPos( 0, love.graphics.getHeight()-self.chatinput:GetHeight() )
+            self.chatinput:SetFocus( true )
+            self.chatinput:SetWidth( 256 )
+            self.chatinput.OnEnter = function( object, text )
+                if object:GetText() ~= "" then
+                    Network:addChatText( 0, object:GetText() )
+                end
+                State.listenserver.chatinput:Remove()
+                State.listenserver.chatinput = nil
+                BindSystem:toggleInput()
+            end
+        elseif self.chatting then
+            self.chatting = false
+        end
     end
-    loveframes.keypressed( key, unicode )
 end
 
 function ListenServer:keyreleased( key )
@@ -118,6 +166,9 @@ end
 function ListenServer:resize( w, h )
     Renderer:resize( w, h )
     World:resize( w, h )
+    if self.chatinput then
+        self.chatinput:SetPos( 0, love.graphics.getHeight()-self.chatinput:GetHeight() )
+    end
 end
 
 return ListenServer

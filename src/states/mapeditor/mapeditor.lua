@@ -68,7 +68,7 @@ function MapEditor:update( dt )
     if self.currenttool ~= nil then
         self.currenttool:update( dt, mousepos.x, mousepos.y )
     end
-    self.camera:addControlSnapshot( BindSystem.getControls(), self.tick )
+    self.camera:addControlSnapshot( BindSystem:getControls(), self.tick )
     World:update( dt, self.tick )
     DemoSystem:update( dt )
     loveframes.update( dt )

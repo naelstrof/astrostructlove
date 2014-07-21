@@ -20,8 +20,23 @@ local ClientSystem = {
     -- was instability and weirdness
     delay = 0/1000,
     client = nil,
+    sendtext = {},
+    chat = {},
     snapshots = {}
 }
+
+function ClientSystem:sendText( text )
+    table.insert( self.sendtext, text )
+end
+
+function ClientSystem:addText( textarray )
+    for i,v in pairs( textarray ) do
+        table.insert( self.chat, v )
+    end
+    if self.onTextReceive then
+        self.onTextReceive( textarray )
+    end
+end
 
 function ClientSystem:setID( id )
     self.id = id
@@ -140,7 +155,7 @@ function ClientSystem:update( dt )
         self.player:setPos( self.player:getPos() + diff * dist * dt * self.predictionfixspeed )
     end
     if self.player then
-        self.player:addControlSnapshot( BindSystem.getControls(), self.tick )
+        self.player:addControlSnapshot( BindSystem:getControls(), self.tick )
     end
     World:update( dt, self.tick )
 
@@ -193,15 +208,7 @@ function ClientSystem:update( dt )
             end
         end
         -- Here we send our current controls to the server
-        local t = {}
-        --t.tick = self.newesttick - 1
-        t.tick = self.tick
-        if self.player then
-            t.control = BindSystem.getDiff( self.player:getControls( self.tick - 1 ), BindSystem.getControls() )
-        else
-            t.control = BindSystem.getControls()
-        end
-        self.client:send( Tserial.pack( t ) )
+        self:sendUpdate()
         self.tick = self.nextshot.tick
         self.lastshot = self.prevshot
         self.prevshot = self.nextshot
@@ -220,6 +227,19 @@ function ClientSystem:update( dt )
         self:update( 0 )
         return
     end
+end
+
+function ClientSystem:sendUpdate()
+    local t = {}
+    --t.tick = self.newesttick - 1
+    t.tick = self.tick
+    t.control = BindSystem:getControls()
+    if #self.sendtext > 0 then
+        t.chat = self.sendtext[ 1 ]
+        table.remove( self.sendtext, 1 )
+    end
+    self.client:send( Tserial.pack( t ) )
+    print( Tserial.pack( t ) )
 end
 
 function ClientSystem.interpolate( prevshot, nextshot, x )
@@ -311,6 +331,9 @@ function ClientSystem.onGameReceive( data )
     end
     if t.players then
         ClientSystem:updatePlayers( t.players )
+    end
+    if t.chat then
+        ClientSystem:addText( t.chat )
     end
     ClientSystem:addSnapshot( t )
     ClientSystem.lastrecievetime = ClientSystem.time

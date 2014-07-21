@@ -1,4 +1,5 @@
 local BindSystem = {
+    enabled = true,
     leftclickmemory = 0,
     rightclickmemory = 0
 }
@@ -25,7 +26,10 @@ function BindSystem:load()
     control:setDefault( "default_keyboard" )
 end
 
-function BindSystem.getControls()
+function BindSystem:getControls()
+    if not self.enabled then
+        return self.getEmpty()
+    end
     local copy = {}
     for i,v in pairs( control.current ) do
         copy[i] = v
@@ -56,7 +60,14 @@ function BindSystem.getEmpty()
     return copy
 end
 
+function BindSystem:toggleInput()
+    self.enabled = not self.enabled
+end
+
 function BindSystem:update( dt )
+    if not self.enabled then
+        return
+    end
     Cock.updateAll()
     -- Disallow controls to update click events when we're clicking on
     -- loveframe elements

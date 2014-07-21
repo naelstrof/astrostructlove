@@ -1,9 +1,30 @@
 local Client = {
+    time = 0,
+    textremovaltime = 8,
     ip = "50.77.44.41",
     port = 27020,
+    text = {}
 }
 
 function Client:enter()
+    ClientSystem.onTextReceive = function( textarray )
+        if #State.client.text == 0 then
+            State.client.time = 0
+        end
+        for i,v in pairs( textarray ) do
+            for o,w in pairs( State.client.text ) do
+                local x, y = w:GetPos()
+                w:SetPos( x, y - w:GetHeight() )
+            end
+            local text = loveframes.Create( "text" )
+            text:SetShadowColor( 155, 155, 155, 255 )
+            text:SetShadow( true )
+            text:SetDefaultColor( 20, 20, 20, 255 )
+            text:SetText( v )
+            text:SetPos( 0, love.graphics.getHeight() - text:GetHeight()*4 )
+            table.insert( State.client.text, text )
+        end
+    end
 end
 
 function Client:leave()
@@ -17,6 +38,14 @@ function Client:draw()
 end
 
 function Client:update( dt )
+    self.time = self.time + dt
+    if self.time > self.textremovaltime then
+        if #self.text > 0 then
+            self.text[ 1 ]:Remove()
+            table.remove( self.text, 1 )
+        end
+        self.time = 0
+    end
     BindSystem:update( dt )
     ClientSystem:update( dt )
     DemoSystem:update( dt )
@@ -41,6 +70,7 @@ function Client:mousereleased( x, y, button )
 end
 
 function Client:keypressed( key, unicode )
+    loveframes.keypressed( key, unicode )
     if key == "escape" then
         if self.gamemenu then
             self.gamemenu:Remove()
@@ -97,9 +127,26 @@ function Client:keypressed( key, unicode )
                 list:AddItem( text )
             end
         end
+    elseif key == "return" then
+        if not self.chatinput and not self.chatting then
+            self.chatting = true
+            BindSystem:toggleInput()
+            self.chatinput = loveframes.Create( "textinput" )
+            self.chatinput:SetPos( 0, love.graphics.getHeight()-self.chatinput:GetHeight() )
+            self.chatinput:SetFocus( true )
+            self.chatinput:SetWidth( 256 )
+            self.chatinput.OnEnter = function( object, text )
+                if object:GetText() ~= "" then
+                    ClientSystem:sendText( object:GetText() )
+                end
+                State.client.chatinput:Remove()
+                State.client.chatinput = nil
+                BindSystem:toggleInput()
+            end
+        elseif self.chatting then
+            self.chatting = false
+        end
     end
-
-    loveframes.keypressed( key, unicode )
 end
 
 function Client:keyreleased( key )
@@ -117,6 +164,9 @@ end
 function Client:resize( w, h )
     Renderer:resize( w, h )
     World:resize( w, h )
+    if self.chatinput then
+        self.chatinput:SetPos( 0, love.graphics.getHeight()-self.chatinput:GetHeight() )
+    end
 end
 
 return Client

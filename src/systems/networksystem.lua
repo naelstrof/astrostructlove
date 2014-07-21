@@ -22,6 +22,16 @@ local Network = {
     players = {}
 }
 
+function Network:addChatText( id, text )
+    if not self.players[ id ] then
+        return
+    end
+    table.insert( self.chat, self.players[ id ].name .. ": " .. text )
+    if Network.onTextReceive then
+        Network.onTextReceive( { self.players[ id ].name .. ": " .. text } )
+    end
+end
+
 function Network:addEvent( event )
     if not self.events[ event.tick ] then
         self.events[ event.tick ] = event
@@ -150,15 +160,8 @@ function Network:mergeControls()
     for i,v in pairs( self.players ) do
         local ent = DemoSystem.entities[ v.ent ]
         if ent then
-            if ent.playerid ~= 0 then
-                for o,w in pairs( v.snapshots ) do
-                    local last = ent:getControls( o - 1 )
-                    ent:addControlSnapshot( table.merge( last, w ), o )
-                end
-            else
-                for o,w in pairs( v.snapshots ) do
-                    ent:addControlSnapshot( w, o )
-                end
+            for o,w in pairs( v.snapshots ) do
+                ent:addControlSnapshot( w, o )
             end
         end
         v.snapshots = {}
@@ -245,7 +248,13 @@ function Network:update( dt )
             self.playerschanged = false
             self.playerupdate = self.totaltime
         end
+        if #self.chat > 0 then
+            t.chat = self.chat
+        end
         self.server:send( Tserial.pack( t ) )
+        if #self.chat > 0 then
+            self.chat = {}
+        end
         self.lastsent = self.snapshots[ self.tick ]
     end
     -- Remove ticks that are too far into the past
@@ -350,6 +359,9 @@ function Network.onLobbyReceive( data, id )
     if t.control and t.tick then
         Network:updateClientSystem( id, t.control, t.tick )
     end
+    if t.chat then
+        Network:addChatText( id, t.chat )
+    end
 end
 
 function Network.onLobbyDisconnect( id )
@@ -380,6 +392,9 @@ function Network.onGameReceive( data, id )
     end
     if t.avatar then
         Network.players[ id ].avatar = t.avatar
+    end
+    if t.chat then
+        Network:addChatText( id, t.chat )
     end
 end
 

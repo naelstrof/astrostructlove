@@ -384,6 +384,9 @@ end
 
 function Network.onGameReceive( data, id )
     local t = Tserial.unpack( data )
+    if not Network.players[ id ] then
+        return
+    end
     if t.control and t.tick then
         Network:updateClient( id, t.control, t.tick )
     end

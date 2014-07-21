@@ -28,7 +28,7 @@ end
 -- Merges table b into table a
 function table.merge( a, b )
     if not a and b then
-        return a
+        return b
     end
     if a and not b then
         return a

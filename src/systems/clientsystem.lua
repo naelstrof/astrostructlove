@@ -34,8 +34,18 @@ function ClientSystem:setID( id )
     end
 end
 
-function ClientSystem:setPlayers( players )
-    self.players = players
+function ClientSystem:updatePlayers( players )
+    local copy = {}
+    for i,v in pairs( players ) do
+        copy[ v.id ] = v
+    end
+    if not self.players then
+        self.players = copy
+    else
+        for i,v in pairs( copy ) do
+            self.players[ i ] = table.merge( self.players[ i ], v )
+        end
+    end
 end
 
 function ClientSystem:startLobby( ip, port )
@@ -66,6 +76,7 @@ function ClientSystem:startGame( snapshot )
         if v.playerid == self.id then
             self.player = v
             self.player:setLocalPlayer( true )
+            self.playerpos = v:getPos()
         end
     end
 end
@@ -185,7 +196,11 @@ function ClientSystem:update( dt )
         local t = {}
         --t.tick = self.newesttick - 1
         t.tick = self.tick
-        t.control = BindSystem.getControls()
+        if self.player then
+            t.control = BindSystem.getDiff( self.player:getControls( self.tick - 1 ), BindSystem.getControls() )
+        else
+            t.control = BindSystem.getControls()
+        end
         self.client:send( Tserial.pack( t ) )
         self.tick = self.nextshot.tick
         self.lastshot = self.prevshot
@@ -198,6 +213,7 @@ function ClientSystem:update( dt )
             if v.playerid == self.id then
                 self.player = v
                 self.player:setLocalPlayer( true )
+                self.playerpos = v:getPos()
             end
         end
         -- This is where we interpolate forward a bit
@@ -271,7 +287,7 @@ function ClientSystem.onLobbyReceive( data )
         ClientSystem:startGame( t )
     end
     if t.players then
-        ClientSystem:setPlayers( t.players )
+        ClientSystem:updatePlayers( t.players )
         State.clientlobby:clearPlayers()
         for i,v in pairs( t.players ) do
             State.clientlobby:listPlayer( v )
@@ -294,7 +310,7 @@ function ClientSystem.onGameReceive( data )
         MapSystem:load( t.map )
     end
     if t.players then
-        ClientSystem:setPlayers( t.players )
+        ClientSystem:updatePlayers( t.players )
     end
     ClientSystem:addSnapshot( t )
     ClientSystem.lastrecievetime = ClientSystem.time

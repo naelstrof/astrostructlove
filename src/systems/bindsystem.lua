@@ -11,12 +11,11 @@ function BindSystem:load()
             down    = { primary = { "keyboard", "down" }, secondary = { "keyboard", "s" } },
             left    = { primary = { "keyboard", "left" }, secondary = { "keyboard", "a" } },
             right   = { primary = { "keyboard", "right" }, secondary = { "keyboard", "d" } },
-            leanl   = { primary = { "keyboard", "q" } },
-            leanr   = { primary = { "keyboard", "e" } },
             throwmodifier   = { primary = { "keyboard", "lshift" } },
             dropmodifier   = { primary = { "keyboard", "lctrl" } },
             hand1   = { primary = { "mouse button", "l" } },
-            hand2   = { primary = { "mouse button", "r" } }
+            hand2   = { primary = { "mouse button", "r" } },
+            showplayers = { primary = { "keyboard", "tab" } }
         },
         default2 = {}
     }
@@ -34,6 +33,16 @@ function BindSystem.getControls()
     local mousepos = CameraSystem:getWorldMouse()
     copy.x = mousepos.x
     copy.y = mousepos.y
+    return copy
+end
+
+function BindSystem.getDiff( a, b )
+    local copy = {}
+    for i,v in pairs( b ) do
+        if a[ i ] ~= v then
+            copy[ i ] = v
+        end
+    end
     return copy
 end
 

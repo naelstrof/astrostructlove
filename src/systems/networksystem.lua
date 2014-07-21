@@ -5,6 +5,7 @@ local Network = {
     port = 27020,
     running = false,
     updaterate = 30,
+    playerupdate = 0,
     currenttime = 0,
     totaltime = 0,
     tick = 0,
@@ -51,6 +52,7 @@ function Network:startGame()
     self.server.callbacks = { recv = self.onGameReceive, connect = self.onGameConnect, disconnect = self.onGameDisconnect }
     self.running = true
     self.totaltime = 0
+    self.playerupdate = 0
     self.currenttime = 0
     self.tick = 0
     self.backtick = 0
@@ -148,8 +150,15 @@ function Network:mergeControls()
     for i,v in pairs( self.players ) do
         local ent = DemoSystem.entities[ v.ent ]
         if ent then
-            for o,w in pairs( v.snapshots ) do
-                ent:addControlSnapshot( w, o )
+            if ent.playerid ~= 0 then
+                for o,w in pairs( v.snapshots ) do
+                    local last = ent:getControls( o - 1 )
+                    ent:addControlSnapshot( table.merge( last, w ), o )
+                end
+            else
+                for o,w in pairs( v.snapshots ) do
+                    ent:addControlSnapshot( w, o )
+                end
             end
         end
         v.snapshots = {}
@@ -173,7 +182,7 @@ function Network:update( dt )
             end
             -- Oh and update everyone's ping :)
             if v.id ~= 0 and v.newtick then
-                v.ping = math.floor( ( self.tick - v.newtick ) * 15 )
+                v.ping = math.floor( ( self.tick - v.newtick ) * 30 )
             end
             v.newtick = nil
         end
@@ -222,6 +231,19 @@ function Network:update( dt )
                 table.insert( t.players, p )
             end
             self.playerschanged = false
+            self.playerupdate = self.totaltime
+        elseif self.totaltime - self.playerupdate > 3 then
+            t.players = {}
+            for i,v in pairs( self.players ) do
+                local p = {}
+                -- We're more strict on periodic updates
+                p.ping = v.ping
+                p.name = v.name
+                p.id = v.id
+                table.insert( t.players, p )
+            end
+            self.playerschanged = false
+            self.playerupdate = self.totaltime
         end
         self.server:send( Tserial.pack( t ) )
         self.lastsent = self.snapshots[ self.tick ]
@@ -352,6 +374,12 @@ function Network.onGameReceive( data, id )
     local t = Tserial.unpack( data )
     if t.control and t.tick then
         Network:updateClient( id, t.control, t.tick )
+    end
+    if t.name then
+        Network.players[ id ].name = t.name
+    end
+    if t.avatar then
+        Network.players[ id ].avatar = t.avatar
     end
 end
 

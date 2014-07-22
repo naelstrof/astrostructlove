@@ -1,29 +1,25 @@
-local setGlowDrawable = function( e, object )
-    e.glowdrawable = object
-    e.gloworiginoffset = Vector( e.glowdrawable:getWidth() / 2, e.glowdrawable:getHeight() / 2 )
-end
-
-local getGlowDrawable = function( e )
-    return e.glowdrawable
-end
-
-local init = function( e )
-    e.gloworiginoffset = Vector( e.glowdrawable:getWidth() / 2, e.glowdrawable:getHeight() / 2 )
-    Renderer:addGlowable( e )
-end
-
-local deinit = function( e )
-    Renderer:removeGlowable( e )
-end
-
 local Glows = {
     __name = "Glows",
     glowdrawable = love.graphics.newImage( PackLocation .. "textures/null.png" ),
-    gloworiginoffset = nil,
-    init = init,
-    deinit = deinit,
-    setGlowDrawable = setGlowDrawable,
-    getGlowDrawable = getGlowDrawable
+    gloworiginoffset = nil
 }
+
+function Glows:setGlowGlows( object )
+    self.glowdrawable = object
+    self.gloworiginoffset = Vector( self.glowdrawable:getWidth() / 2, self.glowdrawable:getHeight() / 2 )
+end
+
+function Glows:getGlowGlows()
+    return self.glowdrawable
+end
+
+function Glows:init()
+    self.gloworiginoffset = Vector( self.glowdrawable:getWidth() / 2, self.glowdrawable:getHeight() / 2 )
+    Renderer:addGlowable( self )
+end
+
+function Glows:deinit()
+    Renderer:removeGlowable( self )
+end
 
 return Glows

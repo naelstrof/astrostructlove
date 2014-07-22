@@ -1,5 +1,17 @@
-local update = function( e, dt, tick )
-    local controls = e:getControls( tick )
+local Controllable = {
+    __name = "Controllable",
+    speed = 600,
+    rotvelocity = 0,
+    playerid = 0,
+    localplayer = false,
+    controlsnapshots = {},
+    networkinfo = {
+        setPlayerID = "playerid"
+    }
+}
+
+function Controllable:update( dt, tick )
+    local controls = self:getControls( tick )
     local direction = 0
     local up, down, left, right
     up, down, left, right = controls.up, controls.down, controls.left, controls.right
@@ -10,46 +22,46 @@ local update = function( e, dt, tick )
         direction = Vector( right - left, down - up ):normalized()
     end
     -- There's no need for rotation adjustment, because players can't rotate.
-    --local force = direction:rotated( e:getRot() ) * e:getSpeed()
-    local force = direction * e:getSpeed()
-    e:applyForce( force )
+    --local force = direction:rotated( self:getRot() ) * self:getSpeed()
+    local force = direction * self:getSpeed()
+    self:applyForce( force )
 end
 
-local setSpeed = function( e, speed )
-    e.speed = speed
+function Controllable:setSpeed( speed )
+    self.speed = speed
 end
 
-local getSpeed = function( e )
-    return e.speed
+function Controllable:getSpeed()
+    return self.speed
 end
 
-local setRotSpeed = function( e, rotspeed )
-    e.rotspeed = rotspeed
+function Controllable:setRotSpeed( rotspeed )
+    self.rotspeed = rotspeed
 end
 
-local setLocalPlayer = function( e, bool )
-    e.localplayer = bool
+function Controllable:setLocalPlayer( bool )
+    self.localplayer = bool
 end
 
-local getRotSpeed = function( e )
-    return e.rotspeed
+function Controllable:getRotSpeed()
+    return self.rotspeed
 end
 
-local addControlSnapshot = function( e, controls, tick )
-    e.controlsnapshots[ tick ] = controls
+function Controllable:addControlSnapshot( controls, tick )
+    self.controlsnapshots[ tick ] = controls
     -- We hold 1 second of snapshots in memory
     -- We should be really safe to remove old snapshots in this
     -- fashion
-    e.controlsnapshots[ tick - 33 ] = nil
+    self.controlsnapshots[ tick - 33 ] = nil
 end
 
-local getControls = function( e, tick )
+function Controllable:getControls( tick )
     if not tick then
         return BindSystem.getEmpty()
     end
-    if not e.controlsnapshots[ tick ] then
+    if not self.controlsnapshots[ tick ] then
         local lastcontroltick = nil
-        for i,v in pairs( e.controlsnapshots ) do
+        for i,v in pairs( self.controlsnapshots ) do
             if i > tick then
                 break
             end
@@ -57,69 +69,43 @@ local getControls = function( e, tick )
                 lastcontroltick = i
             end
         end
-        if e.controlsnapshots[ lastcontroltick ] == nil then
+        if self.controlsnapshots[ lastcontroltick ] == nil then
             return BindSystem.getEmpty()
         end
-        return e.controlsnapshots[ lastcontroltick ]
+        return self.controlsnapshots[ lastcontroltick ]
     end
-    return e.controlsnapshots[ tick ]
+    return self.controlsnapshots[ tick ]
 end
 
 -- Returns true given a control went from 0 to 1 between two ticks.
-local getControlClicked  = function( e, control, tick )
+function Controllable:getControlClicked ( control, tick )
     if not tick then
         return false
     end
-    local past = e:getControls( tick - 1 )[ control ]
-    local present = e:getControls( tick )[ control ]
+    local past = self:getControls( tick - 1 )[ control ]
+    local present = self:getControls( tick )[ control ]
     if past == 0 and present == 1 then
         return true
     end
     return false
 end
 
-local isLocalPlayer = function( e )
-    return e.localplayer
+function Controllable:isLocalPlayer()
+    return self.localplayer
 end
 
-local init = function( e )
+function Controllable:init()
     -- If we don't have the required components we disable ourselves
-    if not e:hasComponent( Components.physical ) and not e:hasComponent( Components.intangible ) then
-        e.update = nil
+    if not self:hasComponent( Components.physical ) and not self:hasComponent( Components.intangible ) then
+        self.update = nil
         return
     end
-    e.speed = e.speed * e.mass
-    --e:setFixedRotation( true )
+    self.speed = self.speed * self.mass
+    --self:setFixedRotation( true )
 end
 
-local setPlayerID = function( e, id )
-    e.playerid = id
+function Controllable:setPlayerID( id )
+    self.playerid = id
 end
-
-local Controllable = {
-    __name = "Controllable",
-    speed = 600,
-    rotvelocity = 0,
-    init = init,
-    playerid = 0,
-    localplayer = false,
-    isLocalPlayer = isLocalPlayer,
-    setLocalPlayer = setLocalPlayer,
-    update = update,
-    setActive = setActive,
-    setVelocity = setVelocity,
-    setSpeed = setSpeed,
-    getSpeed = getSpeed,
-    addControlSnapshot = addControlSnapshot,
-    getControls = getControls,
-    getControlClicked = getControlClicked,
-    setPlayerID = setPlayerID,
-    controlsnapshots = {},
-    networkinfo = {
-        setPlayerID = "playerid"
-    },
-    setRotSpeed = setRotSpeed,
-    getRotSpeed = getRotSpeed
-}
 
 return Controllable

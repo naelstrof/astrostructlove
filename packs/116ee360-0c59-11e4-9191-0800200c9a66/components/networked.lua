@@ -1,21 +1,19 @@
-local init = function( e )
+local Networked = {
+    __name = "Networked"
+}
+
+function Networked:init()
     -- We need to be able to give the entity a specified ID
     -- Useful for networking
-    if e.demoIndex ~= nil then
-        DemoSystem:addEntity( e, e.demoIndex )
+    if self.demoIndex ~= nil then
+        DemoSystem:addEntity( self, self.demoIndex )
     else
-        DemoSystem:addEntity( e )
+        DemoSystem:addEntity( self )
     end
 end
 
-local deinit = function( e )
-    DemoSystem:removeEntity( e )
+function Networked:deinit()
+    DemoSystem:removeEntity( self )
 end
-
-local Networked = {
-    __name = "Networked",
-    init = init,
-    deinit = deinit
-}
 
 return Networked

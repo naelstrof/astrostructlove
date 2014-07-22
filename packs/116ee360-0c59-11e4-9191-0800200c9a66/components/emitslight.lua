@@ -1,113 +1,3 @@
-
-local updateShadowVolumes = function( e )
-    if not e.changed then
-        return
-    end
-    e.changed = false
-    local allverticies = {}
-    local ents = World:getNearby( e:getPos(), e.lightradius )
-    for i,v in pairs( ents ) do
-        if v:hasComponent( Components.blockslight ) then
-            local verts = v:getShadowVolume( e:getPos(), e.lightradius )
-            for j,w in pairs( verts ) do
-                table.insert( allverticies, w )
-            end
-        end
-    end
-    if table.maxn( allverticies ) > 1 then
-        e.shadowmeshdraw = love.graphics.newMesh( allverticies, nil, "triangles" )
-    end
-end
-
-local update = function( e, dt )
-    e:updateShadowVolumes()
-    if type( e.lightflickermap ) ~= "table" then
-        error( "Please use setFlickerMap() to set flicker maps!" )
-    end
-    -- Goes at 10 values a second
-    e.lighttime = e.lighttime + ( dt * 10 )
-    local pos = math.floor( e.lighttime % #e.lightflickermap ) + 1
-    local npos = pos + 1
-    if npos > #e.lightflickermap then
-        npos = 1
-    end
-    local flickera = e.lightflickermap[ pos ]
-    local flickerb = e.lightflickermap[ npos ]
-    -- Just uses a simple linear function to interpolate the flickermap values
-    local func = e.lighttime - math.floor( e.lighttime )
-    local flicker =  flickera * (1-func) + flickerb * func
-    e.lightintensity = e.baselightintensity * flicker
-    -- Clamp between 0 and 1
-    e.lightintensity = math.clamp( e.lightintensity, 0, 1 )
-end
-
-local init = function( e )
-    e.lightintensity = e.baselightintensity
-    if e.lighttype == "point" then
-        e.lightrot = e.lightrot or love.math.random()*math.pi*2
-        e.lightoriginoffset = e.lightoriginoffset or Vector( e.lightdrawable:getWidth() / 2, e.lightdrawable:getHeight() / 2 )
-        e.lightscale = Vector( e.lightradius*2/e.lightdrawable:getWidth(), e.lightradius*2/e.lightdrawable:getHeight() )
-    elseif e.lighttype == "ray" then
-        e.lightrot = e.rot
-        e.lightoriginoffset = Vector( 0, e.lightdrawable:getHeight() / 2 )
-        -- We use lightgirth on rays for height calculations
-        e.lightscale = Vector( e.lightradius/e.lightdrawable:getWidth(), e.lightgirth/e.lightdrawable:getHeight() )
-    end
-
-    -- Convert the lightflickermap to more efficient values
-    e:setFlickerMap( e.lightflickermap )
-
-    -- Set the flicker time to a random value, this way if we create
-    -- a ton of lights at once they'll flicker at different times
-    e.lighttime = e.lighttime or ( love.math.random() * table.getn( e.lightflickermap ) )
-    Renderer:addLight( e )
-end
-
--- Converts a valve-style flickermap into floats
--- See https://developer.valvesoftware.com/wiki/Light#Appearances
-local setFlickerMap = function( e, flickermapstring )
-    -- If the flickermap was already converted to a table then just use it
-    if type( flickermapstring ) == "table" then
-        e.lightflickermap = flickermapstring
-        return
-    end
-    -- Otherwise we need to convert the string into a table of numbers.
-    local flickermap = {}
-    -- For each character
-    for char in string.gmatch( flickermapstring, "." ) do
-        -- 0 = a, 1 = z, m = 0.48
-        local val = ( string.byte( char ) - 97 ) / 25
-        table.insert( flickermap, val )
-    end
-    e.lightflickermap = flickermap
-end
-
-local setPos = function( e, t )
-    e.changed = true
-end
-
-local setRot = function( e, r )
-    e.lightrot = r
-end
-
-local setRadius = function( e, r )
-    e.lightradius = r
-    e.changed = true
-end
-
-local setLightIntensity = function( e, lightintensity )
-    e.lightintensity = lightintensity
-    e.baselightintensity = lightintensity
-end
-
-local getLightIntensity = function( e )
-    return e.baselightintensity
-end
-
-local deinit = function( e )
-    Renderer:removeLight( e )
-end
-
 local EmitsLight = {
     __name = "EmitsLight",
     shadowmeshdraw = nil,
@@ -131,17 +21,116 @@ local EmitsLight = {
     },
     lightintensity = baselightintensity,
     -- Uses "Flicker B" by default.
-    lightflickermap = "nmonqnmomnmomomno",
-    setFlickerMap = setFlickerMap,
-    setLightIntensity = setLightIntensity,
-    getLightIntensity = getLightIntensity,
-    updateShadowVolumes = updateShadowVolumes,
-    update = update,
-    init = init,
-    setPos = setPos,
-    setRot = setRot,
-    setRadius = setRadius,
-    deinit = deinit
+    lightflickermap = "nmonqnmomnmomomno"
 }
+
+function EmitsLight:updateShadowVolumes()
+    if not self.changed then
+        return
+    end
+    self.changed = false
+    local allverticies = {}
+    local ents = World:getNearby( self:getPos(), self.lightradius )
+    for i,v in pairs( ents ) do
+        if v:hasComponent( Components.blockslight ) then
+            local verts = v:getShadowVolume( self:getPos(), self.lightradius )
+            for j,w in pairs( verts ) do
+                table.insert( allverticies, w )
+            end
+        end
+    end
+    if table.maxn( allverticies ) > 1 then
+        self.shadowmeshdraw = love.graphics.newMesh( allverticies, nil, "triangles" )
+    end
+end
+
+function EmitsLight:update( dt )
+    self:updateShadowVolumes()
+    if type( self.lightflickermap ) ~= "table" then
+        error( "Please use setFlickerMap() to set flicker maps!" )
+    end
+    -- Goes at 10 values a second
+    self.lighttime = self.lighttime + ( dt * 10 )
+    local pos = math.floor( self.lighttime % #self.lightflickermap ) + 1
+    local npos = pos + 1
+    if npos > #self.lightflickermap then
+        npos = 1
+    end
+    local flickera = self.lightflickermap[ pos ]
+    local flickerb = self.lightflickermap[ npos ]
+    -- Just uses a simple linear function to interpolate the flickermap values
+    local func = self.lighttime - math.floor( self.lighttime )
+    local flicker =  flickera * (1-func) + flickerb * func
+    self.lightintensity = self.baselightintensity * flicker
+    -- Clamp between 0 and 1
+    self.lightintensity = math.clamp( self.lightintensity, 0, 1 )
+end
+
+function EmitsLight:init()
+    self.lightintensity = self.baselightintensity
+    if self.lighttype == "point" then
+        self.lightrot = self.lightrot or love.math.random()*math.pi*2
+        self.lightoriginoffset = self.lightoriginoffset or Vector( self.lightdrawable:getWidth() / 2, self.lightdrawable:getHeight() / 2 )
+        self.lightscale = Vector( self.lightradius*2/self.lightdrawable:getWidth(), self.lightradius*2/self.lightdrawable:getHeight() )
+    elseif self.lighttype == "ray" then
+        self.lightrot = self.rot
+        self.lightoriginoffset = Vector( 0, self.lightdrawable:getHeight() / 2 )
+        -- We use lightgirth on rays for height calculations
+        self.lightscale = Vector( self.lightradius/self.lightdrawable:getWidth(), self.lightgirth/self.lightdrawable:getHeight() )
+    end
+
+    -- Convert the lightflickermap to more efficient values
+    self:setFlickerMap( self.lightflickermap )
+
+    -- Set the flicker time to a random value, this way if we create
+    -- a ton of lights at once they'll flicker at different times
+    self.lighttime = self.lighttime or ( love.math.random() * table.getn( self.lightflickermap ) )
+    Renderer:addLight( self )
+end
+
+-- Converts a valve-style flickermap into floats
+-- See https://developer.valvesoftware.com/wiki/Light#Appearances
+function EmitsLight:setFlickerMap( flickermapstring )
+    -- If the flickermap was already converted to a table then just use it
+    if type( flickermapstring ) == "table" then
+        self.lightflickermap = flickermapstring
+        return
+    end
+    -- Otherwise we need to convert the string into a table of numbers.
+    local flickermap = {}
+    -- For each character
+    for char in string.gmatch( flickermapstring, "." ) do
+        -- 0 = a, 1 = z, m = 0.48
+        local val = ( string.byte( char ) - 97 ) / 25
+        table.insert( flickermap, val )
+    end
+    self.lightflickermap = flickermap
+end
+
+function EmitsLight:setPos( t )
+    self.changed = true
+end
+
+function EmitsLight:setRot( r )
+    self.lightrot = r
+end
+
+function EmitsLight:setRadius( r )
+    self.lightradius = r
+    self.changed = true
+end
+
+function EmitsLight:setLightIntensity( lightintensity )
+    self.lightintensity = lightintensity
+    self.baselightintensity = lightintensity
+end
+
+function EmitsLight:getLightIntensity()
+    return self.baselightintensity
+end
+
+function EmitsLight:deinit()
+    Renderer:removeLight( self )
+end
 
 return EmitsLight

@@ -1,15 +1,30 @@
-local processHand = function( e, hand, controls )
+local HasHands = {
+    __name = "HasHands",
+    handcount = 2,
+    -- Used for lenient clicks
+    handsize = 5,
+    handpositions = {
+        Vector( -20, 5 ),
+        Vector( 20, 5 )
+    },
+    handitems = {},
+    networkinfo = {
+        setHandItems = "handitems"
+    }
+}
+
+function HasHands:processHand( hand, controls )
     -- If nothing is in the hand
     -- we try to pick something up. (Even if we have modifiers pressed)
-    if not e.handitems[ hand ] then
+    if not self.handitems[ hand ] then
         -- Make sure we don't have any modifiers held
         if controls.throwmodifier ~= 1 and controls.dropmodifier ~= 1 then
-            local ents = World:getNearby( Vector( controls.x, controls.y ), e.handsize )
+            local ents = World:getNearby( Vector( controls.x, controls.y ), self.handsize )
             -- If we found something we put it in our hand
             for i,v in pairs( ents ) do
                 -- We can only pick up items
                 if v:hasComponent( Components.isitem ) then
-                    e.handitems[ hand ] = v.demoIndex
+                    self.handitems[ hand ] = v.demoIndex
                     break
                     -- We don't have to move the entity around since updateItems is called shortly after this
                 end
@@ -21,106 +36,106 @@ local processHand = function( e, hand, controls )
             -- throw
         elseif controls.dropmodifier == 1 then
             -- drop
-            e.handitems[ hand ] = nil
+            self.handitems[ hand ] = nil
         else
             -- use
-            local ent = DemoSystem.entities[ e.handitems[ hand ] ]
-            ent:use( e )
+            local ent = DemoSystem.entities[ self.handitems[ hand ] ]
+            ent:use( self )
         end
     end
 end
 
-local update = function( e, dt, tick )
+function HasHands:update( dt, tick )
     if dt < 0 then
         return
     end
     -- We go and see if any hand binds were freshly pressed
-    for i=1, e.handcount do
-        if e:getControlClicked( "hand" .. i, tick ) then
-            e:processHand( i, e:getControls( tick ) )
+    for i=1, self.handcount do
+        if self:getControlClicked( "hand" .. i, tick ) then
+            self:processHand( i, self:getControls( tick ) )
         end
     end
-    e.updateItems( e, dt, tick )
+    self.updateItems( self, dt, tick )
 end
 
-local updateItems = function( e, dt, tick )
-    local controls = e:getControls( tick )
-    for i,v in pairs( e.handitems ) do
+function HasHands:updateItems( dt, tick )
+    local controls = self:getControls( tick )
+    for i,v in pairs( self.handitems ) do
         local ent = DemoSystem.entities[ v ]
-        ent:setPos( e:getPos() + e.handpositions[ i ]:rotated( e:getRot() ) )
+        ent:setPos( self:getPos() + self.handpositions[ i ]:rotated( self:getRot() ) )
         if ent.rotatecarry then
-            ent:setRot( ( e:getPos() + e.handpositions[ i ] ):angleTo( Vector( controls.x, controls.y ) ) + math.pi )
+            ent:setRot( ( self:getPos() + self.handpositions[ i ] ):angleTo( Vector( controls.x, controls.y ) ) + math.pi )
         else
-            ent:setRot( e:getRot() )
+            ent:setRot( self:getRot() )
         end
     end
-    if e:isLocalPlayer() then
-        for i=1, e.handcount do
-            e:updateItemGUI( i, e.handitems[ i ] )
+    if self:isLocalPlayer() then
+        for i=1, self.handcount do
+            self:updateItemGUI( i, self.handitems[ i ] )
         end
     end
 end
 
-local updateItemGUI = function( e, i, ent )
-    if not e.handgui then
+function HasHands:updateItemGUI( i, ent )
+    if not self.handgui then
         return
     end
     ent = DemoSystem.entities[ ent ] or nil
-    if ( not e.handguibuttons[ i ] and ent ) or ( e.handguibuttons[ i ] and e.handguibuttons[ i ].ent ~= ent and ent ) then
-        if e.handguibuttons[ i ] then
-            e.handguibuttons[ i ]:Remove()
+    if ( not self.handguibuttons[ i ] and ent ) or ( self.handguibuttons[ i ] and self.handguibuttons[ i ].ent ~= ent and ent ) then
+        if self.handguibuttons[ i ] then
+            self.handguibuttons[ i ]:Remove()
         end
-        e.handguibuttons[ i ] = loveframes.Create( "panel", e.handgui )
-        e.handguibuttons[ i ]:SetSize( 62, 62 )
-        e.handguibuttons[ i ]:SetPos( 64*(i-1) + 1, 1 )
-        e.handguibuttons[ i ].ent = ent
-        local image = loveframes.Create( "imagebutton", e.handguibuttons[ i ] )
+        self.handguibuttons[ i ] = loveframes.Create( "panel", self.handgui )
+        self.handguibuttons[ i ]:SetSize( 62, 62 )
+        self.handguibuttons[ i ]:SetPos( 64*(i-1) + 1, 1 )
+        self.handguibuttons[ i ].ent = ent
+        local image = loveframes.Create( "imagebutton", self.handguibuttons[ i ] )
         image:SetImage( Entities.entities[ ent.__name ].image )
         image:SetSize( 62, 62 )
         image:SetText( ent.__name )
-        local tooltip = loveframes.Create( "tooltip", e.handguibuttons[ i ] )
+        local tooltip = loveframes.Create( "tooltip", self.handguibuttons[ i ] )
         tooltip:SetObject( image )
         tooltip:SetFollowCursor( true )
         tooltip:SetText( Entities.entities[ ent.__name ].description )
         tooltip:SetOffsetX( -256 )
         tooltip:SetTextMaxWidth( 256 )
     elseif not ent then
-        if e.handguibuttons[ i ] then
-            e.handguibuttons[ i ]:Remove()
-            e.handguibuttons[ i ].ent = nil
+        if self.handguibuttons[ i ] then
+            self.handguibuttons[ i ]:Remove()
+            self.handguibuttons[ i ].ent = nil
         end
     end
 end
 
-local resize = function( e, w, h )
-    if e.handgui then
-        local size = Vector( 64*e.handcount, 64 )
-        e.handgui:SetPos( w-size.x, h-size.y )
+function HasHands:resize( w, h )
+    if self.handgui then
+        local size = Vector( 64*self.handcount, 64 )
+        self.handgui:SetPos( w-size.x, h-size.y )
     end
 end
 
-local setHandItems = function( e, handitems )
-    e.handitems = handitems
-    if e:isLocalPlayer() then
-        for i=1, e.handcount do
-            e:updateItemGUI( i, e.handitems[ i ] )
+function HasHands:setHandItems( handitems )
+    self.handitems = handitems
+    if self:isLocalPlayer() then
+        for i=1, self.handcount do
+            self:updateItemGUI( i, self.handitems[ i ] )
         end
     end
 end
 
-local setLocalPlayer = function( e, bool )
+function HasHands:setLocalPlayer( bool )
     if bool then
-        if e.handgui then
-            e.handgui:Remove()
+        if self.handgui then
+            self.handgui:Remove()
         end
         -- Create some simple GUI for the hands
-        e.handgui = loveframes.Create( "panel" )
-        local size = Vector( 64*e.handcount, 64 )
-        e.handgui:SetSize( size.x, size.y )
-        e.handgui:SetPos( love.graphics.getWidth()-size.x, love.graphics.getHeight()-size.y )
-        e.handguibuttons = {}
-        for i=1,e.handcount do
-            local text = loveframes.Create( "text", e.handgui )
+        self.handgui = loveframes.Create( "panel" )
+        local size = Vector( 64*self.handcount, 64 )
+        self.handgui:SetSize( size.x, size.y )
+        self.handgui:SetPos( love.graphics.getWidth()-size.x, love.graphics.getHeight()-size.y )
+        self.handguibuttons = {}
+        for i=1,self.handcount do
+            local text = loveframes.Create( "text", self.handgui )
             text:SetDefaultColor( 100, 100, 100, 100 )
             text:SetShadowColor( 0, 0, 0, 0 )
             text:SetText( "Hand " .. i )
@@ -129,19 +144,19 @@ local setLocalPlayer = function( e, bool )
     end
 end
 
-local init = function( e )
-    if e:isLocalPlayer() then
-        if e.handgui then
-            e.handgui:Remove()
+function HasHands:init()
+    if self:isLocalPlayer() then
+        if self.handgui then
+            self.handgui:Remove()
         end
         -- Create some simple GUI for the hands
-        e.handgui = loveframes.Create( "panel" )
-        local size = Vector( 64*e.handcount, 64 )
-        e.handgui:SetSize( size.x, size.y )
-        e.handgui:SetPos( love.graphics.getWidth()-size.x, love.graphics.getHeight()-size.y )
-        e.handguibuttons = {}
-        for i=1,e.handcount do
-            local text = loveframes.Create( "text", e.handgui )
+        self.handgui = loveframes.Create( "panel" )
+        local size = Vector( 64*self.handcount, 64 )
+        self.handgui:SetSize( size.x, size.y )
+        self.handgui:SetPos( love.graphics.getWidth()-size.x, love.graphics.getHeight()-size.y )
+        self.handguibuttons = {}
+        for i=1,self.handcount do
+            local text = loveframes.Create( "text", self.handgui )
             text:SetDefaultColor( 100, 100, 100, 100 )
             text:SetShadowColor( 0, 0, 0, 0 )
             text:SetText( "Hand " .. i )
@@ -149,32 +164,5 @@ local init = function( e )
         end
     end
 end
-
-local deinit = function( e )
-end
-
-local HasHands = {
-    __name = "HasHands",
-    handcount = 2,
-    -- Used for lenient clicks
-    handsize = 5,
-    handpositions = {
-        Vector( -20, 5 ),
-        Vector( 20, 5 )
-    },
-    handitems = {},
-    update = update,
-    resize = resize,
-    setHandItems = setHandItems,
-    setLocalPlayer = setLocalPlayer,
-    networkinfo = {
-        setHandItems = "handitems"
-    },
-    updateItems = updateItems,
-    updateItemGUI = updateItemGUI,
-    processHand = processHand,
-    init = init,
-    deinit = deinit
-}
 
 return HasHands

@@ -1,17 +1,13 @@
-local DebugDrawable = {}
-
-local init = function( e )
-    Renderer:addDebugEntity( e )
-end
-
-local deinit = function( e )
-    Renderer:removeDebugEntity( e )
-end
-
 local DebugDrawable = {
-    __name = "DebugDrawable",
-    init = init,
-    deinit = deinit
+    __name = "DebugDrawable"
 }
+
+function DebugDrawable:init()
+    Renderer:addDebugEntity( self )
+end
+
+function DebugDrawable:deinit()
+    Renderer:removeDebugEntity( self )
+end
 
 return DebugDrawable

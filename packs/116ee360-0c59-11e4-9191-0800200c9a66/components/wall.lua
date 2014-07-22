@@ -1,83 +1,9 @@
-local updateWallConfig = function( e, safe )
-    e.wallconfig = ""
-    local pos = e:getPos()
-    local ents = World:getEntitiesAtGrid( pos.x-64, pos.y )
-    for i,v in pairs( ents ) do
-        if v:hasComponent( Components.wall ) then
-            if not safe then
-                v:updateWallConfig( true )
-            end
-            e.wallconfig = e.wallconfig .. "L"
-            break
-        end
-    end
-    ents = World:getEntitiesAtGrid( pos.x+64, pos.y )
-    for i,v in pairs( ents ) do
-        if v:hasComponent( Components.wall ) then
-            if not safe then
-                v:updateWallConfig( true )
-            end
-            e.wallconfig = e.wallconfig .. "R"
-            break
-        end
-    end
-    ents = World:getEntitiesAtGrid( pos.x, pos.y-64 )
-    for i,v in pairs( ents ) do
-        if v:hasComponent( Components.wall ) then
-            if not safe then
-                v:updateWallConfig( true )
-            end
-            e.wallconfig = e.wallconfig .. "U"
-            break
-        end
-    end
-    ents = World:getEntitiesAtGrid( pos.x, pos.y+64 )
-    for i,v in pairs( ents ) do
-        if v:hasComponent( Components.wall ) then
-            if not safe then
-                v:updateWallConfig( true )
-            end
-            e.wallconfig = e.wallconfig .. "D"
-            break
-        end
-    end
-    if e.wallconfig == "" then
-        e.wallconfig = "None"
-    end
-    e.drawable = e.drawablelookup[ e.wallconfig ]
-    e.shadowmesh = e.shadowmeshlookup[ e.wallconfig ]
-end
-
-local setWallConfig = function( e, conf )
-    e.wallconfig = conf
-    e.drawable = e.drawablelookup[ e.wallconfig ]
-    e.shadowmesh = e.shadowmeshlookup[ e.wallconfig ]
-end
-
-local init = function( e )
-    if not e:hasComponent( Components.drawable ) or not e:hasComponent( Components.blockslight ) or not e:hasComponent( Components.ongrid ) then
-        error( "An entity containing the wall component MUST contain the drawable, blockslight, and ongrid component as well!" )
-    end
-    for i,v in pairs( e.components ) do
-        if v == Components.ongrid then
-            break
-        end
-        if v == Components.wall then
-            error( "The wall component must be included after the ongrid component! This is so that the wall can exist within the world before it updates other nearby walls." )
-        end
-    end
-    if e.wallconfig == "" then
-        e:updateWallConfig()
-    end
-end
-
 local Wall = {
     __name = "Wall",
     wallconfig = "",
     -- We network over the wall configuration, but just so that
     -- loading the map isn't as processor intensive
     -- Since it hardly ever changes it should hardly ever be networked
-    setWallConfig = setWallConfig,
     networkinfo = {
         setWallConfig = "wallconfig"
     },
@@ -99,8 +25,6 @@ local Wall = {
         D = love.graphics.newImage( PackLocation .. "textures/null.png" ),
         UD = love.graphics.newImage( PackLocation .. "textures/null.png" )
     },
-    init = init,
-    updateWallConfig = updateWallConfig,
     -- This ugly thing describes possible configuration of shadow mesh,
     -- and indicates where walls would touch if they're touching so
     -- that specific faces can be removed.
@@ -243,5 +167,78 @@ local Wall = {
         }
     }
 }
+
+function Wall:updateWallConfig( safe )
+    self.wallconfig = ""
+    local pos = self:getPos()
+    local ents = World:getEntitiesAtGrid( pos.x-64, pos.y )
+    for i,v in pairs( ents ) do
+        if v:hasComponent( Components.wall ) then
+            if not safe then
+                v:updateWallConfig( true )
+            end
+            self.wallconfig = self.wallconfig .. "L"
+            break
+        end
+    end
+    ents = World:getEntitiesAtGrid( pos.x+64, pos.y )
+    for i,v in pairs( ents ) do
+        if v:hasComponent( Components.wall ) then
+            if not safe then
+                v:updateWallConfig( true )
+            end
+            self.wallconfig = self.wallconfig .. "R"
+            break
+        end
+    end
+    ents = World:getEntitiesAtGrid( pos.x, pos.y-64 )
+    for i,v in pairs( ents ) do
+        if v:hasComponent( Components.wall ) then
+            if not safe then
+                v:updateWallConfig( true )
+            end
+            self.wallconfig = self.wallconfig .. "U"
+            break
+        end
+    end
+    ents = World:getEntitiesAtGrid( pos.x, pos.y+64 )
+    for i,v in pairs( ents ) do
+        if v:hasComponent( Components.wall ) then
+            if not safe then
+                v:updateWallConfig( true )
+            end
+            self.wallconfig = self.wallconfig .. "D"
+            break
+        end
+    end
+    if self.wallconfig == "" then
+        self.wallconfig = "None"
+    end
+    self.drawable = self.drawablelookup[ self.wallconfig ]
+    self.shadowmesh = self.shadowmeshlookup[ self.wallconfig ]
+end
+
+function Wall:setWallConfig( conf )
+    self.wallconfig = conf
+    self.drawable = self.drawablelookup[ self.wallconfig ]
+    self.shadowmesh = self.shadowmeshlookup[ self.wallconfig ]
+end
+
+function Wall:init()
+    if not self:hasComponent( Components.drawable ) or not self:hasComponent( Components.blockslight ) or not self:hasComponent( Components.ongrid ) then
+        error( "An entity containing the wall component MUST contain the drawable, blockslight, and ongrid component as well!" )
+    end
+    for i,v in pairs( self.components ) do
+        if v == Components.ongrid then
+            break
+        end
+        if v == Components.wall then
+            error( "The wall component must be included after the ongrid component! This is so that the wall can exist within the world before it updates other nearby walls." )
+        end
+    end
+    if self.wallconfig == "" then
+        self:updateWallConfig()
+    end
+end
 
 return Wall

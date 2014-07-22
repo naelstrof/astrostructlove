@@ -5,11 +5,12 @@ local wall = {
 		Components.blockslight,
 		Components.physical,
 		Components.networked,
-		Components.default,
-        -- wall HAS to come after default, since default spawns the wall
-        -- into the world. Which lets nearby walls update their textures
-        -- and shadowmeshs.
-        Components.wall
+        Components.ongrid,
+        -- wall HAS to come after ongrid, since ongrid spawns the wall
+        -- into the world's grid. Which lets nearby walls update their
+        -- textures and shadowmeshs.
+        Components.wall,
+		Components.default
 	},
 	image = PackLocation .. "textures/walltileLRUD.png",
 	attributes = {

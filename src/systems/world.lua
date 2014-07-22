@@ -1,11 +1,55 @@
 -- Keeps track of all entities that are created so they can easily be filtered, disposed of, or otherwise
 -- worked with.
 
-local World = Class( { entities = {} } )
+local World = {
+    entities = {},
+    grid={}
+}
 
 function World:addEntity( e )
     table.insert( self.entities, e )
     e.entitiesIndex = table.maxn( self.entities )
+end
+
+function World:addToGrid( e )
+    local x = e:getPos().x - 32
+    local y = e:getPos().y - 32
+    -- If we don't fit perfectly onto the self.grid
+    if not ( x % 64 == 0 and y % 64 == 0 ) then
+        error( "Attempted to add entity to the self.grid when it's not on the self.grid!" )
+    end
+    x = math.floor( x/64 )
+    y = math.floor( y/64 )
+    if not self.grid[x] then
+        self.grid[x] = {}
+    end
+    if not self.grid[x][y] then
+        self.grid[x][y] = {}
+    end
+    table.insert( self.grid[x][y], e )
+    e.griddepth = #(self.grid[x][y])
+end
+
+function World:removeFromGrid( e )
+    if not e.griddepth then
+        return
+    end
+    local x = math.floor( ( e:getPos().x - 32 ) / 64 )
+    local y = math.floor( ( e:getPos().y - 32 ) / 64 )
+    self.grid[x][y][e.griddepth] = nil
+    e.griddepth = nil
+end
+
+function World:getEntitiesAtGrid( x, y )
+    x = math.floor( (x-32)/64 )
+    y = math.floor( (y-32)/64 )
+    if not self.grid[x] then
+        self.grid[x] = {}
+    end
+    if not self.grid[x][y] then
+        self.grid[x][y] = {}
+    end
+    return self.grid[x][y]
 end
 
 function World:removeEntity( e )
@@ -13,6 +57,11 @@ function World:removeEntity( e )
     -- Have to update all the indicies of all the other entities.
     for i=e.entitiesIndex, table.maxn( self.entities ), 1 do
         self.entities[i].entitiesIndex = self.entities[i].entitiesIndex - 1
+    end
+    if e.griddepth then
+        local x = math.floor( (e:getPos().x-32)/64 )
+        local y = math.floor( (e:getPos().y-32)/64 )
+        self.grid[x][y][e.griddepth] = nil
     end
 end
 

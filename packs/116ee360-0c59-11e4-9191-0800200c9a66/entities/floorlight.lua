@@ -5,6 +5,7 @@ floorlight = {
         Components.floor,
         Components.emitslight,
         Components.networked,
+        Components.ongrid,
         Components.default
     },
     image = PackLocation .. "textures/floorlight.png",

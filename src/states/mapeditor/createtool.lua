@@ -7,7 +7,7 @@ local CreateTool = {
     oldpos=nil,
     posmem = nil,
     -- Max distance between the placer and the mouse before it starts rotating.
-    maxdist=15
+    maxdist=32
 }
 
 function CreateTool:init()

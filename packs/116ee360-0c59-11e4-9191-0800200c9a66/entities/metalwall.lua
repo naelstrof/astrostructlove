@@ -4,6 +4,7 @@ local metalwall = {
         Components.drawable,
         Components.blockslight,
         Components.physical,
+        Components.ongrid,
         Components.networked,
         Components.default
     },

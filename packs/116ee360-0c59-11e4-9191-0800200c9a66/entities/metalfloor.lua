@@ -4,6 +4,7 @@ metalfloor = {
         Components.drawable,
         Components.floor,
         Components.networked,
+        Components.ongrid,
         Components.default
     },
     image = PackLocation .. "textures/metalfloor.png",

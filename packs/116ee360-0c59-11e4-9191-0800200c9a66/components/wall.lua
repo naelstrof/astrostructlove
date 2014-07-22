@@ -1,6 +1,7 @@
 local updateWallConfig = function( e, safe )
     e.wallconfig = ""
-    local ents = World:getNearby( e:getPos() + Vector( -64, 0 ), 10 )
+    local pos = e:getPos()
+    local ents = World:getEntitiesAtGrid( pos.x-64, pos.y )
     for i,v in pairs( ents ) do
         if v:hasComponent( Components.wall ) then
             if not safe then
@@ -10,7 +11,7 @@ local updateWallConfig = function( e, safe )
             break
         end
     end
-    ents = World:getNearby( e:getPos() + Vector( 64, 0 ), 10 )
+    ents = World:getEntitiesAtGrid( pos.x+64, pos.y )
     for i,v in pairs( ents ) do
         if v:hasComponent( Components.wall ) then
             if not safe then
@@ -20,7 +21,7 @@ local updateWallConfig = function( e, safe )
             break
         end
     end
-    ents = World:getNearby( e:getPos() + Vector( 0, -64 ), 10 )
+    ents = World:getEntitiesAtGrid( pos.x, pos.y-64 )
     for i,v in pairs( ents ) do
         if v:hasComponent( Components.wall ) then
             if not safe then
@@ -30,7 +31,7 @@ local updateWallConfig = function( e, safe )
             break
         end
     end
-    ents = World:getNearby( e:getPos() + Vector( 0, 64 ), 10 )
+    ents = World:getEntitiesAtGrid( pos.x, pos.y+64 )
     for i,v in pairs( ents ) do
         if v:hasComponent( Components.wall ) then
             if not safe then
@@ -54,15 +55,15 @@ local setWallConfig = function( e, conf )
 end
 
 local init = function( e )
-    if not e:hasComponent( Components.drawable ) or not e:hasComponent( Components.blockslight ) then
-        error( "An entity containing the wall component MUST contain the drawable and blockslight component as well!" )
+    if not e:hasComponent( Components.drawable ) or not e:hasComponent( Components.blockslight ) or not e:hasComponent( Components.ongrid ) then
+        error( "An entity containing the wall component MUST contain the drawable, blockslight, and ongrid component as well!" )
     end
     for i,v in pairs( e.components ) do
-        if v == Components.default then
+        if v == Components.ongrid then
             break
         end
         if v == Components.wall then
-            error( "The wall component must be included after the default component! This is so that the wall can exist within the world before it updates other nearby walls." )
+            error( "The wall component must be included after the ongrid component! This is so that the wall can exist within the world before it updates other nearby walls." )
         end
     end
     if e.wallconfig == "" then

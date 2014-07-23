@@ -108,7 +108,7 @@ function Network:addPlayer( id, entDemoIndex )
             local t = DemoSystem:getDiff( self.snapshots[ 0 ], self.snapshots[ self.tick ] )
             t.map = Gamemode.map
             t.clientid = id
-            Enet.Server:send( Tserial.pack( t ), id )
+            Enet.Server:send( Tserial.pack( t ), id, 0, "reliable" )
         end
     end
 end

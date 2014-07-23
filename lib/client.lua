@@ -36,6 +36,7 @@ function Client:update()
         if self.callbacks.receive then
             self.callbacks.receive( event.data )
         end
+        event.peer:receive()
     elseif event.type == "connect" then
         if self.callbacks.connect then
             self.callbacks.connect()

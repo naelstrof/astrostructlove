@@ -240,7 +240,7 @@ function Network:update( dt )
             t.chat = self.chat
         end
         if t.chat or t.players then
-            Enet.Server:send( Tserial.pack( t ), 1, "reliable" )
+            Enet.Server:send( Tserial.pack( t ), nil, 0, "reliable" )
         else
             Enet.Server:send( Tserial.pack( t ) )
         end

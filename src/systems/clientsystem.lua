@@ -235,7 +235,7 @@ function ClientSystem:sendUpdate()
         table.remove( self.sendtext, 1 )
     end
     if t.chat then
-        Enet.Client:send( Tserial.pack( t ), 1, "reliable" )
+        Enet.Client:send( Tserial.pack( t ), 0, "reliable" )
     else
         Enet.Client:send( Tserial.pack( t ) )
     end

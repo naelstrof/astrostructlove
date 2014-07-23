@@ -36,6 +36,7 @@ function Server:update()
         if self.callbacks.receive then
             self.callbacks.receive( event.data, event.peer:index() )
         end
+        event.peer:receive()
     elseif event.type == "connect" then
         self.peers[ event.peer:index() ] = event.peer
         if self.callbacks.connect then

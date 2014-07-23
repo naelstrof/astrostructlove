@@ -234,7 +234,11 @@ function ClientSystem:sendUpdate()
         t.chat = self.sendtext[ 1 ]
         table.remove( self.sendtext, 1 )
     end
-    Enet.Client:send( Tserial.pack( t ) )
+    if t.chat then
+        Enet.Client:send( Tserial.pack( t ), 0, "reliable" )
+    else
+        Enet.Client:send( Tserial.pack( t ) )
+    end
 end
 
 function ClientSystem.interpolate( prevshot, nextshot, x )

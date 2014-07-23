@@ -1,4 +1,6 @@
-local CameraSystem = Class( { activecamera = nil } )
+local CameraSystem = {
+    activecamera = nil
+}
 
 function CameraSystem:setActive( e )
     if e:hasComponent( Components.camera ) then

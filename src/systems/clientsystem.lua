@@ -22,7 +22,8 @@ local ClientSystem = {
     client = nil,
     sendtext = {},
     chat = {},
-    snapshots = {}
+    snapshots = {},
+    players = {}
 }
 
 function ClientSystem:sendText( text )
@@ -50,32 +51,32 @@ function ClientSystem:setID( id )
 end
 
 function ClientSystem:updatePlayers( players )
-    local copy = {}
-    for i,v in pairs( players ) do
-        copy[ v.id ] = v
+    if not players then
+        return
     end
     if not self.players then
-        self.players = copy
-    else
-        for i,v in pairs( copy ) do
-            self.players[ i ] = table.merge( self.players[ i ], v )
+        self.players = {}
+        for i,v in pairs( players ) do
+            self.players[ v.id ] = v
         end
+    else
+        for i,v in pairs( players ) do
+            self.players[ v.id ] = table.merge( self.players[ v.id ], v )
+        end
+    end
+    if self.onPlayerDataChange then
+        self.onPlayerDataChange( self.players )
     end
 end
 
 function ClientSystem:startLobby( ip, port )
-    self.client = lube.udpClient()
-    self.client:init()
-    self.client:setPing( true, 10, "p" )
-    self.client.callbacks = { recv = self.onLobbyReceive, disconnect = self.onDisconnect }
-    self.client.handshake = Game.version
-    self.client:connect( ip, port )
-    self.client:send( Tserial.pack( { name=OptionSystem.options.playername, avatar=OptionSystem.options.playeravatar } ) )
+    Enet.Client:init( ip, port )
+    Enet.Client:setCallbacks( self.onLobbyReceive, self.onDisconnect, self.onConnect )
 end
 
 function ClientSystem:startGame( snapshot )
     MapSystem:load( snapshot.map )
-    self.client.callbacks = { recv = self.onGameReceive, disconnect = self.onDisconnect }
+    Enet.Client:setCallbacks( self.onGameReceive, self.onDisconnect, nil )
     self.time = snapshot.time
     --self.time = snapshot.time - 1
     self.tick = snapshot.tick
@@ -118,17 +119,12 @@ function ClientSystem:stop()
     self.id = nil
     self.player = nil
     self.playerpos = Vector( 0, 0 )
-    if self.client then
-        self.client:disconnect()
-    end
-    self.client = nil
+    Enet.Client:disconnect()
     self.running = false
 end
 
 function ClientSystem:update( dt )
-    if self.client then
-        self.client:update( dt )
-    end
+    Enet.Client:update()
     if self.lastrecievetime and self.time - self.lastrecievetime > 2 then
         if not self.warntext then
             self.warntext = loveframes.Create( "text" )
@@ -238,8 +234,7 @@ function ClientSystem:sendUpdate()
         t.chat = self.sendtext[ 1 ]
         table.remove( self.sendtext, 1 )
     end
-    self.client:send( Tserial.pack( t ) )
-    print( Tserial.pack( t ) )
+    Enet.Client:send( Tserial.pack( t ) )
 end
 
 function ClientSystem.interpolate( prevshot, nextshot, x )
@@ -296,6 +291,10 @@ function ClientSystem.interpolate( prevshot, nextshot, x )
     end
 end
 
+function ClientSystem.onConnect()
+    Enet.Client:send( Tserial.pack( { name=OptionSystem.options.playername, avatar=OptionSystem.options.playeravatar } ), 0, "reliable" )
+end
+
 function ClientSystem.onLobbyReceive( data )
     local t = Tserial.unpack( data )
     if t.clientid then
@@ -308,17 +307,27 @@ function ClientSystem.onLobbyReceive( data )
     end
     if t.players then
         ClientSystem:updatePlayers( t.players )
-        State.clientlobby:clearPlayers()
-        for i,v in pairs( t.players ) do
-            State.clientlobby:listPlayer( v )
-        end
     end
     ClientSystem.lastrecievetime = ClientSystem.time
 end
 
-function ClientSystem.onDisconnect( data )
+function ClientSystem.onDisconnect()
     ClientSystem:stop()
     StateMachine.switch( State.menu )
+    local frame = loveframes.Create( "frame" )
+    frame:SetName( "Disconnected..." )
+    frame:Center()
+    local text = loveframes.Create( "text", frame )
+    text:SetText( "We got disconnected from the server!" )
+    text:Center()
+    local button = loveframes.Create( "button", frame )
+    button:SetText( "Ok" )
+    button:Center()
+    button:SetY( button:GetY() + 100 )
+    button.frame = frame
+    button.OnClick = function( object, x, y )
+        object.frame:Remove()
+    end
 end
 
 function ClientSystem.onGameReceive( data )

@@ -5,6 +5,12 @@ local ClientLobby = {
 }
 
 function ClientLobby:enter()
+    ClientSystem.onPlayerDataChange = function( players )
+        self:clearPlayers()
+        for i,v in pairs( players ) do
+            self:listPlayer( v )
+        end
+    end
     ClientSystem:startLobby( self.ip, self.port )
     self.frame = loveframes.Create( "frame" )
     self.frame:SetName( "Game Lobby" )
@@ -46,9 +52,9 @@ function ClientLobby:listPlayer( playerdata )
     local text = loveframes.Create( "imagebutton", self.playerlist )
     playerdata.ping = playerdata.ping or "Unknown"
     if playerdata.name then
-        text:SetText( playerdata.name )
+        text:SetText( playerdata.name .. " Ping: " .. playerdata.ping )
     else
-        text:SetText( "Nobody" )
+        text:SetText( "Nobody" .. " Ping: " .. playerdata.ping )
     end
     if playerdata.avatar then
         local filename = Downloader.download( playerdata.avatar )

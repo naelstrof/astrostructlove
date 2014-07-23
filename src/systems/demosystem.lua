@@ -1,4 +1,4 @@
-local DemoSystem = Class( {
+local DemoSystem = {
     uniqueid = 0,
     entities = {},
     recording = false,
@@ -11,7 +11,7 @@ local DemoSystem = Class( {
     totaltimepassed = 0,
     prevframe = nil,
     nextframe = nil
-} )
+}
 
 function DemoSystem:compare( a, b )
     if type( a ) == "table" and type( b ) == "table" then

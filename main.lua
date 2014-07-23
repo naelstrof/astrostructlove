@@ -2,15 +2,18 @@
 --require( "luabins" )
 --require( "zlib" )
 
+Class = require( "lib/30log" )
+
 require( "lib/util" )
 require( "lib/NikolaiResokav-LoveFrames" )
 require( "lib/Tserial" )
--- Class support
-Class = require( "lib/30log" )
--- Need some lube I guess.
-require( "lib/LUBE" )
--- goddamnit
 Cock = require( "lib/cock" )
+
+require 'enet'
+Enet = {
+    Client = require( "lib/client" ),
+    Server = require( "lib/server" )
+}
 
 Game = {}
 Game.version = "0.0.0"

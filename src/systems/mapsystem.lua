@@ -1,4 +1,4 @@
-local MapSystem = Class( { } )
+local MapSystem = {}
 
 function MapSystem:save( filename )
     love.filesystem.createDirectory( "maps/" )

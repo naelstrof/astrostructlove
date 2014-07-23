@@ -2,7 +2,7 @@
 -- Adds several values to the entity that shouldn't be altered manually: rendererIndex, layer
 -- The values are used to locate the entity within the table.
 
-local Renderer = Class( {
+local Renderer = {
     uid = 0,
     layers = {},
     lights={},
@@ -12,7 +12,7 @@ local Renderer = Class( {
     lightcanvas=nil,
     fullbright=false,
     maskshader=nil
-} )
+}
 
 function Renderer:addDebugEntity( e )
     self.debugs[ self.uid ] = e

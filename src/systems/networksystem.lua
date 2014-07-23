@@ -1,7 +1,6 @@
 -- Majority of the work is already done with my demoing system :)
 
 local Network = {
-    server = nil,
     port = 27020,
     running = false,
     updaterate = 30,
@@ -46,20 +45,12 @@ end
 
 function Network:startLobby( port )
     self.port = self.port or port
-    self.server = lube.udpServer()
-    self.server:init()
-    self.server:setPing( true, 10, "p" )
-    self.server.callbacks = { recv = self.onLobbyReceive, connect = self.onLobbyConnect, disconnect = self.onLobbyDisconnect }
-    self.server.handshake = Game.version
-    self.server:listen( self.port )
-    print( "Created Listen Lobby on port " .. self.port )
+    Enet.Server:init( port )
+    Enet.Server:setCallbacks( self.onLobbyReceive, self.onLobbyDisconnect, self.onLobbyConnect )
 end
 
 function Network:startGame()
-    if not self.server then
-        error( "Network needs startLobby() called before startGame()!" )
-    end
-    self.server.callbacks = { recv = self.onGameReceive, connect = self.onGameConnect, disconnect = self.onGameDisconnect }
+    Enet.Server:setCallbacks( self.onGameReceive, self.onGameDisconnect, self.onGameConnect )
     self.running = true
     self.totaltime = 0
     self.playerupdate = 0
@@ -87,7 +78,7 @@ function Network:startGame()
             local t = DemoSystem:getDiff( self.snapshots[ 0 ], self.snapshots[ self.tick ] )
             t.map = Gamemode.map
             t.clientid = v.id
-            self.server:send( Tserial.pack( t ), v.id )
+            Enet.Server:send( Tserial.pack( t ), v.id, 0, "reliable" )
         end
     end
 end
@@ -117,7 +108,7 @@ function Network:addPlayer( id, entDemoIndex )
             local t = DemoSystem:getDiff( self.snapshots[ 0 ], self.snapshots[ self.tick ] )
             t.map = Gamemode.map
             t.clientid = id
-            self.server:send( Tserial.pack( t ), id )
+            Enet.Server:send( Tserial.pack( t ), id )
         end
     end
 end
@@ -146,10 +137,8 @@ function Network:updateClient( id, controls, tick )
 end
 
 function Network:stop()
-    if self.server then
-        self.server:disconnect()
-    end
-    self.server = nil
+    Enet.Server:disconnect()
+    self.players = {}
     self.running = false
     self.totaltime = 0
     self.currenttime = 0
@@ -170,9 +159,7 @@ end
 
 -- We send out updates at the current updaterate
 function Network:update( dt )
-    if self.server then
-        self.server:update( dt )
-    end
+    Enet.Server:update()
     self.totaltime = self.totaltime + dt
     self.currenttime = self.currenttime + dt*1000
     if self.currenttime > self.updaterate then
@@ -184,8 +171,9 @@ function Network:update( dt )
                 mintick = v.newtick
             end
             -- Oh and update everyone's ping :)
-            if v.id ~= 0 and v.newtick then
-                v.ping = math.floor( ( self.tick - v.newtick ) * 30 )
+            if v.id ~= 0 then
+                --v.ping = math.floor( ( self.tick - v.newtick ) * 30 )
+                v.ping = Enet.Server.peers[ v.id ]:round_trip_time()
             end
             v.newtick = nil
         end
@@ -235,11 +223,11 @@ function Network:update( dt )
             end
             self.playerschanged = false
             self.playerupdate = self.totaltime
-        elseif self.totaltime - self.playerupdate > 3 then
+        elseif self.totaltime - self.playerupdate > 2 then
             t.players = {}
             for i,v in pairs( self.players ) do
                 local p = {}
-                -- We're more strict on periodic updates
+                -- We're more strict on what to send on periodic updates
                 p.ping = v.ping
                 p.name = v.name
                 p.id = v.id
@@ -251,7 +239,7 @@ function Network:update( dt )
         if #self.chat > 0 then
             t.chat = self.chat
         end
-        self.server:send( Tserial.pack( t ) )
+        Enet.Server:send( Tserial.pack( t ) )
         if #self.chat > 0 then
             self.chat = {}
         end
@@ -352,9 +340,11 @@ function Network.onLobbyReceive( data, id )
     end
     if t.name then
         Network.players[ id ].name = t.name
+        Network.playerschanged = true
     end
     if t.avatar then
         Network.players[ id ].avatar = t.avatar
+        Network.playerschanged = true
     end
     if t.control and t.tick then
         Network:updateClientSystem( id, t.control, t.tick )

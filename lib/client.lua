@@ -54,7 +54,6 @@ function Client:send( message, channel, flag )
         return
     end
     flag = flag or "unreliable"
-    print( flag, message )
     channel = channel or 0
     if self.server then
         self.server:send( message, channel, flag )

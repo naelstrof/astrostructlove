@@ -28,25 +28,25 @@ function Server:update()
         return
     end
     local event = self.host:service()
-    if not event then
-        return
-    end
-    if event.type == "receive" then
-        local msg = event.data
-        if self.callbacks.receive then
-            self.callbacks.receive( event.data, event.peer:index() )
+    while event do
+        if event.type == "receive" then
+            local msg = event.data
+            if self.callbacks.receive then
+                self.callbacks.receive( event.data, event.peer:index() )
+            end
+            event.peer:receive()
+        elseif event.type == "connect" then
+            self.peers[ event.peer:index() ] = event.peer
+            if self.callbacks.connect then
+                self.callbacks.connect( event.peer:index() )
+            end
+        elseif event.type == "disconnect" then
+            self.peers[ event.peer:index() ] = nil
+            if self.callbacks.disconnect then
+                self.callbacks.disconnect( event.peer:index() )
+            end
         end
-        event.peer:receive()
-    elseif event.type == "connect" then
-        self.peers[ event.peer:index() ] = event.peer
-        if self.callbacks.connect then
-            self.callbacks.connect( event.peer:index() )
-        end
-    elseif event.type == "disconnect" then
-        self.peers[ event.peer:index() ] = nil
-        if self.callbacks.disconnect then
-            self.callbacks.disconnect( event.peer:index() )
-        end
+        event = self.host:service()
     end
 end
 

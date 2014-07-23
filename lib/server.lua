@@ -53,6 +53,8 @@ function Server:send( message, peerindex, channel, flag )
     if not self.active then
         return
     end
+    flag = flag or "unreliable"
+    channel = channel or 0
     if not peerindex then
         self.host:broadcast( message, channel, flag )
     else

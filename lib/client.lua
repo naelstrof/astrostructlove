@@ -33,6 +33,7 @@ function Client:update()
     end
     if event.type == "receive" then
         local msg = event.data
+        print( event.data )
         if self.callbacks.receive then
             self.callbacks.receive( event.data )
         end

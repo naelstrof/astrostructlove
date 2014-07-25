@@ -6,7 +6,7 @@ local star= {
     },
     image = PackLocation .. "textures/star.png",
     attributes = {
-        layer=1,
+        layer = "space",
         drawable=love.graphics.newImage( PackLocation .. "textures/star.png" )
     }
 }

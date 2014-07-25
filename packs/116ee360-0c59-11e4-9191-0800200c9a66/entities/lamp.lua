@@ -20,8 +20,7 @@ local lamp = {
             else
                 e:setLightIntensity( 1.35 )
             end
-        end,
-        layer = 3
+        end
     }
 }
 

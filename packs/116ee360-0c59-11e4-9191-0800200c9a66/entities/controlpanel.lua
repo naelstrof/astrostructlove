@@ -10,8 +10,7 @@ local controlpanel = {
     glowimage = PackLocation .. "textures/controlpanel_illumination.png",
     attributes = {
         drawable=love.graphics.newImage( PackLocation .. "textures/controlpanel.png" ),
-        glowdrawable=love.graphics.newImage( PackLocation .. "textures/controlpanel_illumination.png" ),
-        layer = 3
+        glowdrawable=love.graphics.newImage( PackLocation .. "textures/controlpanel_illumination.png" )
     }
 }
 

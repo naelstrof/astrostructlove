@@ -23,7 +23,7 @@ function Starfield:respawnStar( i, offscreen, xaxis, maxwidth )
     end
     -- god the math for this is retarded because lua tables start at 1...
     self.stars[i]:setDrawable( self.starImages[ math.floor( love.math.random()*(table.maxn( self.starImages )-1) + 0.5 ) + 1 ] )
-    self.stars[i]:setLayer( 1 )
+    self.stars[i]:setLayer( "space" )
 
     local w,h = love.graphics.getDimensions()
     -- Space layer isn't affected by camera, as such it doesn't need to take camera into account.

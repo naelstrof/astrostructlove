@@ -47,7 +47,7 @@ function PaintTool:init()
             self.highlighter = Entity:new( self.selectedentity )
             if self.highlighter:hasComponent( Components.drawable ) then
                 self.highlighter:setColor( { 255, 255, 255, 155 } )
-                self.highlighter:setLayer( 4 )
+                self.highlighter:setLayer( "special" )
             end
         end
         ents:AddItem( temp )
@@ -125,7 +125,7 @@ function PaintTool:mousereleased( x, y, button )
             self.highlighter = Entity:new( self.selectedentity )
             if self.highlighter:hasComponent( Components.drawable ) then
                 self.highlighter:setColor( { 255, 255, 255, 155 } )
-                self.highlighter:setLayer( 4 )
+                self.highlighter:setLayer( "special" )
             end
         end
         self.lastpos = nil

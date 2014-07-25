@@ -15,6 +15,7 @@ local wall = {
 	image = PackLocation .. "textures/walltileLRUD.png",
 	attributes = {
 		drawable = love.graphics.newImage( PackLocation .. "textures/walltileLRUD.png" ),
+        originoffset = Vector( 32, 88 ),
         drawablelookup = {
             None = love.graphics.newImage( PackLocation .. "textures/walltileLRUD.png" ),
             L = love.graphics.newImage( PackLocation .. "textures/walltileLR.png" ),

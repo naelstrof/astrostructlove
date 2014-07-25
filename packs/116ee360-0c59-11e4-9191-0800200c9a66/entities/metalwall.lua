@@ -10,8 +10,7 @@ local metalwall = {
     },
     image = PackLocation .. "textures/metalwall.png",
     attributes = {
-        drawable = love.graphics.newImage( PackLocation .. "textures/metalwall.png" ),
-        layer=3
+        drawable = love.graphics.newImage( PackLocation .. "textures/metalwall.png" )
     }
 }
 

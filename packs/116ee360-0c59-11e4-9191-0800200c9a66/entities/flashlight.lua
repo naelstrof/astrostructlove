@@ -33,7 +33,6 @@ local flashlight = {
                 e:setLightIntensity( 1.55 )
             end
         end,
-        layer = 3
     }
 }
 

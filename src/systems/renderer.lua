@@ -4,12 +4,18 @@
 
 local Renderer = {
     uid = 0,
-    layers = {},
+    layers={
+        floor={},
+        normal={},
+        special={},
+        space={}
+    },
     lights={},
     glowables={},
     debugs={},
     worldcanvas=nil,
     lightcanvas=nil,
+    shadowcanvas=nil,
     fullbright=false,
     maskshader=nil
 }
@@ -25,6 +31,9 @@ function Renderer:removeDebugEntity( e )
 end
 
 function Renderer:addEntity( e )
+    if not self.layers[ e.layer ] then
+        error( "Layer " .. e.layer .. " doesn't exist!" )
+    end
     self.layers[ e.layer ][ self.uid ] = e
     e.rendererIndex = self.uid
     self.uid = self.uid + 1
@@ -82,35 +91,48 @@ function Renderer:load()
             return vec4(1.0);
         }
     ]] )
+    self.shadowshader = love.graphics.newShader( [[
+        vec4 effect ( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ) {
+            // a discarded fragment will fail the stencil test.
+            if ( Texel( texture, texture_coords ).rgb != vec3( 255.0/255.0, 105.0/255.0, 180.0/255.0 ) )
+                discard;
+            return vec4(1.0);
+        }
+    ]] )
     self.lightcanvas = love.graphics.newCanvas( love.graphics.getDimensions() )
     self.worldcanvas = love.graphics.newCanvas( love.graphics.getDimensions() )
-    -- Space layer
-    self.layers[ 1 ] = {}
-    -- Ground layer
-    self.layers[ 2 ] = {}
-    -- Everything else layer
-    self.layers[ 3 ] = {}
-    -- Special fullbright layer
-    self.layers[ 4 ] = {}
+    self.shadowcanvas = love.graphics.newCanvas( love.graphics.getDimensions() )
 end
 
 function Renderer:resize( w, h )
     self.lightcanvas = love.graphics.newCanvas( w, h )
     self.worldcanvas = love.graphics.newCanvas( w, h )
+    self.shadowcanvas = love.graphics.newCanvas( w, h )
 end
 
 function Renderer:draw( debug )
+    -- Before we draw our normal layer we depth sort it.
+    local sortedstuff = {}
+    for i,v in pairs( self.layers.normal ) do
+        table.insert( sortedstuff, v )
+    end
+    table.sort( sortedstuff, function( a, b )
+        return a and b and a.pos.y<b.pos.y
+    end )
     debug = debug or false
     -- Draw world to world canvas
     CameraSystem:attach()
     love.graphics.setCanvas( self.worldcanvas )
     self.worldcanvas:clear()
-    for i=2,3 do
-        for o,w in pairs( self.layers[i] ) do
-            love.graphics.setColor( w.color )
-            love.graphics.draw( w.drawable, w.pos.x, w.pos.y, w.rot, w.scale.x, w.scale.y, w.originoffset.x, w.originoffset.y )
-            love.graphics.setColor( 255, 255, 255, 255 )
-        end
+    for o,w in pairs( self.layers.floor ) do
+        love.graphics.setColor( w.color )
+        love.graphics.draw( w.drawable, w.pos.x, w.pos.y, w.rot, w.scale.x, w.scale.y, w.originoffset.x, w.originoffset.y )
+        love.graphics.setColor( 255, 255, 255, 255 )
+    end
+    for o,w in pairs( sortedstuff ) do
+        love.graphics.setColor( w.color )
+        love.graphics.draw( w.drawable, w.pos.x, w.pos.y, w.rot, w.scale.x, w.scale.y, w.originoffset.x, w.originoffset.y )
+        love.graphics.setColor( 255, 255, 255, 255 )
     end
     love.graphics.setCanvas()
     CameraSystem:detach()
@@ -124,8 +146,25 @@ function Renderer:draw( debug )
         for i,v in pairs( self.lights ) do
             -- Use stencils to create shadows
             if v.shadowmeshdraw ~= nil then
+                love.graphics.setBlendMode( "alpha" )
+                love.graphics.setCanvas( self.shadowcanvas )
+                self.shadowcanvas:clear()
+                love.graphics.setColor( 255, 105, 180, 255 )
+                love.graphics.draw( v.shadowmeshdraw )
+                love.graphics.setBlendMode( "additive" )
+                love.graphics.setColor( 255, 255, 255, 255 )
+                for o,w in pairs( v.shadowobjects ) do
+                    love.graphics.draw( w.drawable, w.pos.x, w.pos.y, w.rot, w.scale.x, w.scale.y, w.originoffset.x, w.originoffset.y )
+                end
+                love.graphics.setBlendMode( "additive" )
+                love.graphics.setCanvas( self.lightcanvas )
                 love.graphics.setInvertedStencil( function()
-                    love.graphics.draw( v.shadowmeshdraw )
+                    love.graphics.setShader( self.shadowshader )
+                    love.graphics.setColor( 255, 255, 255, 255 )
+                    CameraSystem:detach()
+                    love.graphics.draw( self.shadowcanvas )
+                    CameraSystem:attach()
+                    love.graphics.setShader()
                 end )
             end
             love.graphics.setColor( 255, 255, 255, 255 * v.lightintensity )
@@ -161,7 +200,7 @@ function Renderer:draw( debug )
         love.graphics.draw( self.worldcanvas )
         love.graphics.setShader()
     end )
-    for i,v in pairs( self.layers[1] ) do
+    for i,v in pairs( self.layers.space ) do
         love.graphics.setColor( v.color )
         love.graphics.draw( v.drawable, v.pos.x, v.pos.y, v.rot, v.scale.x, v.scale.y, v.originoffset.x, v.originoffset.y )
         love.graphics.setColor( 255, 255, 255, 255 )
@@ -170,7 +209,7 @@ function Renderer:draw( debug )
 
     CameraSystem:attach()
     -- Draw special top-layer that's always fullbright, for things like ghosts and such
-    for i,v in pairs( self.layers[4] ) do
+    for i,v in pairs( self.layers.special ) do
         love.graphics.setColor( v.color )
         love.graphics.draw( v.drawable, v.pos.x, v.pos.y, v.rot, v.scale.x, v.scale.y, v.originoffset.x, v.originoffset.y )
         love.graphics.setColor( 255, 255, 255, 255 )

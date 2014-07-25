@@ -6,7 +6,7 @@ local Drawable = {
     originoffset = nil,
     scale = Vector( 1, 1 ),
     color = { 255, 255, 255, 255 },
-    layer = 2,
+    layer = "normal",
     networkinfo = {
         setScale = "scale",
         setColor = "color"
@@ -65,7 +65,7 @@ function Drawable:getLayer()
 end
 
 function Drawable:init()
-    self.originoffset = Vector( self.drawable:getWidth() / 2, self.drawable:getHeight() / 2 )
+    self.originoffset = self.originoffset or Vector( self.drawable:getWidth() / 2, self.drawable:getHeight() / 2 )
     Renderer:addEntity( self )
 end
 

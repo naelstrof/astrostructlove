@@ -1,6 +1,7 @@
 local EmitsLight = {
     __name = "EmitsLight",
     shadowmeshdraw = nil,
+    shadowobjects = {},
     changed = true,
     lighttype = "point",
     lightradius = 256,
@@ -28,11 +29,13 @@ function EmitsLight:updateShadowVolumes()
     if not self.changed then
         return
     end
+    self.shadowobjects = {}
     self.changed = false
     local allverticies = {}
     local ents = World:getNearby( self:getPos(), self.lightradius )
     for i,v in pairs( ents ) do
         if v:hasComponent( Components.blockslight ) then
+            table.insert( self.shadowobjects, v )
             local verts = v:getShadowVolume( self:getPos(), self.lightradius )
             for j,w in pairs( verts ) do
                 table.insert( allverticies, w )

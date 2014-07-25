@@ -10,6 +10,7 @@ floorlight = {
     },
     image = PackLocation .. "textures/floorlight.png",
     attributes = {
+        layer="floor",
         drawable = love.graphics.newImage( PackLocation .. "textures/floorlight.png" )
     }
 }

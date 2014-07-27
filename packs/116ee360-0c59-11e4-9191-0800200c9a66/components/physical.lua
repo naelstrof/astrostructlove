@@ -33,6 +33,10 @@ function Physical:setPos( t, byme )
     end
 end
 
+function Physical:getMass()
+    return self.mass
+end
+
 function Physical:update( dt )
     if self.physicstype == "dynamic" then
         local x, y = self.body:getPosition()

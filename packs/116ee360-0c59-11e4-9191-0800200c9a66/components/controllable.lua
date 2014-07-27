@@ -11,6 +11,9 @@ local Controllable = {
 }
 
 function Controllable:update( dt, tick )
+    if dt < 0 then
+        return
+    end
     local controls = self:getControls( tick )
     local direction = 0
     local up, down, left, right
@@ -62,10 +65,7 @@ function Controllable:getControls( tick )
     if not self.controlsnapshots[ tick ] then
         local lastcontroltick = nil
         for i,v in pairs( self.controlsnapshots ) do
-            if i > tick then
-                break
-            end
-            if lastcontroltick == nil or lastcontroltick < i then
+            if lastcontroltick == nil or ( lastcontroltick < i and i <= tick ) then
                 lastcontroltick = i
             end
         end

@@ -152,6 +152,7 @@ function ClientSystem:update( dt )
             self.player:setPos( self.playerpos )
         else
             self.player:setPos( self.player:getPos() + (diff * dist)/8 )
+            --self.player:applyForce( ( diff*(dist/8) + diff*self.player.friction:getMaxForce() ) * self.player:getMass() * dt )
         end
     end
     if self.player then
@@ -175,7 +176,7 @@ function ClientSystem:update( dt )
         end
         -- If we couldn't find a snapshot, we need to extrapolate
         if self.nextshot == nil then
-            local x = ( ( self.time - self.prevshot.time + self.delay ) * 1000 / 30 ) + 1
+            local x = ( self.time - self.prevshot.time + self.delay ) / (30/1000 )
             -- Interpolate with a x > 1 makes it extrapolate
             self.interpolate( self.lastshot, self.prevshot, x )
             return

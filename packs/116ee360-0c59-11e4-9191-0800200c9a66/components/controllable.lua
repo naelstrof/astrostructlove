@@ -1,6 +1,6 @@
 local Controllable = {
     __name = "Controllable",
-    speed = 600,
+    speed = 250,
     rotvelocity = 0,
     playerid = 0,
     localplayer = false,
@@ -24,7 +24,7 @@ function Controllable:update( dt, tick )
     -- There's no need for rotation adjustment, because players can't rotate.
     --local force = direction:rotated( self:getRot() ) * self:getSpeed()
     local force = direction * self:getSpeed()
-    self:applyForce( force )
+    self:applyForce( force * dt )
 end
 
 function Controllable:setSpeed( speed )
@@ -101,7 +101,7 @@ function Controllable:init()
         return
     end
     self.speed = self.speed * self.mass
-    --self:setFixedRotation( true )
+    self:setFixedRotation( true )
 end
 
 function Controllable:setPlayerID( id )

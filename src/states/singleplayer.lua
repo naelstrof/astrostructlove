@@ -22,6 +22,7 @@ function Singleplayer:update( dt )
     -- Despite being in single player, we still rely on knowing our
     -- past... So we must keep track of a tick rate.
     self.player:addControlSnapshot( BindSystem:getControls(), self.tick )
+    Physics:update( dt )
     World:update( dt, self.tick )
     DemoSystem:update( dt )
     loveframes.update( dt )

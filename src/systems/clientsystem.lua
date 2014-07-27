@@ -14,7 +14,7 @@ local ClientSystem = {
     id = nil,
     player = nil,
     playerpos = Vector( 0, 0 ),
-    predictionfixspeed = 2,
+    predictionfixspeed = 20,
     -- I wanted to be like source multiplayer and make a render
     -- delay so we can always be interpolating, but all it caused
     -- was instability and weirdness
@@ -148,11 +148,16 @@ function ClientSystem:update( dt )
         local diff = self.playerpos - self.player:getPos()
         diff:normalize_inplace()
         local dist = self.player:getPos():dist( self.playerpos )
-        self.player:setPos( self.player:getPos() + diff * dist * dt * self.predictionfixspeed )
+        if dist > 128 then
+            self.player:setPos( self.playerpos )
+        else
+            self.player:setPos( self.player:getPos() + (diff * dist)/8 )
+        end
     end
     if self.player then
         self.player:addControlSnapshot( BindSystem:getControls(), self.tick )
     end
+    Physics:update( dt )
     World:update( dt, self.tick )
 
     -- We shouldn't do anything as long as we're too far in the

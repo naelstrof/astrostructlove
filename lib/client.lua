@@ -44,6 +44,7 @@ function Client:update()
             end
             self.host = nil
             self.server = nil
+            return
         end
         event = self.host:service()
     end

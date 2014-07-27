@@ -3,7 +3,7 @@
 local Network = {
     port = 27020,
     running = false,
-    updaterate = 30,
+    updaterate = 30/1000,
     playerupdate = 0,
     currenttime = 0,
     totaltime = 0,
@@ -128,7 +128,8 @@ function Network:removePlayer( id )
 end
 
 function Network:updateClient( id, controls, tick )
-    self.players[ id ].snapshots[ tick ] = controls
+    DemoSystem.entities[ self.players[ id ].ent ]:addControlSnapshot( controls, tick )
+    --self.players[ id ].snapshots[ tick ] = controls
     -- We record their OLDEST recieved update, so we know how far back to
     -- go in time for our fellow players with poor internet
     if not self.players[ id ].newtick or self.players[ id ].newtick > tick then
@@ -145,24 +146,11 @@ function Network:stop()
     self.tick = 0
 end
 
-function Network:mergeControls()
-    for i,v in pairs( self.players ) do
-        local ent = DemoSystem.entities[ v.ent ]
-        if ent then
-            for o,w in pairs( v.snapshots ) do
-                ent:addControlSnapshot( w, o )
-            end
-        end
-        v.snapshots = {}
-    end
-end
-
 -- We send out updates at the current updaterate
 function Network:update( dt )
     Enet.Server:update()
-    self.totaltime = self.totaltime + dt
-    self.currenttime = self.currenttime + dt*1000
-    if self.currenttime > self.updaterate then
+    self.currenttime = self.currenttime + dt
+    if self.currenttime >= self.updaterate then
         -- Update pings
         -- We find which player is furthest behind
         local mintick = nil
@@ -185,21 +173,19 @@ function Network:update( dt )
             -- with what we recieved.
             -- We have to do that here so that we can accurately go back
             -- in time is all.
-            self:mergeControls()
             self:simulate( mintick )
         else
-            --if love.mouse.isDown( "m" ) then
-                --self:unsimulate( self.tick - 10 )
-                --self:mergeControls()
-                --self:simulate( self.tick - 10 )
-            --else
-                self:mergeControls()
-            --end
+            if love.mouse.isDown( "m" ) then
+                self:unsimulate( self.tick - 10 )
+                self:simulate( self.tick - 10 )
+            end
         end
 
-        while self.currenttime > self.updaterate do
+        while self.currenttime >= self.updaterate do
             self.currenttime = self.currenttime - self.updaterate
-            World:update( self.updaterate/1000, self.tick )
+            Physics:update( self.updaterate )
+            World:update( self.updaterate, self.tick )
+            self.totaltime = self.totaltime + self.updaterate
         end
         self.tick = self.tick + 1
         -- Generate a new snapshot
@@ -272,15 +258,16 @@ function Network:unsimulate( snapshot )
         --local time = self.snapshots[ i - 1 ].time - self.snapshots[i].time
         --World:update( -time, i-1 )
         --while time < 0 do
-            --World:update( -self.updaterate/1000, i-1 )
-            --time = time + self.updaterate/1000
+            --World:update( -self.updaterate, i-1 )
+            --time = time + self.updaterate
         --end
     --end
     -- Now that we're back in time enough, we make sure the world is
     -- in the right position by just setting everything to the snapshot
     if self.snapshots[ snapshot ] then
-        local time = self.snapshots[ self.tick ].time - self.snapshots[ snapshot ].time
-        World:update( -time )
+        --local time = self.snapshots[ self.tick ].time - self.snapshots[ snapshot ].time
+        --World:update( -time )
+        World:update( - ( self.totaltime - self.snapshots[ snapshot ].time ) )
         local diffshot = DemoSystem:getCheapDiff( self.snapshots[ self.tick ], self.snapshots[ snapshot ] )
         DemoSystem:applyDiff( diffshot )
         for i,v in pairs( self.snapshots[ snapshot ].entities ) do
@@ -314,12 +301,18 @@ function Network:simulate( snapshot )
             DemoSystem:applyDiff( diffshot )
         end
         --DemoSystem:applyDiff( diffshot )
-        local time = self.snapshots[ i + 1 ].time - self.snapshots[ i ].time
-        --print( time )
-        --World:update( time, i )
+        local time = ( self.snapshots[ i + 1 ].time - self.snapshots[ i ].time )
+        Physics:update( time )
         World:update( time, i )
+        -- To prevent rounding errors, which are happening for some reason.
+        --time = time + 0.000000000000010
+        --while time >= self.updaterate do
+            --Physics:update( self.updaterate )
+            --World:update( self.updaterate, i )
+            --time = time - self.updaterate
+        --end
         -- After we've updated, re-write the new snapshot over the old one
-        self.snapshots[ i + 1 ] = DemoSystem:generateSnapshot( i, self.snapshots[ i + 1 ].time )
+        self.snapshots[ i + 1 ] = DemoSystem:generateSnapshot( i + 1, self.snapshots[ i + 1 ].time )
     end
 end
 

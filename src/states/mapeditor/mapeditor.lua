@@ -69,6 +69,7 @@ function MapEditor:update( dt )
         self.currenttool:update( dt, mousepos.x, mousepos.y )
     end
     self.camera:addControlSnapshot( BindSystem:getControls(), self.tick )
+    Physics:update( dt )
     World:update( dt, self.tick )
     DemoSystem:update( dt )
     loveframes.update( dt )

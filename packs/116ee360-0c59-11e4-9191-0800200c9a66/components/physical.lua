@@ -1,97 +1,68 @@
 local Physical = {
     __name = "Physical",
-    -- Units per second
-    maxvelocity = 300,
-    static = true,
-    shape = nil,
-    mass = 70,
-    height = 0,
-    hforces = 0,
-    haccel = 0,
     velocity = Vector( 0, 0 ),
-    hvelocity = 0,
-    accel = Vector( 0, 0 ),
-    gravity = 9.81,
-    forces = Vector( 0, 0 ),
-    sleeping = true,
+    physicstype = "static",
     networkinfo = {
-        setVelocity = "velocity",
-        setForces = "forces"
+        setLinearVelocity = "velocity"
     }
 }
 
-function Physical:update( dt )
-    if self.sleeping then
-        return
+function Physical:init()
+    self.mass = self.mass or 70
+    self.body = self.body or love.physics.newBody( Physics.world, self.pos.x, self.pos.y, self.physicstype )
+    self.shape = self.shape or love.physics.newRectangleShape( 64, 64 )
+    if not self.body or not self.shape then
+        error( "Whoa! Physical object was being created without a body, or maybe without a shape. Eitherway it's a fatal error." )
     end
-    -- Gravity force
-    local gravity = self.mass * self.gravity
-    -- Normal and Friction force
-    local normal
-    local friction
-    if self.height <= 0 then
-        normal = -gravity
-        -- Try to find some floors
-        -- Default friction coefficient is 0
-        local frictioncoefficient = 0
-        local ents = World:getNearby( self:getPos(), 24 )
-        for i,v in pairs( ents ) do
-            if v:hasComponent( Components.floor ) then
-                frictioncoefficient = v.frictioncoefficient
-                -- If we found a floor, make sure we didn't fall through it
-                self.height = 0
-                break
-            end
-        end
-        -- Friction = μ*Normal force
-        friction = normal * frictioncoefficient
-    else
-        normal = 0
-        friction = 0
-    end
-    -- Friction applied in opposite movement direction
-    self:applyForce( self.velocity:normalized() * friction )
-    -- a = F/m
-    self.accel = self.forces / self.mass
-    self.haccel = self.hforces + ( gravity + normal ) / self.mass
-
-    self.velocity = self.velocity + self.accel * dt
-    self.hvelocity = self.hvelocity + self.haccel * dt
-
-    -- Enforce max velocity
-    if self.velocity:len() > self.maxvelocity then
-        self.velocity = self.velocity:normalized() * self.maxvelocity
-    end
-
-    if self.velocity:len() < 5 then
-        self.velocity = Vector( 0, 0 )
-    end
-
-    self:setPos( self:getPos() + self.velocity * dt )
-    self.height = self.height + self.hvelocity * dt
-    -- Reset any forces already applied
-    self.forces = Vector( 0, 0 )
+    self.fixture = love.physics.newFixture( self.body, self.shape )
+    self.velocity = Vector( self.velocity.x, self.velocity.y )
+    self.body:setMass( self.mass )
+    self.friction = self.friction or love.physics.newFrictionJoint( Physics.null, self.body, self.pos.x, self.pos.y, false )
+    self.friction:setMaxForce( 2 * self.mass )
+    self.friction:setMaxTorque( 0 )
 end
 
-function Physical:applyForce( f, h )
-    self.sleeping = false
-    self.forces = self.forces + f
-    h = h or 0
-    self.hforces = self.hforces + h
+function Physical:setPos( t, byme )
+    if not t.x or not t.y then
+        error( "Invalid parameters provided" )
+    end
+    -- We need to know who called it, because we could just be
+    -- getting our positions updated by the body moving.
+    if not byme then
+        self.body:setPosition( t.x, t.y )
+    end
+end
+
+function Physical:update( dt )
+    if self.physicstype == "dynamic" then
+        local x, y = self.body:getPosition()
+        self:setPos( Vector( x, y ), true )
+        local vx, vy = self.body:getLinearVelocity()
+        self.velocity = Vector( vx, vy )
+    end
+end
+
+function Physical:applyForce( f, p )
+    if not p then
+        self.body:applyForce( f.x, f.y )
+    else
+        self.body:applyForce( f.x, f.y, p.x, p.y )
+    end
 end
 
 function Physical:setForces( v )
-    if not v.x and not v.y then
-        error( "Wrong parameter supplied!" )
-    end
-    self.forces = Vector( v.x, v.y )
+    error( "unimplemented" )
 end
 
-function Physical:setVelocity( v )
-    if not v.x and not v.y then
-        error( "Wrong parameter supplied!" )
+function Physical:setLinearVelocity( v )
+    if not v.x or not v.y then
+        error( "Invalid parameters provided" )
     end
-    self.velocity = Vector( v.x, v.y )
+    self.body:setLinearVelocity( v.x, v.y )
+end
+
+function Physical:setFixedRotation( fixed )
+    self.body:setFixedRotation( fixed )
 end
 
 return Physical

@@ -93,10 +93,19 @@ function Renderer:load()
     ]] )
     self.shadowshader = love.graphics.newShader( [[
         vec4 effect ( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ) {
-            // a discarded fragment will fail the stencil test.
+            // We use hot pink to indicate the inverse stencil
+            // Hope that we don't have anything else be this specific shade of hot pink!
             if ( Texel( texture, texture_coords ).rgb != vec3( 255.0/255.0, 105.0/255.0, 180.0/255.0 ) )
                 discard;
             return vec4(1.0);
+        }
+    ]] )
+    self.lightshader = love.graphics.newShader( [[
+        vec4 effect ( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ) {
+            // We need to be capable of overbright, so we just multiply
+            // everything by 2
+            vec4 realcolor = Texel( texture, texture_coords ) * color * 2;
+            return vec4( realcolor.rgb, color.a );
         }
     ]] )
     self.lightcanvas = love.graphics.newCanvas( love.graphics.getDimensions() )
@@ -167,9 +176,11 @@ function Renderer:draw( debug )
                     love.graphics.setShader()
                 end )
             end
+            love.graphics.setShader( self.lightshader )
             love.graphics.setColor( 255, 255, 255, 255 * v.lightintensity )
             love.graphics.draw( v.lightdrawable, v.pos.x, v.pos.y, v.lightrot, v.lightscale.x, v.lightscale.y, v.lightoriginoffset.x, v.lightoriginoffset.y )
             love.graphics.setColor( 255, 255, 255, 255 )
+            love.graphics.setShader()
         end
         love.graphics.setInvertedStencil()
 

@@ -16,7 +16,7 @@ local EmitsLight = {
     lightscale = Vector( 1, 1 ),
     -- I set the light intensity to overflow due to the flickermap
     -- nearly halving it in all parts of the flicker
-    baselightintensity = 1.55,
+    baselightintensity = 1,
     networkinfo = {
         setLightIntensity = "baselightintensity"
     },

@@ -61,7 +61,7 @@ function Network:startGame()
     self.maxsize = 500/self.updaterate
     MapSystem:load( Gamemode.map )
     -- Tick 0 is always just the plain map
-    self.snapshots[ self.tick ] = DemoSystem:generateSnapshot( self.tick, self.totaltime )
+    self.snapshots[ self.tick ] = DemoSystem:generatePlayerSnapshot( self.tick, self.totaltime )
     for i,v in pairs( self.players ) do
         if v.id == 0 then
             v.ent = Gamemode:spawnPlayer( { playerid = v.id, localplayer = true } ).demoIndex
@@ -71,7 +71,7 @@ function Network:startGame()
     end
     -- Tick 1 is after all the players spawned
     self.tick = self.tick + 1
-    self.snapshots[ self.tick ] = DemoSystem:generateSnapshot( self.tick, self.totaltime )
+    self.snapshots[ self.tick ] = DemoSystem:generatePlayerSnapshot( self.tick, self.totaltime )
     self.lastsent = table.copy( self.snapshots[ self.tick ] )
     for i,v in pairs( self.players ) do
         if v.id ~= 0 then
@@ -189,7 +189,7 @@ function Network:update( dt )
         end
         self.tick = self.tick + 1
         -- Generate a new snapshot
-        self.snapshots[ self.tick ] = DemoSystem:generateSnapshot( self.tick, self.totaltime )
+        self.snapshots[ self.tick ] = DemoSystem:generatePlayerSnapshot( self.tick, self.totaltime )
 
         -- Now that we have an updated Game world, we send over diff
         -- updates based on our previous save of the Game world.
@@ -312,7 +312,7 @@ function Network:simulate( snapshot )
             --time = time - self.updaterate
         --end
         -- After we've updated, re-write the new snapshot over the old one
-        self.snapshots[ i + 1 ] = DemoSystem:generateSnapshot( i + 1, self.snapshots[ i + 1 ].time )
+        self.snapshots[ i + 1 ] = DemoSystem:generatePlayerSnapshot( i + 1, self.snapshots[ i + 1 ].time )
     end
 end
 

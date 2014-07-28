@@ -219,7 +219,20 @@ function DemoSystem:generateSnapshot( tick, time )
     snapshot["added"] = {}
     snapshot["entities"] = {}
     for i,v in pairs( self.entities ) do
-        -- We do full copies in snapshots
+        snapshot["entities"][ v.demoIndex ] = self.netcopy( v )
+    end
+    return snapshot
+end
+
+function DemoSystem:generatePlayerSnapshot( tick, time )
+    local snapshot = {}
+    snapshot["time"] = time
+    snapshot["tick"] = tick
+    snapshot["removed"] = {}
+    snapshot["added"] = {}
+    snapshot["entities"] = {}
+    local ents = World:getAllNamed( "player" )
+    for i,v in pairs( ents ) do
         snapshot["entities"][ v.demoIndex ] = self.netcopy( v )
     end
     return snapshot

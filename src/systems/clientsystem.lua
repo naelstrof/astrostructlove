@@ -15,10 +15,7 @@ local ClientSystem = {
     player = nil,
     playerpos = Vector( 0, 0 ),
     predictionfixspeed = 20,
-    -- I wanted to be like source multiplayer and make a render
-    -- delay so we can always be interpolating, but all it caused
-    -- was instability and weirdness
-    delay = 0/1000,
+    delay = 75/1000,
     client = nil,
     sendtext = {},
     chat = {},

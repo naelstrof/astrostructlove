@@ -231,9 +231,10 @@ function DemoSystem:generatePlayerSnapshot( tick, time )
     snapshot["removed"] = {}
     snapshot["added"] = {}
     snapshot["entities"] = {}
-    local ents = World:getAllNamed( "player" )
-    for i,v in pairs( ents ) do
-        snapshot["entities"][ v.demoIndex ] = self.netcopy( v )
+    for i,v in pairs( self.entities ) do
+        if v.__name == "player" or v:hasComponent( Components.isitem ) then
+            snapshot["entities"][ v.demoIndex ] = self.netcopy( v )
+        end
     end
     return snapshot
 end

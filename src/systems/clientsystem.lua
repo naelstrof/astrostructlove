@@ -13,9 +13,10 @@ local ClientSystem = {
     newesttick = 0,
     id = nil,
     player = nil,
+    playermemory = {},
     playerpos = Vector( 0, 0 ),
     predictionfixspeed = 20,
-    delay = 75/1000,
+    delay = 100/1000,
     client = nil,
     sendtext = {},
     chat = {},
@@ -98,6 +99,29 @@ function ClientSystem:addSnapshot( snapshot )
     if not snapshot.tick then
         return
     end
+    if self.player then
+        local p = snapshot.entities[ self.player.demoIndex ]
+        if p then
+            if p.pos then
+                local vec = Vector( p.pos.x, p.pos.y )
+                if self.playermemory[ snapshot.lastregistered ] then
+                    local diff = vec:dist( self.playermemory[ snapshot.lastregistered ].pos )
+                    -- If our prediction is too far off, we need to do our
+                    -- best to correct not only the actual player position,
+                    -- but our player position memory as well.
+                    if diff > 5 then
+                        local change = ( vec - self.playermemory[ snapshot.lastregistered ].pos )
+                        for i,v in pairs( self.playermemory ) do
+                            if i >= snapshot.lastregistered then
+                                v.pos = v.pos + change
+                            end
+                        end
+                        self.player:setPos( self.player:getPos() + change )
+                    end
+                end
+            end
+        end
+    end
     self.snapshots[ snapshot.tick ] = snapshot
     if self.newesttick < snapshot.tick then
         self.newesttick = snapshot.tick
@@ -141,19 +165,19 @@ function ClientSystem:update( dt )
         return
     end
     -- Use a light spring to fix prediction errors
-    if self.player ~= nil and self.playerpos ~= nil then
-        local diff = self.playerpos - self.player:getPos()
-        diff:normalize_inplace()
-        local dist = self.player:getPos():dist( self.playerpos )
-        if dist > 128 then
-            self.player:setPos( self.playerpos )
-        else
-            self.player:setPos( self.player:getPos() + (diff * dist)/8 )
-            --self.player:applyForce( ( diff*(dist/8) + diff*self.player.friction:getMaxForce() ) * self.player:getMass() * dt )
-        end
-    end
+    --if self.player ~= nil and self.playerpos ~= nil then
+        --local diff = self.playerpos - self.player:getPos()
+        --diff:normalize_inplace()
+        --local dist = self.player:getPos():dist( self.playerpos )
+        --if dist > 128 then
+            --self.player:setPos( self.playerpos )
+        --else
+            --self.player:setPos( self.player:getPos() + (diff * dist)/8 )
+            ----self.player:applyForce( ( diff*(dist/8) + diff*self.player.friction:getMaxForce() ) * self.player:getMass() * dt )
+        --end
+    --end
     if self.player then
-        self.player:addControlSnapshot( BindSystem:getControls(), self.tick )
+        self.player:addControlSnapshot( BindSystem:getControls(), World:getCurrentTime() )
     end
     Physics:update( dt )
     World:update( dt, self.tick )
@@ -191,8 +215,7 @@ function ClientSystem:update( dt )
         -- First we really need to make sure our interpolation finished completely
         for i,v in pairs( self.nextshot.entities ) do
             local ent = DemoSystem.entities[ i ]
-            if ent and ent.playerid == ClientSystem.id and v.pos ~= nil then
-                ClientSystem.playerpos = Vector( v.pos.x, v.pos.y )
+            if ent and ent.playerid == ClientSystem.id then
             elseif ent then
                 for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
                     local val = v[ w ]
@@ -242,6 +265,9 @@ function ClientSystem:sendUpdate()
     else
         Enet.Client:send( Tserial.pack( t ) )
     end
+    if self.player then
+        self.playermemory[ self.tick ] = { pos = self.player:getPos(), velocity = self.player:getLinearVelocity() }
+    end
 end
 
 function ClientSystem.interpolate( prevshot, nextshot, x )
@@ -252,8 +278,7 @@ function ClientSystem.interpolate( prevshot, nextshot, x )
         -- Since it's so important to have it be responsive
         -- as well as smooth, we use a light spring instead to fix
         -- prediction errors
-        if v.playerid == ClientSystem.id and fent ~= nil and fent.pos ~= nil then
-            ClientSystem.playerpos = Vector( fent.pos.x, fent.pos.y )
+        if v.playerid == ClientSystem.id then
             return
         end
         -- Since everything is delta-compressed, only a nil future entity

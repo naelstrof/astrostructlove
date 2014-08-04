@@ -58,6 +58,11 @@ function Physical:setForces( v )
     error( "unimplemented" )
 end
 
+function Physical:getLinearVelocity()
+    local x,y = self.body:getLinearVelocity()
+    return Vector( x, y )
+end
+
 function Physical:setLinearVelocity( v )
     if not v.x or not v.y then
         error( "Invalid parameters provided" )

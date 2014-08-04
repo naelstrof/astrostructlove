@@ -4,6 +4,7 @@ local Network = {
     port = 27020,
     running = false,
     updaterate = 30/1000,
+    networkrate = 120/1000,
     playerupdate = 0,
     currenttime = 0,
     totaltime = 0,
@@ -29,18 +30,6 @@ function Network:addChatText( id, text )
     if Network.onTextReceive then
         Network.onTextReceive( { self.players[ id ].name .. ": " .. text } )
     end
-end
-
-function Network:addEvent( event )
-    if not self.events[ event.tick ] then
-        self.events[ event.tick ] = event
-    else
-        table.merge( self.events[ event.tick ], event )
-    end
-end
-
-function Network:getEvent( tick )
-    return self.events[ tick ]
 end
 
 function Network:startLobby( port )
@@ -94,7 +83,6 @@ function Network:addPlayer( id, entDemoIndex )
     player.id = id
     player.ent = entDemoIndex
     player.snapshots = {}
-    player.tick = 0
     player.newtick = nil
     self.playercount = self.playercount + 1
     self.players[ id ] = player
@@ -116,24 +104,16 @@ end
 function Network:removePlayer( id )
     local playerent = DemoSystem.entities[ self.players[ id ].ent ]
     if playerent then
-        -- We add a network event saying something got removed
-        local event = {}
-        event.removed = { self.players[ id ].demoIndex }
-        event.tick = self.tick
-        event.added = {}
-        Network:addEvent( event )
         playerent:remove()
     end
     self.players[ id ] = nil
 end
 
 function Network:updateClient( id, controls, tick )
-    DemoSystem.entities[ self.players[ id ].ent ]:addControlSnapshot( controls, tick )
-    --self.players[ id ].snapshots[ tick ] = controls
-    -- We record their OLDEST recieved update, so we know how far back to
-    -- go in time for our fellow players with poor internet
-    if not self.players[ id ].newtick or self.players[ id ].newtick > tick then
-        self.players[ id ].newtick = tick
+    DemoSystem.entities[ self.players[ id ].ent ]:addControlSnapshot( controls, World:getCurrentTime() )
+    -- This is used to tell the client the last tick we've registered.
+    if ( not self.players[ id ].tick or tick > self.players[ id ].tick ) and tick then
+        self.players[ id ].tick = tick
     end
 end
 
@@ -152,39 +132,17 @@ function Network:update( dt )
     self.currenttime = self.currenttime + dt
     if self.currenttime >= self.updaterate then
         -- Update pings
-        -- We find which player is furthest behind
-        local mintick = nil
         for i,v in pairs( self.players ) do
-            if mintick == nil or ( v.newtick ~= nil and mintick > v.newtick ) then
-                mintick = v.newtick
-            end
             -- Oh and update everyone's ping :)
             if v.id ~= 0 then
-                --v.ping = math.floor( ( self.tick - v.newtick ) * 30 )
                 v.ping = Enet.Server.peers[ v.id ]:round_trip_time()
-            end
-            v.newtick = nil
-        end
-        -- Then we go back in time and resimulate everything from where
-        -- we last recieved an input from that player
-        if mintick ~= self.tick and mintick ~= nil then
-            self:unsimulate( mintick )
-            -- Merging the controls simply updates the player controls
-            -- with what we recieved.
-            -- We have to do that here so that we can accurately go back
-            -- in time is all.
-            self:simulate( mintick )
-        else
-            if love.mouse.isDown( "m" ) then
-                self:unsimulate( self.tick - 10 )
-                self:simulate( self.tick - 10 )
             end
         end
 
         while self.currenttime >= self.updaterate do
             self.currenttime = self.currenttime - self.updaterate
             Physics:update( self.updaterate )
-            World:update( self.updaterate, self.tick )
+            World:update( self.updaterate )
             self.totaltime = self.totaltime + self.updaterate
         end
         self.tick = self.tick + 1
@@ -225,10 +183,15 @@ function Network:update( dt )
         if #self.chat > 0 then
             t.chat = self.chat
         end
+        local flag = "unreliable"
         if t.chat or t.players then
-            Enet.Server:send( Tserial.pack( t ), nil, 0, "reliable" )
-        else
-            Enet.Server:send( Tserial.pack( t ) )
+            flag = "reliable"
+        end
+        for i,v in pairs( self.players ) do
+            if v.id ~= 0 then
+                t.lastregistered = v.tick
+                Enet.Server:send( Tserial.pack( t ), v.id, 0, flag )
+            end
         end
         if #self.chat > 0 then
             self.chat = {}
@@ -242,86 +205,6 @@ function Network:update( dt )
         end
         self.backtick = self.backtick + 1
     end
-end
-
-function Network:unsimulate( snapshot )
-    if snapshot < self.backtick + 1 then
-        snapshot = self.backtick + 1
-    end
-    -- Go back backward in time
-    --for i = self.tick, snapshot + 1, -1 do
-        -- Gets the difference between the two snapshots
-        -- if a is nil it returns a full snapshot to be used
-        -- to recreate the world.
-        --local diffshot = DemoSystem:getCheapDiff( self.snapshots[ i ], self.snapshots[ i - 1 ] )
-        --DemoSystem:applyDiff( diffshot )
-        --local time = self.snapshots[ i - 1 ].time - self.snapshots[i].time
-        --World:update( -time, i-1 )
-        --while time < 0 do
-            --World:update( -self.updaterate, i-1 )
-            --time = time + self.updaterate
-        --end
-    --end
-    -- Now that we're back in time enough, we make sure the world is
-    -- in the right position by just setting everything to the snapshot
-    if self.snapshots[ snapshot ] then
-        --local time = self.snapshots[ self.tick ].time - self.snapshots[ snapshot ].time
-        --World:update( -time )
-        World:update( - ( self.totaltime - self.snapshots[ snapshot ].time ) )
-        local diffshot = DemoSystem:getCheapDiff( self.snapshots[ self.tick ], self.snapshots[ snapshot ] )
-        DemoSystem:applyDiff( diffshot )
-        for i,v in pairs( self.snapshots[ snapshot ].entities ) do
-            local ent = DemoSystem.entities[ i ]
-            if ent then
-                for o,w in pairs( Entities.entities[ ent.__name ].networkinfo ) do
-                    local val = v[ w ]
-                    -- Call the coorisponding function to set the
-                    -- value
-                    if not ent[ o ] then
-                        error( "Entity " .. ent.__name .. " is missing function " .. o .. "!" )
-                    end
-                    ent[ o ]( ent, val )
-                end
-            end
-        end
-    end
-end
-
-function Network:simulate( snapshot )
-    if snapshot < self.backtick + 1 then
-        snapshot = self.backtick + 1
-    end
-    for i = snapshot, self.tick - 1, 1 do
-        -- Gets the difference between the two snapshots
-        -- if a is nil it returns a full snapshot to be used
-        -- to recreate the world.
-        --local diffshot = DemoSystem:getCheapDiff( self.snapshots[ i ], self.snapshots[ i + 1 ] )
-        local diffshot = self:getEvent( i )
-        if diffshot then
-            DemoSystem:applyDiff( diffshot )
-        end
-        --DemoSystem:applyDiff( diffshot )
-        local time = ( self.snapshots[ i + 1 ].time - self.snapshots[ i ].time )
-        Physics:update( time )
-        World:update( time, i )
-        -- To prevent rounding errors, which are happening for some reason.
-        --time = time + 0.000000000000010
-        --while time >= self.updaterate do
-            --Physics:update( self.updaterate )
-            --World:update( self.updaterate, i )
-            --time = time - self.updaterate
-        --end
-        -- After we've updated, re-write the new snapshot over the old one
-        self.snapshots[ i + 1 ] = DemoSystem:generatePlayerSnapshot( i + 1, self.snapshots[ i + 1 ].time )
-    end
-end
-
-function Network:resimulate( snapshot )
-    if snapshot < self.backtick + 1 then
-        return
-    end
-    self:unsimulate( snapshot )
-    self:simulate( snapshot )
 end
 
 function Network.onLobbyConnect( id )
@@ -343,7 +226,7 @@ function Network.onLobbyReceive( data, id )
         Network.players[ id ].avatar = t.avatar
         Network.playerschanged = true
     end
-    if t.control and t.tick then
+    if t.control then
         Network:updateClientSystem( id, t.control, t.tick )
     end
     if t.chat then
@@ -360,13 +243,6 @@ function Network.onGameConnect( id )
     print( "Got a connection from " .. id )
     local player = Gamemode:spawnPlayer( { playerid = id } )
     Network:addPlayer( id, player.demoIndex )
-    -- We add a network event saying something got added
-    local event = {}
-    event.added = {}
-    event.added[ player.demoIndex ] = DemoSystem.netcopy( player )
-    event.tick = Network:getTick()
-    event.removed = {}
-    Network:addEvent( event )
 end
 
 function Network.onGameReceive( data, id )

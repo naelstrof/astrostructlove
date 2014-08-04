@@ -10,11 +10,11 @@ local Controllable = {
     }
 }
 
-function Controllable:update( dt, tick )
+function Controllable:update( dt, totaltime )
     if dt < 0 then
         return
     end
-    local controls = self:getControls( tick )
+    local controls = self:getControls( totaltime )
     local direction = 0
     local up, down, left, right
     up, down, left, right = controls.up, controls.down, controls.left, controls.right
@@ -50,41 +50,58 @@ function Controllable:getRotSpeed()
     return self.rotspeed
 end
 
-function Controllable:addControlSnapshot( controls, tick )
-    self.controlsnapshots[ tick ] = controls
-    -- We hold 1 second of snapshots in memory
-    -- We should be really safe to remove old snapshots in this
-    -- fashion
-    self.controlsnapshots[ tick - 33 ] = nil
+function Controllable:addControlSnapshot( controls, time )
+    -- We need to keep our control snapshots very organized and flexible,
+    -- so we package up the controls and the time together
+    -- for a more orderly array of snapshots.
+    local t = {
+        controls=controls,
+        time=time
+    }
+    -- We insert it into the table
+    table.insert( self.controlsnapshots, t )
+    -- Then we sort it
+    table.sort( self.controlsnapshots, function( a, b )
+        return a.time<b.time
+    end )
+    -- Then we clean up any useless snapshots. Ones that are later than
+    -- our update rate of 100ms shouldn't ever be used, but to be safe
+    -- we'll store up to 300ms of player controls.
+    if #self.controlsnapshots > 0 then
+        while( self.controlsnapshots[1].time < World:getCurrentTime() - 0.3 ) do
+            table.remove( self.controlsnapshots, 1 )
+        end
+    end
 end
 
-function Controllable:getControls( tick )
-    if not tick then
-        return BindSystem.getEmpty()
+function Controllable:getControls( time )
+    if not time or #self.controlsnapshots == 0 then
+        return BindSystem.getEmpty(), nil
     end
-    if not self.controlsnapshots[ tick ] then
-        local lastcontroltick = nil
-        for i,v in pairs( self.controlsnapshots ) do
-            if lastcontroltick == nil or ( lastcontroltick < i and i <= tick ) then
-                lastcontroltick = i
-            end
+    for i,v in pairs( self.controlsnapshots ) do
+        if v.time > time and self.controlsnapshots[ i - 1 ] then
+            return self.controlsnapshots[ i - 1 ].controls, i - 1
+        elseif v.time == time then
+            return v.controls, i
         end
-        if self.controlsnapshots[ lastcontroltick ] == nil then
-            return BindSystem.getEmpty()
-        end
-        return self.controlsnapshots[ lastcontroltick ]
     end
-    return self.controlsnapshots[ tick ]
+    return self.controlsnapshots[ #self.controlsnapshots ].controls, #self.controlsnapshots
 end
 
 -- Returns true given a control went from 0 to 1 between two ticks.
-function Controllable:getControlClicked ( control, tick )
-    if not tick then
+function Controllable:getControlClicked ( control, time )
+    if not time then
         return false
     end
-    local past = self:getControls( tick - 1 )[ control ]
-    local present = self:getControls( tick )[ control ]
-    if past == 0 and present == 1 then
+    local presentcontrols, presentindex = self:getControls( time )
+    if not presentindex then
+        return false
+    end
+    local pastcontrols = self.controlsnapshots[ presentindex - 1 ]
+    if not pastcontrols then
+        return false
+    end
+    if pastcontrols.controls[ control ] == 0 and presentcontrols[ control ] == 1 then
         return true
     end
     return false

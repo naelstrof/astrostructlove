@@ -3,8 +3,13 @@
 
 local World = {
     entities = {},
+    totaltime = 0,
     grid={}
 }
+
+function World:getCurrentTime()
+    return self.totaltime
+end
 
 function World:addEntity( e )
     table.insert( self.entities, e )
@@ -69,6 +74,7 @@ function World:removeAll()
     for i,v in pairs( self:getAll() ) do
         v:remove()
     end
+    self.totaltime = 0
 end
 
 function World:getAll()
@@ -131,12 +137,13 @@ function World:getClicked()
     return topmost
 end
 
-function World:update( dt, tick )
+function World:update( dt )
     for i,v in pairs( self.entities ) do
         if v.update ~= nil then
-            v:update( dt, tick )
+            v:update( dt, self.totaltime )
         end
     end
+    self.totaltime = self.totaltime + dt
 end
 
 function World:resize( w, h )

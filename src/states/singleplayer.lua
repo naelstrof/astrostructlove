@@ -1,5 +1,4 @@
 local Singleplayer = {
-    tick = 0,
     player = nil
 }
 
@@ -19,14 +18,11 @@ end
 
 function Singleplayer:update( dt )
     BindSystem:update( dt )
-    -- Despite being in single player, we still rely on knowing our
-    -- past... So we must keep track of a tick rate.
-    self.player:addControlSnapshot( BindSystem:getControls(), self.tick )
+    self.player:addControlSnapshot( BindSystem:getControls(), World:getCurrentTime() )
     Physics:update( dt )
-    World:update( dt, self.tick )
+    World:update( dt )
     DemoSystem:update( dt )
     loveframes.update( dt )
-    self.tick = self.tick + 1
 end
 
 function Singleplayer:mousepressed( x, y, button )

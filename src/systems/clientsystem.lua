@@ -14,9 +14,9 @@ local ClientSystem = {
     id = nil,
     player = nil,
     playermemory = {},
-    playerpos = Vector( 0, 0 ),
-    predictionfixspeed = 20,
-    delay = 100/1000,
+    testpos = Vector( 0, 0 ),
+    testvel = Vector( 0, 0 ),
+    delay = 0/1000,
     client = nil,
     sendtext = {},
     chat = {},
@@ -120,6 +120,24 @@ function ClientSystem:addSnapshot( snapshot )
                     end
                 end
             end
+            if p.velocity then
+                local vec = Vector( p.velocity.x, p.velocity.y )
+                if self.playermemory[ snapshot.lastregistered ] then
+                    local diff = vec:dist( self.playermemory[ snapshot.lastregistered ].velocity )
+                    -- If our prediction is too far off, we need to do our
+                    -- best to correct not only the actual player position,
+                    -- but our player position memory as well.
+                    if diff > 5 then
+                        local change = ( vec - self.playermemory[ snapshot.lastregistered ].velocity )
+                        for i,v in pairs( self.playermemory ) do
+                            if i >= snapshot.lastregistered then
+                                v.velocity = v.velocity + change
+                            end
+                        end
+                        self.player:setLinearVelocity( self.player:getLinearVelocity() + change )
+                    end
+                end
+            end
         end
     end
     self.snapshots[ snapshot.tick ] = snapshot
@@ -164,20 +182,12 @@ function ClientSystem:update( dt )
     if not self.running then
         return
     end
-    -- Use a light spring to fix prediction errors
-    --if self.player ~= nil and self.playerpos ~= nil then
-        --local diff = self.playerpos - self.player:getPos()
-        --diff:normalize_inplace()
-        --local dist = self.player:getPos():dist( self.playerpos )
-        --if dist > 128 then
-            --self.player:setPos( self.playerpos )
-        --else
-            --self.player:setPos( self.player:getPos() + (diff * dist)/8 )
-            ----self.player:applyForce( ( diff*(dist/8) + diff*self.player.friction:getMaxForce() ) * self.player:getMass() * dt )
-        --end
-    --end
     if self.player then
         self.player:addControlSnapshot( BindSystem:getControls(), World:getCurrentTime() )
+    end
+    if self.player then
+        self.testpos = self.player:getPos()
+        self.testvel = self.player:getLinearVelocity()
     end
     Physics:update( dt )
     World:update( dt, self.tick )
@@ -266,7 +276,7 @@ function ClientSystem:sendUpdate()
         Enet.Client:send( Tserial.pack( t ) )
     end
     if self.player then
-        self.playermemory[ self.tick ] = { pos = self.player:getPos(), velocity = self.player:getLinearVelocity() }
+        self.playermemory[ self.tick ] = { pos = self.testpos, velocity = self.testvel }
     end
 end
 

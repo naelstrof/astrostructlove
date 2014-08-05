@@ -130,6 +130,8 @@ end
 function Network:update( dt )
     Enet.Server:update()
     self.currenttime = self.currenttime + dt
+    Physics:update( dt )
+    World:update( dt )
     if self.currenttime >= self.updaterate then
         -- Update pings
         for i,v in pairs( self.players ) do
@@ -141,8 +143,6 @@ function Network:update( dt )
 
         while self.currenttime >= self.updaterate do
             self.currenttime = self.currenttime - self.updaterate
-            Physics:update( self.updaterate )
-            World:update( self.updaterate )
             self.totaltime = self.totaltime + self.updaterate
         end
         self.tick = self.tick + 1

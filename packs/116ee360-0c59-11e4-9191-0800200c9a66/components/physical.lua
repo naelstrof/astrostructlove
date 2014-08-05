@@ -63,6 +63,14 @@ function Physical:getLinearVelocity()
     return Vector( x, y )
 end
 
+function Physical:setActive( active )
+    self.body:setActive( active )
+end
+
+function Physical:getActive()
+    self.body:getActive()
+end
+
 function Physical:setLinearVelocity( v )
     if not v.x or not v.y then
         error( "Invalid parameters provided" )

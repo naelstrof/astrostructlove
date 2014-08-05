@@ -15,6 +15,7 @@ local player = {
         drawable=love.graphics.newImage( PackLocation .. "textures/human.png" ),
         physicstype="dynamic",
         shape=love.physics.newCircleShape( 10 ),
+        smooth=true,
         mass=70,
         static=false
     }

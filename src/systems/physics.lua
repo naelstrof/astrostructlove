@@ -5,6 +5,10 @@ local Physics = {
     null = nil
 }
 
+function Physics:setCurrentTime( time )
+    self.time = time % self.timestep
+end
+
 function Physics:update( dt )
     self.time = self.time + dt
     while self.time >= self.timestep do

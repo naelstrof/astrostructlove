@@ -11,6 +11,10 @@ function World:getCurrentTime()
     return self.totaltime
 end
 
+function World:setCurrentTime( time )
+    self.totaltime = time
+end
+
 function World:addEntity( e )
     table.insert( self.entities, e )
     e.entitiesIndex = table.maxn( self.entities )
@@ -84,6 +88,16 @@ function World:getAll()
     local ents = {}
     for i,v in pairs( self.entities ) do
         ents[i] = v
+    end
+    return ents
+end
+
+function World:getAllWithComponent( compo )
+    local ents = {}
+    for i,v in pairs( self.entities ) do
+        if v:hasComponent( compo ) then
+            table.insert( ents, v )
+        end
     end
     return ents
 end

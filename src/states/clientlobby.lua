@@ -67,6 +67,7 @@ function ClientLobby:listPlayer( playerdata )
 end
 
 function ClientLobby:leave()
+    ClientSystem.onPlayerDataChange = nil
     loveframes.util:RemoveAll()
     -- shouldn't disconnect the client in case we switch to the gamestate
     -- self.client:disconnect()

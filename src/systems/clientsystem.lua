@@ -17,6 +17,7 @@ local ClientSystem = {
     playeractualpos = Vector( 0, 0 ),
     delay = 0/1000,
     faulttolerance = 0,
+    predictionfixspeed = 10,
     client = nil,
     sendtext = {},
     chat = {},
@@ -116,10 +117,6 @@ function ClientSystem:fixPredictionError( snapshot, actualpos, actualvel )
     -- input from the past.
     local realtime = World:getCurrentTime()
     World:setCurrentTime( snapshot.time )
-    -- We have to move the physics back in time too, so that the fixed
-    -- timestep runs at the same rate. This doesn't change any positions,
-    -- it just makes the simulation more accurate.
-    Physics:setCurrentTime( snapshot.time )
 
     -- We finally move the player into the past, at the actual position
     -- and velocity
@@ -300,7 +297,7 @@ function ClientSystem:update( dt )
         if dist > 128 then
             self.player:setPos( self.playeractualpos )
         else
-            self.player:setPos( self.player:getPos() + ( diff * dist * dt * 18 ) )
+            self.player:setPos( self.player:getPos() + ( diff * dist * dt * self.predictionfixspeed ) )
         end
     end
     if self.player then

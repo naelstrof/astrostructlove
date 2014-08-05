@@ -19,8 +19,8 @@ end
 function Singleplayer:update( dt )
     BindSystem:update( dt )
     self.player:addControlSnapshot( BindSystem:getControls(), World:getCurrentTime() )
-    Physics:update( dt )
     World:update( dt )
+    Physics:update( dt )
     DemoSystem:update( dt )
     loveframes.update( dt )
 end

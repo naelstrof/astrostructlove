@@ -56,9 +56,17 @@ function Intangible:update( dt )
     self.forces = Vector( 0, 0 )
 end
 
+function Intangible:getMass()
+    return self.mass
+end
+
 function Intangible:applyForce( f )
     self.sleeping = false
     self.forces = self.forces + f
+end
+
+function Intangible:getLinearVelocity()
+    return self.velocity
 end
 
 function Intangible:setLinearVelocity( v )

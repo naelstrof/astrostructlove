@@ -48,9 +48,11 @@ end
 
 function Physical:applyForce( f, p )
     if not p then
-        self.body:applyForce( f.x, f.y )
+        --self.body:applyForce( f.x, f.y )
+        self.body:applyLinearImpulse( f.x, f.y )
     else
-        self.body:applyForce( f.x, f.y, p.x, p.y )
+        --self.body:applyForce( f.x, f.y, p.x, p.y )
+        self.body:applyLinearImpulse( f.x, f.y, p.x, p.y )
     end
 end
 

@@ -1,7 +1,7 @@
 local Physics = {
     world = nil,
     time = 0,
-    timestep = 15/1000,
+    timestep = 10/1000,
     null = nil
 }
 
@@ -10,11 +10,12 @@ function Physics:setCurrentTime( time )
 end
 
 function Physics:update( dt )
-    self.time = self.time + dt
-    while self.time >= self.timestep do
-        self.world:update( self.timestep )
-        self.time = self.time - self.timestep
-    end
+    --self.time = self.time + dt
+    --while self.time >= self.timestep do
+        --self.world:update( self.timestep )
+        --self.time = self.time - self.timestep
+    --end
+    self.world:update( dt )
 end
 
 function Physics:load()

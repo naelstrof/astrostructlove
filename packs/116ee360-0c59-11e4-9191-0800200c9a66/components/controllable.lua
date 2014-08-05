@@ -1,6 +1,7 @@
 local Controllable = {
     __name = "Controllable",
-    speed = 250,
+    speed = 5,
+    maxspeed = 500,
     rotvelocity = 0,
     playerid = 0,
     localplayer = false,
@@ -27,7 +28,10 @@ function Controllable:update( dt, totaltime )
     -- There's no need for rotation adjustment, because players can't rotate.
     --local force = direction:rotated( self:getRot() ) * self:getSpeed()
     local force = direction * self:getSpeed()
-    self:applyForce( force * dt )
+    -- We can't run faster than our max speed.
+    if ( self:getLinearVelocity() + force / self:getMass() ):len() < self.maxspeed then
+        self:applyForce( force * dt )
+    end
 end
 
 function Controllable:setSpeed( speed )

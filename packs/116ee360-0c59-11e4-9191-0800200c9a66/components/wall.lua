@@ -28,6 +28,54 @@ local Wall = {
     -- This ugly thing describes possible configuration of shadow mesh,
     -- and indicates where walls would touch if they're touching so
     -- that specific faces can be removed.
+    shapelookup = {
+        None = {
+            love.physics.newRectangleShape( 30, 8 ),
+            love.physics.newRectangleShape( 8, 30 )
+        },
+        L = { love.physics.newRectangleShape( 30, 8 ) },
+        LD = {
+            love.physics.newRectangleShape( -5.5, 0, 19, 8, 0 ),
+            love.physics.newRectangleShape( 0, 5.5, 8, 19, 0 )
+        },
+        R = { love.physics.newRectangleShape( 30, 8 ) },
+        LR = { love.physics.newRectangleShape( 30, 8 ) },
+        LRD = {
+            love.physics.newRectangleShape( 30, 8 ),
+            love.physics.newRectangleShape( 0, 5.5, 8, 19, 0 )
+        },
+        LRU = {
+            love.physics.newRectangleShape( 30, 8 ),
+            love.physics.newRectangleShape( 0, -5.5, 8, 19, 0 )
+        },
+        LRUD = {
+            love.physics.newRectangleShape( 30, 8 ),
+            love.physics.newRectangleShape( 8, 30 )
+        },
+        LU = {
+            love.physics.newRectangleShape( -5.5, 0, 19, 8, 0 ),
+            love.physics.newRectangleShape( 0, -5.5, 8, 19, 0 )
+        },
+        LUD = {
+            love.physics.newRectangleShape( -5.5, 0, 19, 8, 0 ),
+            love.physics.newRectangleShape( 8, 30 )
+        },
+        RD = {
+            love.physics.newRectangleShape( 5.5, 0, 19, 8, 0 ),
+            love.physics.newRectangleShape( 0, 5.5, 8, 19, 0 )
+        },
+        RU = {
+            love.physics.newRectangleShape( 5.5, 0, 19, 8, 0 ),
+            love.physics.newRectangleShape( 0, -5.5, 8, 19, 0 )
+        },
+        RUD = {
+            love.physics.newRectangleShape( 5.5, 0, 19, 8, 0 ),
+            love.physics.newRectangleShape( 8, 30 )
+        },
+        U = { love.physics.newRectangleShape( 8, 30 ) },
+        D = { love.physics.newRectangleShape( 8, 30 ) },
+        UD = { love.physics.newRectangleShape( 8, 30 ) }
+    },
     shadowmeshlookup = {
         None = {
             { Vector( -32, -8 ), Vector( -8, -8 ) },
@@ -216,12 +264,29 @@ function Wall:updateWallConfig( safe )
     end
     self.drawable = self.drawablelookup[ self.wallconfig ]
     self.shadowmesh = self.shadowmeshlookup[ self.wallconfig ]
+    if #self.shapelookup[ self.wallconfig ] <= 1 then
+        self:setShape( self.shapelookup[ self.wallconfig ][1] )
+    else
+        self:setShape( self.shapelookup[ self.wallconfig ][1] )
+        for i=2,#self.shapelookup[ self.wallconfig ] do
+            self:addShape( self.shapelookup[ self.wallconfig ][i] )
+        end
+    end
+
 end
 
 function Wall:setWallConfig( conf )
     self.wallconfig = conf
     self.drawable = self.drawablelookup[ self.wallconfig ]
     self.shadowmesh = self.shadowmeshlookup[ self.wallconfig ]
+    if #self.shapelookup[ self.wallconfig ] <= 1 then
+        self:setShape( self.shapelookup[ self.wallconfig ][1] )
+    else
+        self:setShape( self.shapelookup[ self.wallconfig ][1] )
+        for i=2,#self.shapelookup[ self.wallconfig ] do
+            self:addShape( self.shapelookup[ self.wallconfig ][i] )
+        end
+    end
 end
 
 function Wall:init()

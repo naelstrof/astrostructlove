@@ -7,6 +7,21 @@ local Physical = {
     }
 }
 
+function Physical:addShape( shape )
+    local fixture = love.physics.newFixture( self.body, shape )
+    fixture:setUserData( self )
+end
+
+function Physical:setShape( shape )
+    self.shape = shape
+    -- Destroy original fixtures
+    for i,v in pairs( self.body:getFixtureList() ) do
+        v:destroy()
+    end
+    self.fixture = love.physics.newFixture( self.body, self.shape )
+    self.fixture:setUserData( self )
+end
+
 function Physical:init()
     self.mass = self.mass or 70
     self.body = self.body or love.physics.newBody( Physics.world, self.pos.x, self.pos.y, self.physicstype )
@@ -15,11 +30,16 @@ function Physical:init()
         error( "Whoa! Physical object was being created without a body, or maybe without a shape. Eitherway it's a fatal error." )
     end
     self.fixture = love.physics.newFixture( self.body, self.shape )
+    -- We insert ourselves into the fixture, so that we know what entity
+    -- we are.
+    self.fixture:setUserData( self )
     self.velocity = Vector( self.velocity.x, self.velocity.y )
     self.body:setMass( self.mass )
-    self.friction = self.friction or love.physics.newFrictionJoint( Physics.null, self.body, self.pos.x, self.pos.y, false )
-    self.friction:setMaxForce( 2 * self.mass )
-    self.friction:setMaxTorque( 0 )
+    if self.physicstype ~= "static" then
+        self.friction = self.friction or love.physics.newFrictionJoint( Physics.null, self.body, self.pos.x, self.pos.y, false )
+        self.friction:setMaxForce( 2 * self.mass )
+        self.friction:setMaxTorque( 0 )
+    end
 end
 
 function Physical:setPos( t, byme )

@@ -25,6 +25,25 @@ local EmitsLight = {
     lightflickermap = "nmonqnmomnmomomno"
 }
 
+-- Make sure lights hit objects before lighting them up.
+function EmitsLight:hits( ent )
+    temporaryreturn = true
+    temporaryent = ent
+    temporaryself = self
+    local checkCallback = function( fixture, x, y, xn, yn, fraction )
+        if fixture:getUserData() ~= temporaryent and fixture:getUserData() ~= temporaryself and fixture:getUserData():hasComponent( Components.blockslight ) then
+            temporaryreturn = false
+        end
+        return 1
+    end
+    Physics:rayCast( self:getPos().x, self:getPos().y, ent:getPos().x, ent:getPos().y, checkCallback )
+    temporaryent = nil
+    temporaryself = nil
+    local temp = temporaryreturn
+    temporaryreturn = nil
+    return temp
+end
+
 function EmitsLight:updateShadowVolumes()
     if not self.changed then
         return
@@ -35,7 +54,9 @@ function EmitsLight:updateShadowVolumes()
     local ents = World:getNearby( self:getPos(), self.lightradius )
     for i,v in pairs( ents ) do
         if v:hasComponent( Components.blockslight ) then
-            table.insert( self.shadowobjects, v )
+            if self:hits( v ) then
+                table.insert( self.shadowobjects, v )
+            end
             local verts = v:getShadowVolume( self:getPos(), self.lightradius )
             for j,w in pairs( verts ) do
                 table.insert( allverticies, w )

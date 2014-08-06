@@ -13,6 +13,9 @@ end
 
 function Singleplayer:draw()
     Renderer:draw()
+    CameraSystem:attach()
+    --Physics:draw()
+    CameraSystem:detach()
     loveframes.draw()
 end
 

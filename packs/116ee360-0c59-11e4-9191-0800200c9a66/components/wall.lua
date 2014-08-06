@@ -109,7 +109,7 @@ local Wall = {
             { Vector( -32, -8 ), Vector( 32, -8 ) },
             { Vector( 32, -8 ), Vector( 32, 8 ) },
             { Vector( 32, 8 ), Vector( -32, 8 ) },
-            { Vector( -32, 8 ), Vector( -32, 8 ) }
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
         },
         LRD = {
             { Vector( -32, -8 ), Vector( 32, -8 ) },

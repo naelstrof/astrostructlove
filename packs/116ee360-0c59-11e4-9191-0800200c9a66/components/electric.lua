@@ -7,7 +7,7 @@ local Electric = {
 
 function Electric:update( dt )
   if input >= wattage then
-    if ~self.powered then
+    if not self.powered then
       self:poweredOn()
       self.powered = true
     end

@@ -3,6 +3,7 @@ local CameraComponent = {
     __name = "CameraComponent",
     camera = nil,
     zoom = 1,
+    actualposition = Vector( 0, 0 ),
     active = false,
     smooth = false,
     springstrength = 8,
@@ -15,7 +16,7 @@ function CameraComponent:setPos( t )
     if self.smooth then
         self.wantedposition = Vector( t.x, t.y )
     else
-        self.camera:lookAt( t.x, t.y )
+        self.camera:lookAt( math.floor( t.x + 0.5 ), math.floor( t.y + 0.5 ) )
     end
 end
 
@@ -52,13 +53,13 @@ function CameraComponent:update( dt )
     end
     -- If we're smoothed out we move toward our wanted position via
     -- a spring constraint.
-    local x, y = self.camera:pos()
-    local campos = Vector( x, y )
+    local campos = self.actualposition
     local dir = self.wantedposition - campos
     dir:normalize_inplace()
     local dist = self.wantedposition:dist( campos )
     campos = campos + ( dir * self.springstrength * dt * dist )
-    self.camera:lookAt( campos.x, campos.y )
+    self.camera:lookAt( math.floor( campos.x + 0.5 ), math.floor( campos.y + 0.5 ) )
+    self.actualposition = campos
 end
 
 function CameraComponent:toWorld( pos )

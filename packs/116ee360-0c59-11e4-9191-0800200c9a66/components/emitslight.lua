@@ -33,6 +33,8 @@ function EmitsLight:hits( ent )
     local checkCallback = function( fixture, x, y, xn, yn, fraction )
         if fixture:getUserData() ~= temporaryent and fixture:getUserData() ~= temporaryself and fixture:getUserData():hasComponent( Components.blockslight ) then
             temporaryreturn = false
+            -- This terminates the ray
+            return 0
         end
         return 1
     end

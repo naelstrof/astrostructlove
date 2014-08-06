@@ -7,6 +7,7 @@ MapEditor.toolbox = require( "src/states/mapeditor/toolbox" )
 MapEditor.grid = require( "src/states/mapeditor/grid" )
 MapEditor.currenttool = nil
 
+-- TODO: move tool
 MapEditor.tools = {
     require( "src/states/mapeditor/nonetool" ),
     require( "src/states/mapeditor/createtool" ),

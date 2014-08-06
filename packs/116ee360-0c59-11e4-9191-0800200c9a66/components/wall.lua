@@ -94,109 +94,109 @@ local Wall = {
         L = {
             { Vector( -32, -8 ), Vector( 32, -8 ) },
             { Vector( 32, -8 ), Vector( 32, 8 ) },
-            { Vector( 32, 8 ), Vector( -32, 8 ) }
-            -- L = { Vector( -32, 8 ), Vector( -32, 8 ) }
+            { Vector( 32, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
         },
         LD = {
             { Vector( -32, -8 ), Vector( 8, -8 ) },
             { Vector( 8, -8 ), Vector( 8, 32 ) },
-            -- D = { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, 8 ) },
-            { Vector( -8, 8 ), Vector( -32, 8 ) }
-            -- L = { Vector( -32, 8 ), Vector( -32, -8 ) }
+            { Vector( -8, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
         },
         LR = {
             { Vector( -32, -8 ), Vector( 32, -8 ) },
-            -- R = { Vector( 32, -8 ), Vector( 32, 8 ) },
-            { Vector( 32, 8 ), Vector( -32, 8 ) }
-            -- L = { Vector( -32, 8 ), Vector( -32, 8 ) }
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, 8 ) }
         },
         LRD = {
             { Vector( -32, -8 ), Vector( 32, -8 ) },
-            -- R = { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
             { Vector( 32, 8 ), Vector( 8, 8 ) },
             { Vector( 8, 8 ), Vector( 8, 32 ) },
-            -- D = { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, 8 ) },
-            { Vector( -8, 8 ), Vector( -32, 8 ) }
-            -- L = { Vector( -32, 8 ), Vector( -32, -8 ) }
+            { Vector( -8, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
         },
         LRU = {
             { Vector( -32, -8 ), Vector( -8, -8 ) },
             { Vector( -8, -8 ), Vector( -8, -32 ) },
-            -- U = { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, -8 ) },
             { Vector( 8, -8 ), Vector( 32, -8 ) },
-            -- R = { Vector( 32, -8 ), Vector( 32, 8 ) },
-            { Vector( 32, 8 ), Vector( -32, 8 ) }
-            -- L = { Vector( -32, 8 ), Vector( -32, -8 ) }
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
         },
         LRUD = {
             { Vector( -32, -8 ), Vector( -8, -8 ) },
             { Vector( -8, -8 ), Vector( -8, -32 ) },
-            -- U = { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, -8 ) },
             { Vector( 8, -8 ), Vector( 32, -8 ) },
-            -- R = { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
             { Vector( 32, 8 ), Vector( 8, 8 ) },
             { Vector( 8, 8 ), Vector( 8, 32 ) },
-            -- D = { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, 8 ) },
-            { Vector( -8, 8 ), Vector( -32, 8 ) }
-            -- L = { Vector( -32, 8 ), Vector( -32, -8 ) }
+            { Vector( -8, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
         },
         LU = {
             { Vector( -32, -8 ), Vector( -8, -8 ) },
             { Vector( -8, -8 ), Vector( -8, -32 ) },
-            -- U = { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, 8 ) },
-            { Vector( 8, 8 ), Vector( -32, 8 ) }
-            -- L = { Vector( -32, 8 ), Vector( -32, -8 ) }
+            { Vector( 8, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
         },
         LUD = {
             { Vector( -32, -8 ), Vector( -8, -8 ) },
             { Vector( -8, -8 ), Vector( -8, -32 ) },
-            -- U = { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, 32 ) },
-            -- D = { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, 8 ) },
-            { Vector( -8, 8 ), Vector( -32, 8 ) }
-            -- L = { Vector( -32, 8 ), Vector( -32, -8 ) }
+            { Vector( -8, 8 ), Vector( -32, 8 ) },
+            { Vector( -32, 8 ), Vector( -32, -8 ) }
         },
         R = {
             { Vector( -32, -8 ), Vector( 32, -8 ) },
-            -- R = { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
             { Vector( 32, 8 ), Vector( -32, 8 ) },
             { Vector( -32, 8 ), Vector( -32, 8 ) }
         },
         RD = {
             { Vector( -8, -8 ), Vector( 32, -8 ) },
-            -- R = { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
             { Vector( 32, 8 ), Vector( 8, 8 ) },
             { Vector( 8, 8 ), Vector( 8, 32 ) },
-            -- D = { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, -8 ) }
         },
         RU = {
-            -- U = { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, -8 ) },
             { Vector( 8, -8 ), Vector( 32, -8 ) },
-            -- R = { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
             { Vector( 32, 8 ), Vector( -8, 8 ) },
             { Vector( -8, 8 ), Vector( -8, -32 ) }
         },
         RUD = {
-            -- U = { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, -8 ) },
             { Vector( 8, -8 ), Vector( 32, -8 ) },
-            -- R = { Vector( 32, -8 ), Vector( 32, 8 ) },
+            { Vector( 32, -8 ), Vector( 32, 8 ) },
             { Vector( 32, 8 ), Vector( 8, 8 ) },
             { Vector( 8, 8 ), Vector( 8, 32 ) },
-            -- D = { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, -32 ) }
         },
         U = {
-            -- U = { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, 32 ) },
             { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, -32 ) }
@@ -204,13 +204,13 @@ local Wall = {
         D = {
             { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, 32 ) },
-            -- D = { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, -32 ) }
         },
         UD = {
-            -- U = { Vector( -8, -32 ), Vector( 8, -32 ) },
+            { Vector( -8, -32 ), Vector( 8, -32 ) },
             { Vector( 8, -32 ), Vector( 8, 32 ) },
-            -- D = { Vector( 8, 32 ), Vector( -8, 32 ) },
+            { Vector( 8, 32 ), Vector( -8, 32 ) },
             { Vector( -8, 32 ), Vector( -8, -32 ) }
         }
     }

@@ -31,6 +31,11 @@ function Physics:rayCast( x1, y1, x2, y2, callback )
 end
 
 function Physics:draw()
+    -- Got this from a public forum post here:
+    -- http://love2d.org/forums/viewtopic.php?f=5&t=77140#p161889 by
+    -- username "Azhukar". He left no contact information.
+    -- I assumed it was public use, but I haven't asked for permission yet
+    -- TODO: ask for permission
     self.drawing = true
     local bodies = self.world:getBodyList()
 

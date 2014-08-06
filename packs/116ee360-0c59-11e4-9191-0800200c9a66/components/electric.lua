@@ -10,12 +10,13 @@ function Electric:update( dt )
     if ~self.powered then
       self:poweredOn()
       self.powered = true
-    elseif input < wattage then
-      if self.powered then
-        self:poweredOff()
-        self.powered = false
-      end
     end
+  elseif input < wattage then
+    if self.powered then
+      self:poweredOff()
+      self.powered = false
+    end
+  end
 end
 
 function Electric:poweredOn()

@@ -12,6 +12,7 @@ local Renderer = {
     },
     lights={},
     glowables={},
+    lines={},
     debugs={},
     worldcanvas=nil,
     lightcanvas=nil,
@@ -51,6 +52,16 @@ end
 
 function Renderer:removeGlowable( e )
     self.glowables[ e.glowableIndex ] = nil
+end
+
+function Renderer:addLine( e )
+    self.lines[ self.uid ] = e
+    e.lineIndex = self.uid
+    self.uid = self.uid + 1
+end
+
+function Renderer:removeLine( e )
+    self.lines[ e.lineIndex ] = nil
 end
 
 function Renderer:addLight( e )
@@ -137,6 +148,11 @@ function Renderer:draw( debug )
         love.graphics.setColor( w.color )
         love.graphics.draw( w.drawable, w.pos.x, w.pos.y, w.rot, w.scale.x, w.scale.y, w.originoffset.x, w.originoffset.y )
         love.graphics.setColor( 255, 255, 255, 255 )
+    end
+    for o,w in pairs( self.lines ) do
+        love.graphics.setColor( w.color )
+        love.graphics.setLineWidth( w.linewidth )
+        love.graphics.line( w.linepoints )
     end
     for o,w in pairs( sortedstuff ) do
         love.graphics.setColor( w.color )
